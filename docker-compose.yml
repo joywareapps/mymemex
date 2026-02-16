@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  librarian:
+    build: .
+    container_name: librarian
+    ports:
+      - "8000:8000"
+    volumes:
+      # Configuration
+      - ./config:/app/config:ro
+      # Persistent data
+      - librarian-data:/var/lib/librarian
+      # Document archives (read-only)
+      # Add your document paths here, e.g.:
+      # - /mnt/nas/documents:/mnt/nas/documents:ro
+    environment:
+      - LIBRARIAN_CONFIG=/app/config/config.yaml
+      - LIBRARIAN_DB=/var/lib/librarian/librarian.db
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    networks:
+      - librarian-net
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+
+volumes:
+  librarian-data:
+
+networks:
+  librarian-net:
+    driver: bridge
