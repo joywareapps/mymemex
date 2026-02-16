@@ -1,0 +1,104 @@
+# Librarian Configuration
+# Copy to config.yaml and customize
+
+# Directories to watch for new documents
+watch_paths:
+  - /mnt/nas/documents
+  - /mnt/nas/scans
+  - ~/Documents/ToProcess
+
+# Ignored patterns (glob)
+ignore_patterns:
+  - "*.tmp"
+  - ".DS_Store"
+  - "Thumbs.db"
+  - ".git/**"
+
+# Processing settings
+processing:
+  # Maximum concurrent ingestion jobs
+  concurrency: 4
+  # File size limit (MB)
+  max_file_size_mb: 100
+  # Supported file types
+  allowed_extensions:
+    - pdf
+    - png
+    - jpg
+    - jpeg
+    - tiff
+    - bmp
+
+# Privacy & OCR settings
+privacy:
+  # Default mode: "local" or "cloud" or "hybrid"
+  default_mode: local
+  # Auto-apply local mode to sensitive folders
+  sensitive_paths:
+    - /mnt/nas/financial
+    - /mnt/nas/medical
+  # Cloud OCR fallback threshold (confidence %)
+  cloud_fallback_threshold: 70
+
+# OCR engine configuration
+ocr:
+  # Local engine: "tesseract" or "paddleocr"
+  local_engine: tesseract
+  tesseract:
+    language: eng
+    data_path: /usr/share/tessdata
+  paddleocr:
+    use_gpu: false
+    lang: en
+  # Cloud providers (only used when enabled)
+  cloud:
+    provider: aws  # aws or google
+    aws:
+      region: us-east-1
+      # Credentials from environment: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+    google:
+      # Credentials from environment: GOOGLE_APPLICATION_CREDENTIALS
+
+# Embedding configuration
+embeddings:
+  # Local model for embeddings
+  model: nomic-embed-text
+  # Ollama base URL (for local models)
+  ollama_base_url: http://localhost:11434
+  # Chunk size for document splitting
+  chunk_size: 512
+  chunk_overlap: 50
+
+# Vector store configuration
+vector_store:
+  # Backend: "chromadb" or "pgvector"
+  backend: chromadb
+  chromadb:
+    persist_directory: ./data/chroma
+  pgvector:
+    connection_string: postgresql://librarian:password@localhost:5432/librarian
+
+# Metadata database
+database:
+  type: sqlite
+  sqlite:
+    path: ./data/librarian.db
+
+# Agentic features
+agents:
+  # Enable auto-tagging
+  auto_tagging: true
+  # Enable filing suggestions
+  filing_suggestions: true
+  # Auto-execute filing (dangerous!) - recommend false
+  auto_execute_filing: false
+  # Default LLM for agents
+  llm:
+    provider: ollama  # ollama, openai, anthropic
+    model: llama3.2
+    ollama_base_url: http://localhost:11434
+
+# Logging
+logging:
+  level: INFO
+  file: ./logs/librarian.log
