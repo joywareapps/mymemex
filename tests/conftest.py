@@ -90,3 +90,35 @@ def sample_pdf_multi_page(tmp_dir):
     doc.save(str(pdf_path))
     doc.close()
     return pdf_path
+
+
+@pytest.fixture
+def sample_pdf_scanned(tmp_dir):
+    """Create a scanned-style PDF (image-only page, no embedded text).
+
+    We render text into a raster image, then insert that image into a PDF page.
+    PyMuPDF native extraction returns <50 chars for this, triggering the OCR path.
+    """
+    import fitz
+    from PIL import Image, ImageDraw, ImageFont
+
+    pdf_path = tmp_dir / "scanned.pdf"
+
+    # Create a raster image with text
+    img = Image.new("RGB", (612, 792), "white")
+    draw = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+    except OSError:
+        font = ImageFont.load_default()
+    draw.text((72, 72), "Scanned Document OCR Test\n\nThis text exists only as pixels.", fill="black", font=font)
+    img_path = tmp_dir / "page.png"
+    img.save(str(img_path))
+
+    # Build a PDF with just the image (no selectable text)
+    doc = fitz.open()
+    page = doc.new_page(width=612, height=792)
+    page.insert_image(fitz.Rect(0, 0, 612, 792), filename=str(img_path))
+    doc.save(str(pdf_path))
+    doc.close()
+    return pdf_path

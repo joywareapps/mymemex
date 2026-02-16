@@ -12,8 +12,9 @@ import structlog
 from ..config import AppConfig
 from ..core.events import EventManager
 from ..core.queue import TaskQueue, TaskStatus, TaskType
-from ..processing.chunker import chunk_pages
+from ..processing.chunker import chunk_pages, chunk_text
 from ..processing.extractor import extract_pdf_metadata, extract_text_from_pdf
+from ..processing.ocr import ocr_page
 from ..processing.hasher import hash_file, quick_fingerprint
 from ..storage.database import get_session
 from ..storage.models import Task
@@ -191,13 +192,11 @@ async def run_ingest_pipeline(
             if events:
                 await events.broadcast(
                     "document.processing",
-                    {"id": doc.id, "step": "chunking", "progress": 0.6},
+                    {"id": doc.id, "step": "chunking", "progress": 0.4},
                 )
 
-            # Step 3: Chunk all extracted text
+            # Step 3: Chunk native text and store
             all_chunks = chunk_pages(pages_with_text)
-
-            # Step 4: Store chunks (FTS5 triggers fire automatically)
             for chunk in all_chunks:
                 await chunk_repo.create(
                     document_id=doc.id,
@@ -208,18 +207,52 @@ async def run_ingest_pipeline(
                     extraction_method="pymupdf_native",
                 )
 
+            # Step 4: OCR pages that need it
+            ocr_chunk_count = 0
+            if config.ocr.enabled and pages_needing_ocr:
+                log.info("Processing OCR pages", doc_id=doc.id, count=len(pages_needing_ocr))
+
+                if events:
+                    await events.broadcast(
+                        "document.processing",
+                        {"id": doc.id, "step": "ocr", "progress": 0.5},
+                    )
+
+                global_index = len(all_chunks)
+                for page_num in pages_needing_ocr:
+                    text = await ocr_page(path, page_num, config.ocr)
+                    if not text.strip():
+                        continue
+
+                    page_chunks = chunk_text(text, page_number=page_num)
+                    for chunk in page_chunks:
+                        chunk.chunk_index = global_index
+                        global_index += 1
+                        await chunk_repo.create(
+                            document_id=doc.id,
+                            chunk_index=chunk.chunk_index,
+                            page_number=chunk.page_number,
+                            text=chunk.text,
+                            char_count=chunk.char_count,
+                            extraction_method="tesseract_ocr",
+                        )
+                        ocr_chunk_count += 1
+
             await session.commit()
 
             # Step 5: Update document status
             await repo.update_status(doc, "ready")
             await repo.update(doc, processed_at=datetime.utcnow())
 
+            total_chunks = len(all_chunks) + ocr_chunk_count
             log.info(
                 "Document ingested",
                 doc_id=doc.id,
-                chunks=len(all_chunks),
+                native_chunks=len(all_chunks),
+                ocr_chunks=ocr_chunk_count,
+                total_chunks=total_chunks,
                 pages=metadata["page_count"],
-                pages_needing_ocr=len(pages_needing_ocr),
+                pages_ocr=len(pages_needing_ocr),
             )
 
             if events:
@@ -228,7 +261,8 @@ async def run_ingest_pipeline(
                     {
                         "id": doc.id,
                         "title": doc.title or doc.original_filename,
-                        "chunks": len(all_chunks),
+                        "chunks": total_chunks,
+                        "ocr_chunks": ocr_chunk_count,
                         "pages_needing_ocr": len(pages_needing_ocr),
                     },
                 )

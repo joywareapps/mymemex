@@ -8,7 +8,10 @@
       "Bash(pip --version:*)",
       "Bash(python3.11 --version:*)",
       "Bash(python3.12 --version:*)",
-      "Bash(python3.13 --version:*)"
+      "Bash(python3.13 --version:*)",
+      "Bash(tesseract --version:*)",
+      "Bash(dpkg -l:*)",
+      "Bash(apt list:*)"
     ]
   }
 }
