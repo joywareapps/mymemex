@@ -21,6 +21,16 @@ Bugs, issues, and improvements to address.
   - Should warn user: "No config file found. Using defaults. Run `librarian init` to configure."
   - Applies to: `serve` and `mcp serve` commands
 
+- [ ] **Optimize database lock duration on uploads**
+  - Current: Lock may be held during entire upload processing
+  - Goal: Lock only during actual DB writes, not file I/O or hashing
+  - Add semaphore/queue for concurrent uploads
+  - Lock should release immediately after write completes
+  - Keep transaction scope minimal
+  - Currently silently uses defaults with empty watch directories
+  - Should warn user: "No config file found. Using defaults. Run `librarian init` to configure."
+  - Applies to: `serve` and `mcp serve` commands
+
 ---
 
 ## Priority: Medium
