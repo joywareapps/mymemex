@@ -21,7 +21,10 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:pypi.org)",
       "WebSearch",
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(chmod:*)",
+      "Bash(curl:*)",
+      "Bash(pip3 install:*)"
     ]
   }
 }

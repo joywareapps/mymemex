@@ -6,6 +6,11 @@ Bugs, issues, and improvements to address.
 
 ## Priority: High
 
+- [x] **Database lock on concurrent uploads**
+  - Fixed: Increased `busy_timeout` from 5s to 30s
+  - WAL mode already enabled
+  - SQLite handles concurrent reads, but writes serialize
+
 - [ ] **Show warning message when running without config**
   - Currently silently uses defaults with empty watch directories
   - Should warn user: "No config file found. Using defaults. Run `librarian init` to configure."
