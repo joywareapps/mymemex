@@ -1,0 +1,220 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Architecture - Librarian">
+  <!-- Header -->
+  <section class="py-16 border-b border-slate-800">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">
+        Architecture
+      </h1>
+      <p class="text-xl text-slate-400 max-w-2xl mx-auto">
+        A constraint-driven, NAS-optimized architecture for sovereign document intelligence.
+      </p>
+    </div>
+  </section>
+
+  <!-- Core Principles -->
+  <section class="py-16">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-2xl font-bold mb-8 text-emerald-400">Core Principles</h2>
+      
+      <div class="grid md:grid-cols-3 gap-6 mb-12">
+        <div class="border border-slate-800 rounded-xl p-6">
+          <div class="text-emerald-400 font-bold text-lg mb-2">1. No In-Process AI</div>
+          <p class="text-slate-400 text-sm">Zero ML framework dependencies. All embeddings and LLM calls via external HTTP APIs (LiteLLM + httpx).</p>
+        </div>
+        
+        <div class="border border-slate-800 rounded-xl p-6">
+          <div class="text-emerald-400 font-bold text-lg mb-2">2. Graceful Degradation</div>
+          <p class="text-slate-400 text-sm">Keyword search works without AI. AI-dependent tasks queue and resume when services return.</p>
+        </div>
+        
+        <div class="border border-slate-800 rounded-xl p-6">
+          <div class="text-emerald-400 font-bold text-lg mb-2">3. NAS-Optimized</div>
+          <p class="text-slate-400 text-sm">~500MB RAM footprint. SQLite-backed queue. Single process. Designed for Synology and similar.</p>
+        </div>
+      </div>
+
+      <!-- Architecture Diagram -->
+      <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8 mb-12">
+        <h3 class="text-xl font-semibold mb-6 text-center">System Architecture</h3>
+        
+        <div class="space-y-6">
+          <!-- Layer 1: File System -->
+          <div class="border border-slate-700 rounded-lg p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold">File System Layer</h4>
+                <p class="text-slate-400 text-sm">Watched directories, real-time file detection, two-phase deduplication</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">watchdog</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">xxhash + SHA-256</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Content-addressed storage</span>
+            </div>
+          </div>
+
+          <!-- Layer 2: Processing Pipeline -->
+          <div class="border border-slate-700 rounded-lg p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold">Processing Pipeline</h4>
+                <p class="text-slate-400 text-sm">OCR, text extraction, chunking, embedding generation</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">PyMuPDF</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Tesseract</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Custom chunker</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">LiteLLM</span>
+            </div>
+          </div>
+
+          <!-- Layer 3: Storage -->
+          <div class="border border-slate-700 rounded-lg p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold">Storage Layer</h4>
+                <p class="text-slate-400 text-sm">Metadata, vectors, full-text search, task queue</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">SQLite + FTS5</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">ChromaDB</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">SQLite task queue</span>
+            </div>
+          </div>
+
+          <!-- Layer 4: Intelligence -->
+          <div class="border border-slate-700 rounded-lg p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-violet-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold">Intelligence Layer</h4>
+                <p class="text-slate-400 text-sm">Classification, RAG, filing suggestions, natural language queries</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Jinja2 prompts</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Reciprocal Rank Fusion</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Hybrid search</span>
+            </div>
+          </div>
+
+          <!-- Layer 5: API -->
+          <div class="border border-slate-700 rounded-lg p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold">API Layer</h4>
+                <p class="text-slate-400 text-sm">REST endpoints, WebSocket events, real-time updates</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">FastAPI</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">WebSocket</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Pydantic schemas</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Architectural Decisions -->
+  <section class="py-16 border-t border-slate-800 bg-slate-900/30">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-2xl font-bold mb-8 text-cyan-400">Key Architectural Decisions</h2>
+      
+      <div class="space-y-6">
+        <div class="border border-slate-700 rounded-xl p-6">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            OCR-as-a-Service Pattern
+          </h3>
+          <p class="text-slate-400 mb-3">
+            Tesseract is built-in (no ML deps). Users who want PaddleOCR accuracy can configure an external OCR service endpoint, 
+            mirroring the LLM externalization pattern. This follows the constraint's spirit — "externalize all AI" — without violating it.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Three-tier OCR: native → service → Tesseract → cloud</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Optional external OCR service</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-700 rounded-xl p-6">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            SQLite-Backed Task Queue
+          </h3>
+          <p class="text-slate-400 mb-3">
+            For a single-user NAS system, Redis adds operational complexity without meaningful benefit. SQLite queue gives us persistence, 
+            prioritization, retryability, and visibility — all with zero extra dependencies. Upgrade path to Redis if needed.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Exponential backoff</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Priority levels</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">waiting_llm state</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-700 rounded-xl p-6">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            Progressive Milestones
+          </h3>
+          <p class="text-slate-400 mb-3">
+            By moving PyMuPDF extraction and FTS5 keyword search to M3 (before OCR and AI), users get a working searchable archive with 
+            zero AI dependencies. This makes the product useful at M4 — long before Ollama, embeddings, or LLM are configured.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">M4: Keyword search works (no AI)</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Progressive enhancement</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-700 rounded-xl p-6">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            Hybrid Search with RRF
+          </h3>
+          <p class="text-slate-400 mb-3">
+            Combines full-text keyword search (FTS5) with semantic vector search using Reciprocal Rank Fusion. 
+            Find exact phrases OR conceptual matches. FTS5 works offline; vector search enhances when AI available.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-slate-800 rounded-full
