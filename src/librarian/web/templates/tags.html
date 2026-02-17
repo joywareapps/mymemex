@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Tags — Librarian{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Tags</h1>
+</div>
+
+<!-- Create Tag Form -->
+<div class="mb-6" x-data="{ name: '', creating: false }">
+    <form @submit.prevent="
+        if (name.trim()) {
+            creating = true;
+            fetch('/api/v1/tags', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name.trim()})
+            }).then(r => {
+                if (r.ok) location.reload();
+                else r.json().then(d => { toast = {type: 'error', message: d.detail || 'Failed'}; creating = false; });
+            });
+        }
+    " class="flex gap-2 max-w-md">
+        <input type="text" x-model="name" placeholder="New tag name..."
+               class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+        <button type="submit" :disabled="creating"
+                class="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50">
+            Create
+        </button>
+    </form>
+</div>
+
+<!-- Tag Grid -->
+{% if tags %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for tag in tags %}
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-4 flex items-center justify-between">
+        <div>
+            <a href="/ui/?tag={{ tag.name }}" class="text-sm font-medium text-gray-900 hover:text-blue-600">{{ tag.name }}</a>
+            <p class="text-xs text-gray-500 mt-0.5">{{ tag.document_count }} document{{ "s" if tag.document_count != 1 else "" }}</p>
+        </div>
+        <button class="text-gray-400 hover:text-red-600 text-sm"
+                @click="if (confirm('Delete tag \'{{ tag.name }}\'?')) {
+                    fetch('/api/v1/tags/{{ tag.id }}', {method: 'DELETE'}).then(() => location.reload());
+                }">
+            &times;
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16">
+    <p class="text-gray-500">No tags yet. Create one above.</p>
+</div>
+{% endif %}
+{% endblock %}

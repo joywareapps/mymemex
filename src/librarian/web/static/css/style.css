@@ -1,0 +1,57 @@
+/* Librarian Web UI — Custom Styles */
+
+/* HTMX loading indicator */
+.htmx-indicator {
+    display: none;
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+    display: inline-block;
+}
+
+/* Drag-and-drop zone */
+.drop-zone {
+    border: 2px dashed #d1d5db;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+.drop-zone.drag-over {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+/* Toast notifications */
+.toast-enter {
+    animation: toast-in 0.3s ease-out;
+}
+.toast-exit {
+    animation: toast-out 0.3s ease-in forwards;
+}
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(-1rem); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes toast-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-1rem); }
+}
+
+/* Status badges */
+.badge-processed  { background-color: #d1fae5; color: #065f46; }
+.badge-processing { background-color: #fef3c7; color: #92400e; }
+.badge-pending    { background-color: #e0e7ff; color: #3730a3; }
+.badge-error      { background-color: #fee2e2; color: #991b1b; }
+
+/* Snippet highlight */
+mark {
+    background-color: #fef08a;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+/* Truncate long text */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

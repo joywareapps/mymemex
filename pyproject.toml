@@ -37,6 +37,9 @@ dependencies = [
 
     # File uploads
     "python-multipart>=0.0.18",
+
+    # Web UI templates
+    "jinja2>=3.1",
 ]
 
 [project.optional-dependencies]

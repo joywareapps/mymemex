@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .config import AppConfig, load_config
 from .core.events import EventManager
@@ -118,6 +120,16 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     from .api.router import api_router
 
     app.include_router(api_router, prefix="/api/v1")
+
+    # Include Web UI router + static files
+    from .web.router import router as web_router
+
+    app.include_router(web_router, prefix="/ui")
+    app.mount(
+        "/ui/static",
+        StaticFiles(directory=str(Path(__file__).parent / "web" / "static")),
+        name="static",
+    )
 
     @app.get("/health")
     async def health():
