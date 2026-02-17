@@ -1,14 +1,22 @@
 # Project Librarian: Product Requirements Document (PRD)
 
-**Version:** 1.0
-**Status:** Draft / Phase 4 - Functional Specification
+**Version:** 1.1
+**Status:** M1-M8 Complete | Production Ready
 **Codename:** Librarian
+**Last Updated:** 2026-02-17
 
 ---
 
 ## 1. Executive Summary
 
 Librarian is a sovereign document intelligence platform designed to transform unstructured personal archives (PDFs, scans, images) into a searchable, agentic database. Unlike cloud-first solutions, Librarian prioritizes privacy by allowing users to toggle between cloud-based high-fidelity models and local, air-gapped LLMs/OCR engines.
+
+**Current State:**
+- ✅ Core platform complete (M1-M8)
+- ✅ MCP Server for Claude Desktop/OpenClaw integration
+- ✅ Web UI for document browsing and management
+- ✅ Semantic search with local Ollama embeddings
+- 🚧 Auto-tagging and multi-user support planned
 
 ---
 
@@ -18,37 +26,37 @@ The system follows a **"Hybrid Memory"** architecture:
 
 ### Components
 
-| Component | Responsibility |
-|-----------|----------------|
-| **Watcher** | Monitors local/NAS directories for new files |
-| **Ingestion Worker** | Handles file queuing, hashing (deduplication), and metadata extraction |
-| **Intelligence Core** | Executes OCR (Tesseract vs. Cloud Vision) and Embedding generation |
-| **Storage Layer** | SQLite (metadata/relationships) + ChromaDB/pgvector (semantic chunks) |
-| **Agentic Layer** | Manages multi-hop queries and autonomous file organization |
+| Component | Responsibility | Status |
+|-----------|----------------|--------|
+| **Watcher** | Monitors local/NAS directories for new files | ✅ M3 |
+| **Ingestion Worker** | Handles file queuing, hashing (deduplication), metadata extraction | ✅ M3 |
+| **Intelligence Core** | Executes OCR (Tesseract) and Embedding generation | ✅ M5, M6 |
+| **Storage Layer** | SQLite (metadata/relationships) + ChromaDB (semantic chunks) | ✅ M2, M6 |
+| **Service Layer** | Business logic for documents, search, tags, ingest | ✅ M6.5 |
+| **MCP Server** | Model Context Protocol for LLM integration | ✅ M7 |
+| **Web UI** | Browser-based document management | ✅ M8 |
+| **Agentic Layer** | Auto-tagging and autonomous organization | 🔜 M9 |
 
 ### Architecture Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         USER INTERFACE                          │
-│  (CLI / Web UI / API)                                           │
+│  CLI │ Web UI (/ui) │ MCP (Claude/OpenClaw) │ REST API (/api)  │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                       AGENTIC LAYER                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │ Query Agent  │  │ Classify     │  │ Organize     │          │
-│  │              │  │ Agent        │  │ Agent        │          │
-│  └──────────────┘  └──────────────┘  └──────────────┘          │
+│                      SERVICE LAYER (M6.5)                       │
+│  DocumentService │ SearchService │ TagService │ IngestService  │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                     INTELLIGENCE CORE                           │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │ Local OCR    │  │ Cloud OCR    │  │ Embedding    │          │
-│  │ (Tesseract)  │  │ (Vision API) │  │ (nomic/etc)  │          │
+│  │ Local OCR    │  │ Embedding    │  │ Auto-Tag     │          │
+│  │ (Tesseract)  │  │ (Ollama)     │  │ (LLM) 🔜     │          │
 │  └──────────────┘  └──────────────┘  └──────────────┘          │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -56,8 +64,8 @@ The system follows a **"Hybrid Memory"** architecture:
 ┌─────────────────────────────────────────────────────────────────┐
 │                      STORAGE LAYER                              │
 │  ┌──────────────────┐  ┌──────────────────┐                    │
-│  │ SQLite           │  │ ChromaDB/        │                    │
-│  │ (metadata)       │  │ pgvector         │                    │
+│  │ SQLite           │  │ ChromaDB         │                    │
+│  │ (metadata/FTS5)  │  │ (vectors)        │                    │
 │  └──────────────────┘  └──────────────────┘                    │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -65,135 +73,226 @@ The system follows a **"Hybrid Memory"** architecture:
 ┌─────────────────────────────────────────────────────────────────┐
 │                    INGESTION PIPELINE                           │
 │  ┌──────────┐  ┌──────────────┐  ┌──────────────┐              │
-│  │ Watcher  │──│ Deduplication│──│ Processing   │              │
-│  │          │  │ (SHA-256)    │  │ Queue        │              │
+│  │ Watcher  │──│ Deduplication│──│ Task Queue   │              │
+│  │          │  │ (xxhash/SHA) │  │ (SQLite)     │              │
 │  └──────────┘  └──────────────┘  └──────────────┘              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Epic 1: Intelligent Ingestion & Monitoring
+## 3. Interfaces
 
-### Feature: Real-time Archive Synchronization
-The system must maintain a 1:1 reflection of the physical file state on the NAS.
+### 3.1 Web UI (M8)
 
-### User Story 1.1: New Document Discovery
-**Scenario:** Immediate indexing of new records.
-- **Given:** The Librarian service is running and pointed at `/mnt/nas/documents`
-- **When:** A user saves `medical_report_2024.pdf` to the folder
-- **Then:** The system detects the file change, generates a unique SHA-256 hash, and queues it for processing within 5 seconds
+Browser-based interface at `http://localhost:8000/ui/`:
+- Document list with filters (status, tag, date)
+- Search with keyword/semantic/hybrid modes
+- Document detail view with content and tags
+- Tag management (add/remove)
+- Drag-and-drop upload
 
-### User Story 1.2: Duplicate Management
-**Scenario:** Prevent redundant vector pollution.
-- **Given:** `invoice_001.pdf` is already indexed
-- **When:** The user uploads the same file into a different sub-folder
-- **Then:** Librarian identifies the hash collision and links the new file path to the existing database entry rather than re-running OCR
+**Tech:** HTMX + Alpine.js + Tailwind CSS (CDN, no build step)
 
----
+### 3.2 MCP Server (M7)
 
-## 4. Epic 2: Sovereign OCR & Privacy Control
+Model Context Protocol server for LLM integration:
+- **8 Tools:** search_documents, get_document, get_document_text, list_documents, add_tag, remove_tag, upload_document, get_library_stats
+- **2 Resources:** library://tags, library://stats
+- **2 Prompts:** search_and_summarize, compare_documents
 
-### Feature: Configurable Intelligence
-Users must have granular control over where their data is processed.
+**Clients:** Claude Desktop, OpenClaw, any MCP-compatible client
 
-### User Story 2.1: Local-First Processing
-**Scenario:** Air-gapped financial indexing.
-- **Given:** A document is tagged as "Sensitive" or the global policy is set to "Local"
-- **When:** Processing starts
-- **Then:** Librarian utilizes PaddleOCR or Llama-3-Vision (local) for text extraction and `nomic-embed-text` for vectors, ensuring zero data egress
+### 3.3 REST API
 
-### User Story 2.2: Cloud-Enhanced Accuracy
-**Scenario:** Difficult-to-read handwritten notes.
-- **Given:** Local OCR confidence is below a defined threshold (e.g., < 70%)
-- **When:** The user explicitly approves a "Cloud Boost" for this specific file
-- **Then:** The file is temporarily sent to AWS Textract or Google Vision API for high-fidelity extraction before being purged from the cloud
+FastAPI endpoints at `http://localhost:8000/api/v1/`:
+- Documents CRUD
+- Search (keyword, semantic, hybrid)
+- Tags management
+- System status
 
----
+**Docs:** `http://localhost:8000/docs`
 
-## 5. Epic 3: Semantic Discovery & Agentic Search
+### 3.4 CLI
 
-### Feature: RAG-Powered Natural Language Interface
-Users should interact with their archive as if it were a knowledgeable person.
-
-### User Story 3.1: Specific Detail Retrieval
-**Scenario:** Finding hidden policy details.
-- **Given:** Multiple insurance documents are indexed
-- **When:** The user asks, "Does my car insurance cover rental cars in Europe?"
-- **Then:** The LLM agent retrieves the specific "Coverage" section, cites the exact document and page number, and summarizes the answer
-
-### User Story 3.2: Multi-Document Analysis
-**Scenario:** Annual spending summary.
-- **Given:** 12 months of utility bills
-- **When:** The user asks, "Which month had the highest energy consumption last year?"
-- **Then:** An agent identifies all files categorized as "Utility Bill," extracts the "Total kWh" value from each, and provides a comparative answer
+Command-line interface:
+- `librarian init` — Initialize configuration
+- `librarian serve` — Start API server
+- `librarian config` — Manage configuration
+- `librarian mcp serve` — Start MCP server
 
 ---
 
-## 6. Epic 4: Autonomous Organization
+## 4. Features
 
-### Feature: Agentic Rule Engine
-The system should suggest (or execute) organizational structures based on content.
+### 4.1 Intelligent Ingestion & Monitoring ✅
 
-### User Story 4.1: Semantic Auto-Tagging
-**Scenario:** Automated labeling.
-- **Given:** A document containing terms like "Premium," "Policy Number," and "Beneficiary" is scanned
-- **When:** The Classification Agent analyzes the text
-- **Then:** It automatically applies the tags `#Insurance` and `#Legal`
+**Real-time Archive Synchronization:**
+- File watcher monitors configured directories
+- SHA-256 + xxhash deduplication
+- Automatic queuing for processing
 
-### User Story 4.2: Proactive Filing
-**Scenario:** Maintaining folder hygiene.
-- **Given:** A user has a folder structure `/Taxes/{Year}`
-- **When:** A document is identified as a 2024 Tax Statement
-- **Then:** Librarian suggests moving the file from `/Inbox` to `/Taxes/2024` and waits for user confirmation
+**Recovery:**
+- Stale task recovery on startup (crashed tasks)
+- Stuck document recovery (processing without task)
 
----
+### 4.2 OCR & Text Extraction ✅
 
-## 7. Technical Constraints & Non-Functionals
+**Local-First Processing:**
+- Tesseract OCR for scanned documents
+- PyMuPDF for text extraction
+- Multi-language support (configured: eng+deu)
+- OCR audit logging
 
-| Constraint | Requirement |
-|------------|-------------|
-| **Latency** | Semantic search responses under 3 seconds for local queries |
-| **Scalability** | Handle up to 50,000 documents without significant indexing degradation |
-| **Portability** | Entire stack deployable via `docker-compose` |
-| **Target Hardware** | Synology NAS (16GB RAM) or dedicated local server |
+### 4.3 Semantic Search ✅
 
----
+**Vector-Powered Discovery:**
+- Ollama embeddings (nomic-embed-text)
+- ChromaDB vector store
+- Hybrid search (keyword + semantic RRF fusion)
+- FTS5 full-text search
 
-## 8. Technology Stack (Proposed)
+### 4.4 Agentic Integration ✅
 
-### Core
-- **Language:** Python 3.11+ or Rust
-- **Watcher:** `watchdog` (Python) or `notify` (Rust)
-- **Queue:** Redis or SQLite-based job queue
-
-### OCR
-- **Local:** Tesseract, PaddleOCR
-- **Cloud:** AWS Textract, Google Vision API
-
-### Embeddings & Vector Store
-- **Local Models:** `nomic-embed-text`, `bge-small-en`
-- **Vector DB:** ChromaDB (embedded) or pgvector (PostgreSQL)
-
-### LLM Integration
-- **Local:** Ollama (Llama 3, Mistral)
-- **Cloud:** OpenAI API, Anthropic API
-
-### Database
-- **Metadata:** SQLite
-- **Relationships:** SQLite with FTS5
+**MCP Interface:**
+- Natural language queries via Claude Desktop
+- Document Q&A with citations
+- Multi-document analysis
 
 ---
 
-## 9. Milestones
+## 5. Upcoming Features
 
-| Phase | Deliverable | Status |
-|-------|-------------|--------|
-| **M1** | Project skeleton + watcher MVP | 🔲 Not Started |
-| **M2** | Ingestion pipeline + SQLite metadata | 🔲 Not Started |
-| **M3** | Local OCR integration + deduplication | 🔲 Not Started |
-| **M4** | Vector storage + semantic search | 🔲 Not Started |
-| **M5** | RAG query interface | 🔲 Not Started |
-| **M6** | Auto-tagging + classification agents | 🔲 Not Started |
-| **M7** | Cloud OCR fallback + privacy controls | 🔲 Not Started |
-| **M8** | Docker compose + deployment docs | 🔲 Not Started |
+### M9: Auto-Tagging 🔜
+- LLM-based classification on ingest
+- Tag suggestions based on content
+- Confidence thresholds
+
+### M10: Multi-User Support 📋
+- Named profiles
+- Document ownership tracking
+- Per-user filtering
+
+### M11: Cloud OCR Fallback 📋
+- AWS Textract / Google Vision
+- Per-directory privacy policies
+- Auto-fallback for low confidence
+
+### M12: RAG Chat Interface 📋
+- Built-in conversational Q&A
+- Citation links
+- Chat history
+
+---
+
+## 6. Technical Specifications
+
+| Component | Technology |
+|-----------|------------|
+| **Language** | Python 3.11+ |
+| **API Framework** | FastAPI |
+| **Database** | SQLite + FTS5 + ChromaDB |
+| **OCR** | Tesseract (via pytesseract) |
+| **Embeddings** | Ollama (nomic-embed-text) |
+| **Watcher** | watchdog |
+| **Queue** | SQLite-backed async queue |
+| **MCP** | mcp Python SDK |
+| **Web UI** | HTMX + Alpine.js + Tailwind CSS |
+
+---
+
+## 7. Non-Functional Requirements
+
+| Requirement | Target |
+|-------------|--------|
+| **Latency** | Search < 3 seconds (local) |
+| **Scalability** | 50,000 documents |
+| **Portability** | Single-machine deployment |
+| **Hardware** | 16GB RAM minimum |
+| **Storage** | ~1GB per 1000 documents |
+
+---
+
+## 8. Milestones
+
+| Milestone | Description | Status | Date |
+|-----------|-------------|--------|------|
+| **M1** | Project skeleton, config system, CLI | ✅ Complete | 2026-02 |
+| **M2** | SQLite database, SQLAlchemy models, migrations | ✅ Complete | 2026-02 |
+| **M3** | File watcher, deduplication (SHA-256), task queue | ✅ Complete | 2026-02 |
+| **M4** | Text extraction (PyMuPDF), chunking, FTS5 search | ✅ Complete | 2026-02 |
+| **M5** | OCR integration (Tesseract) for scanned PDFs | ✅ Complete | 2026-02 |
+| **M6** | Vector embeddings + semantic search (Ollama + ChromaDB) | ✅ Complete | 2026-02 |
+| **M6.5** | Service layer extraction | ✅ Complete | 2026-02-17 |
+| **M7** | MCP Server (8 tools, 2 resources, 2 prompts) | ✅ Complete | 2026-02-17 |
+| **M7.5** | OpenClaw skill for Librarian | ✅ Complete | 2026-02-17 |
+| **M8** | Web UI (document browser, search, tags, upload) | ✅ Complete | 2026-02-17 |
+| **M9** | Auto-tagging with LLM | 🔜 Planned | - |
+| **M10** | Multi-user support | 📋 Planned | - |
+| **M11** | Cloud OCR fallback | 📋 Planned | - |
+| **M12** | RAG chat interface | 📋 Planned | - |
+| **M13** | Deployment & distribution | 📋 Planned | - |
+
+---
+
+## 9. Test Coverage
+
+**Current:** 101+ tests passing
+
+| Category | Tests | Status |
+|----------|-------|--------|
+| Unit tests | 70+ | ✅ Pass |
+| OCR integration | 12 | ✅ Pass |
+| Ollama integration | 10 | ✅ Pass (skip if unavailable) |
+| Semantic E2E | 5 | ✅ Pass (skip if unavailable) |
+| Web UI routes | 15 | ✅ Pass |
+
+---
+
+## 10. Known Issues & TODO
+
+See [TODO.md](../TODO.md) for current issues and improvements:
+
+**High Priority:**
+- [ ] Show warning when running without config
+- [ ] Optimize database lock duration on uploads
+
+**Medium Priority:**
+- [ ] Empty state improvements in Web UI
+- [ ] CLI `init` should create config file
+- [ ] MCP better error messages
+
+---
+
+## 11. Quick Start
+
+```bash
+# Install
+pip install -e ".[dev,ocr,ai]"
+
+# Initialize
+librarian init
+nano ~/.config/librarian/config.yaml
+
+# Configure Ollama endpoint
+llm:
+  provider: ollama
+  model: nomic-embed-text
+  api_base: http://localhost:11434
+
+# Start
+librarian serve
+
+# Access
+open http://localhost:8000/ui/
+```
+
+---
+
+## 12. References
+
+- [MILESTONES.md](MILESTONES.md) — Detailed roadmap
+- [ARCHITECTURE.md](ARCHITECTURE.md) — Technical architecture
+- [MCP-SPEC.md](MCP-SPEC.md) — MCP server specification
+- [MULTI-USER-SPEC.md](MULTI-USER-SPEC.md) — Multi-user design
+- [TODO.md](../TODO.md) — Issues and improvements
