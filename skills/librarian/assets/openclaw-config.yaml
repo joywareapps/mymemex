@@ -1,0 +1,14 @@
+# Add this to your OpenClaw config (~/.openclaw/config.yaml)
+
+mcp:
+  servers:
+    librarian:
+      # Option 1: stdio transport (recommended for local)
+      transport: stdio
+      command: librarian
+      args: ["mcp", "serve"]
+
+      # Option 2: HTTP transport (for remote access)
+      # transport: http
+      # url: http://localhost:8001/mcp
+      # api_key: ${LIBRARIAN_MCP_KEY}
