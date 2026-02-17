@@ -168,6 +168,14 @@ Command-line interface:
 - Tag suggestions based on content
 - Confidence thresholds
 
+### M9.5: Structured Extraction & Aggregation 📋
+- Extract structured data (amounts, dates, entities) from documents via LLM
+- Typed `document_fields` table for SQL aggregation queries
+- MCP tools: `aggregate_amounts`, `get_extracted_fields`, `list_document_types`
+- Enable queries like "How much tax did I pay 2015-2025?"
+- Background extraction after ingestion (non-blocking)
+- ADR-010 in [ARCHITECTURE.md](ARCHITECTURE.md) documents design decisions
+
 ### M10: Multi-User Support 📋
 - Named profiles
 - Document ownership tracking
@@ -228,6 +236,7 @@ Command-line interface:
 | **M7.5** | OpenClaw skill for Librarian | ✅ Complete | 2026-02-17 |
 | **M8** | Web UI (document browser, search, tags, upload) | ✅ Complete | 2026-02-17 |
 | **M9** | Auto-tagging with LLM | 🔜 Planned | - |
+| **M9.5** | Structured extraction & aggregation | 📋 Planned | - |
 | **M10** | Multi-user support | 📋 Planned | - |
 | **M11** | Cloud OCR fallback | 📋 Planned | - |
 | **M12** | RAG chat interface | 📋 Planned | - |

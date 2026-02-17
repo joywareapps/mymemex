@@ -29,29 +29,29 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
           </div>
           <div>
             <h2 class="text-2xl font-bold">Current Status</h2>
-            <p class="text-slate-400">M1-M6 Complete — Semantic Search Working!</p>
+            <p class="text-slate-400">M1-M8 Complete — Production Ready!</p>
           </div>
         </div>
         <div class="grid md:grid-cols-3 gap-4 mb-4">
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Phase</div>
-            <div class="text-lg font-semibold text-emerald-400">M1-M6 Complete</div>
+            <div class="text-lg font-semibold text-emerald-400">M1-M8 Complete</div>
           </div>
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Next Milestone</div>
-            <div class="text-lg font-semibold">M6.5: Service Layer Extraction</div>
+            <div class="text-lg font-semibold">M9: Auto-Tagging</div>
           </div>
           <div class="bg-slate-900/50 rounded-lg p-4">
-            <div class="text-sm text-slate-400 mb-1">Target</div>
-            <div class="text-lg font-semibold">MCP Server (M7) in 2-3 weeks</div>
+            <div class="text-sm text-slate-400 mb-1">Then</div>
+            <div class="text-lg font-semibold">M9.5: Structured Extraction</div>
           </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
           <div class="bg-slate-900/30 rounded-lg p-3">
-            <span class="text-slate-400">Tests:</span> <span class="font-semibold text-emerald-400">83 (68 pass + 15 skip)</span>
+            <span class="text-slate-400">Tests:</span> <span class="font-semibold text-emerald-400">102+ passing</span>
           </div>
           <div class="bg-slate-900/30 rounded-lg p-3">
-            <span class="text-slate-400">Code:</span> <span class="font-semibold">~35 modules</span>
+            <span class="text-slate-400">MCP Tools:</span> <span class="font-semibold">8 tools</span>
           </div>
           <div class="bg-slate-900/30 rounded-lg p-3">
             <span class="text-slate-400">Deployment:</span> <span class="font-semibold">Docker ready</span>
@@ -207,71 +207,131 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
         </div>
       </div>
 
-      <!-- Upcoming Milestones -->
-      <h2 class="text-2xl font-bold mt-16 mb-8 text-cyan-400">Upcoming Milestones</h2>
+      <!-- Recently Completed -->
+      <h2 class="text-2xl font-bold mt-16 mb-8 text-cyan-400">Recently Completed</h2>
 
       <div class="space-y-8">
         <!-- M6.5 -->
-        <div class="border border-cyan-500/30 rounded-xl p-6">
+        <div class="border border-slate-800 rounded-xl p-6">
           <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-cyan-400 font-bold">M6.5</span>
+            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+              <span class="text-emerald-400 font-bold">M6.5</span>
             </div>
             <div>
-              <h3 class="text-xl font-semibold">Service Layer Extraction <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs font-semibold">NEXT UP</span></h3>
-              <p class="text-slate-400">Extract business logic for MCP + REST API sharing</p>
+              <h3 class="text-xl font-semibold">Service Layer Extraction <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
+              <p class="text-slate-400">Shared business logic for MCP + REST API + CLI</p>
             </div>
           </div>
-          <div class="ml-14 text-slate-400">
-            <p>Prerequisite for M7. Creates clean service layer that both MCP tools and REST endpoints call into.</p>
-            <p class="mt-2 text-sm"><span class="text-cyan-400">Effort:</span> 2-3 days</p>
+          <div class="ml-14">
+            <ul class="space-y-2 text-slate-400">
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> DocumentService, SearchService, TagService, IngestService, StatsService</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Thin API handlers — no duplicate logic</li>
+            </ul>
           </div>
         </div>
 
-        <!-- M7 (highlighted) -->
-        <div class="border border-violet-500/30 rounded-xl p-6 bg-gradient-to-r from-violet-500/5 to-transparent">
+        <!-- M7 -->
+        <div class="border border-slate-800 rounded-xl p-6">
           <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-violet-500/30 rounded-lg flex items-center justify-center">
-              <span class="text-violet-400 font-bold">M7</span>
+            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+              <span class="text-emerald-400 font-bold">M7</span>
             </div>
             <div>
-              <h3 class="text-xl font-semibold">MCP Server <span class="ml-2 px-2 py-1 bg-violet-500/20 text-violet-400 rounded text-xs font-semibold">PRIORITY</span></h3>
+              <h3 class="text-xl font-semibold">MCP Server <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
               <p class="text-slate-400">Conversational access via Claude Desktop, OpenClaw, any MCP client</p>
             </div>
           </div>
           <div class="ml-14">
             <ul class="space-y-2 text-slate-400">
-              <li>8 tools: search, get_document, get_document_text, upload, tag management, stats</li>
-              <li>Two transports: stdio (Claude Desktop) + HTTP/SSE (OpenClaw)</li>
-              <li>Security: path boundaries, localhost default, rate limiting</li>
-              <li>No custom chat UI needed — use your existing AI assistants!</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> 8 tools: search, get_document, get_document_text, upload, tags, stats</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Two transports: stdio (Claude Desktop) + HTTP/SSE (OpenClaw)</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Security: path boundaries, localhost default, rate limiting</li>
             </ul>
             <div class="mt-4">
               <span class="px-3 py-1 bg-violet-500/20 text-violet-400 rounded-full text-sm font-medium">Talk to Your Documents</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- M8 -->
+        <div class="border border-slate-800 rounded-xl p-6">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+              <span class="text-emerald-400 font-bold">M8</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold">Web UI <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
+              <p class="text-slate-400">Browser-based document management with HTMX + Alpine.js</p>
+            </div>
+          </div>
+          <div class="ml-14">
+            <ul class="space-y-2 text-slate-400">
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Document browser with search, filters, and pagination</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Tag management and drag-and-drop upload</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Milestones -->
+      <h2 class="text-2xl font-bold mt-16 mb-8 text-cyan-400">Upcoming Milestones</h2>
+
+      <div class="space-y-8">
+        <!-- M9 -->
+        <div class="border border-cyan-500/30 rounded-xl p-6">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+              <span class="text-cyan-400 font-bold">M9</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold">Auto-Tagging <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs font-semibold">NEXT UP</span></h3>
+              <p class="text-slate-400">LLM-powered document classification and tag suggestions</p>
+            </div>
+          </div>
+          <div class="ml-14 text-slate-400">
+            <p>Automatically classify and tag documents on ingest using Ollama. Confidence thresholds prevent low-quality tags.</p>
+            <p class="mt-2 text-sm"><span class="text-cyan-400">Effort:</span> ~1 week</p>
+          </div>
+        </div>
+
+        <!-- M9.5 (highlighted) -->
+        <div class="border border-amber-500/30 rounded-xl p-6 bg-gradient-to-r from-amber-500/5 to-transparent">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-10 h-10 bg-amber-500/30 rounded-lg flex items-center justify-center">
+              <span class="text-amber-400 font-bold">M9.5</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold">Structured Extraction & Aggregation <span class="ml-2 px-2 py-1 bg-amber-500/20 text-amber-400 rounded text-xs font-semibold">KEY FEATURE</span></h3>
+              <p class="text-slate-400">Extract amounts, dates, and entities — then aggregate across your archive</p>
+            </div>
+          </div>
+          <div class="ml-14">
+            <ul class="space-y-2 text-slate-400">
+              <li>"How much tax did I pay from 2015-2025?" — answered with sources</li>
+              <li>LLM extracts structured data (amounts, dates, organizations) after ingestion</li>
+              <li>Typed storage with SQL aggregation (SUM, GROUP BY)</li>
+              <li>3 new MCP tools: aggregate_amounts, get_extracted_fields, list_document_types</li>
+            </ul>
+            <div class="mt-4">
+              <span class="px-3 py-1 bg-amber-500/20 text-amber-400 rounded-full text-sm font-medium">Document Intelligence</span>
               <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300 ml-2">1.5-2 weeks</span>
             </div>
           </div>
         </div>
 
-        <!-- M8+ Future -->
+        <!-- M10+ Future -->
         <div class="border border-slate-800 rounded-xl p-6">
           <div class="flex items-center gap-4 mb-4">
             <div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center">
-              <span class="text-slate-400 font-bold">M8+</span>
+              <span class="text-slate-400 font-bold">M10+</span>
             </div>
             <div>
               <h3 class="text-xl font-semibold">Future Enhancements</h3>
-              <p class="text-slate-400">Web UI, auto-tagging, multi-user, cloud OCR, chat, deployment</p>
+              <p class="text-slate-400">Multi-user, cloud OCR, chat interface, deployment</p>
             </div>
           </div>
           <div class="ml-14">
             <div class="grid md:grid-cols-3 gap-3 text-sm">
-              <div class="bg-slate-900/50 rounded p-3">
-                <span class="text-slate-300">M8:</span> <span class="text-slate-400">Web UI (3-4 weeks)</span>
-              </div>
-              <div class="bg-slate-900/50 rounded p-3">
-                <span class="text-slate-300">M9:</span> <span class="text-slate-400">Auto-Tagging (1 week)</span>
-              </div>
               <div class="bg-slate-900/50 rounded p-3">
                 <span class="text-slate-300">M10:</span> <span class="text-slate-400">Multi-User (2-3 weeks)</span>
               </div>
@@ -285,7 +345,6 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
                 <span class="text-slate-300">M13:</span> <span class="text-slate-400">Deployment (1 week)</span>
               </div>
             </div>
-            <p class="mt-4 text-slate-500 text-sm">Total: 10-14 weeks for M6.5-M13</p>
           </div>
         </div>
       </div>
