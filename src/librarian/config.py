@@ -67,6 +67,16 @@ class AIConfig(BaseModel):
     semantic_search_enabled: bool = False
 
 
+class ClassificationConfig(BaseModel):
+    """Document classification configuration."""
+
+    enabled: bool = True
+    confidence_threshold: float = Field(default=0.7, ge=0.0, le=1.0)
+    max_tags: int = Field(default=5, ge=1, le=20)
+    model: str = ""  # Override LLM model for classification
+    prompt_template: str = ""  # Custom classification prompt
+
+
 class MCPSecurityConfig(BaseModel):
     """MCP security boundaries."""
 
@@ -102,6 +112,7 @@ class AppConfig(BaseSettings):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     ai: AIConfig = Field(default_factory=AIConfig)
     mcp: MCPConfig = Field(default_factory=MCPConfig)
+    classification: ClassificationConfig = Field(default_factory=ClassificationConfig)
 
     @classmethod
     def from_yaml(cls, path: Path) -> AppConfig:

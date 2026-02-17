@@ -135,6 +135,7 @@ async def run_ingest_pipeline(
     async with get_session() as session:
         repo = DocumentRepository(session)
         chunk_repo = ChunkRepository(session)
+        queue = TaskQueue(session)
 
         doc = await repo.get_by_id(document_id)
         if not doc:
@@ -255,6 +256,16 @@ async def run_ingest_pipeline(
                 pages_ocr=len(pages_needing_ocr),
             )
 
+            # Step 6: Enqueue classification if enabled
+            if config.classification.enabled and total_chunks > 0:
+                await queue.enqueue(
+                    task_type=TaskType.CLASSIFY,
+                    payload={"document_id": doc.id},
+                    document_id=doc.id,
+                    priority=3,
+                )
+                log.info("Classification task enqueued", doc_id=doc.id)
+
             if events:
                 await events.broadcast(
                     "document.completed",
@@ -332,9 +343,17 @@ async def _process_task(
         log.warning("OCR not yet implemented (M5)", task_id=task.id)
         await queue.fail(task, "OCR not implemented in M1-M4", retryable=False)
 
-    elif task.task_type in (TaskType.EMBED.value, TaskType.CLASSIFY.value):
-        log.warning("AI features not yet implemented (M6+)", task_id=task.id)
-        await queue.fail(task, "AI features not implemented in M1-M4", retryable=False)
+    elif task.task_type == TaskType.CLASSIFY.value:
+        from ..services.classification import ClassificationService
+
+        doc_id = payload["document_id"]
+        service = ClassificationService(config)
+        await service.classify_document(doc_id)
+        await queue.complete(task)
+
+    elif task.task_type == TaskType.EMBED.value:
+        log.warning("Embed task not yet implemented", task_id=task.id)
+        await queue.fail(task, "Embed task not implemented", retryable=False)
 
     else:
         log.warning("Unknown task type", task_id=task.id, type=task.task_type)

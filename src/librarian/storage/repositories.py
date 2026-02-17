@@ -242,12 +242,15 @@ class ChunkRepository:
         await self.session.flush()
         return chunk
 
-    async def get_by_document(self, document_id: int) -> list[Chunk]:
-        result = await self.session.execute(
+    async def get_by_document(self, document_id: int, limit: int | None = None) -> list[Chunk]:
+        query = (
             select(Chunk)
             .where(Chunk.document_id == document_id)
             .order_by(Chunk.chunk_index)
         )
+        if limit is not None:
+            query = query.limit(limit)
+        result = await self.session.execute(query)
         return list(result.scalars().all())
 
     async def fulltext_search(

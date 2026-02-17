@@ -271,6 +271,39 @@ def register(mcp: FastMCP) -> None:
             stats = await service.get_library_stats()
             return _format_stats(stats)
 
+    @mcp.tool()
+    async def reclassify_documents(
+        document_ids: list[int] | None = None,
+        all_documents: bool = False,
+        ctx: Context = None,
+    ) -> str:
+        """Re-classify documents to update auto-tags using LLM.
+
+        Args:
+            document_ids: Specific document IDs to reclassify.
+            all_documents: If true, reclassify all ready documents.
+        """
+        from ..services.classification import ClassificationService
+
+        lctx = _get_ctx(ctx)
+        service = ClassificationService(lctx.config)
+
+        if all_documents:
+            count = await service.reclassify_all()
+            return f"Reclassified {count} documents."
+        elif document_ids:
+            results = []
+            for doc_id in document_ids:
+                result = await service.classify_document(doc_id)
+                if result:
+                    results.append(
+                        f"Document {doc_id}: {result.document_type} "
+                        f"(confidence: {result.type_confidence:.2f})"
+                    )
+            return "\n".join(results) or "No documents classified."
+        else:
+            return "Specify document_ids or set all_documents=true."
+
 
 # --- Formatting helpers ---
 
