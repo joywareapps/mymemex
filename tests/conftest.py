@@ -122,3 +122,16 @@ def sample_pdf_scanned(tmp_dir):
     doc.save(str(pdf_path))
     doc.close()
     return pdf_path
+
+
+@pytest.fixture
+def real_scanned_pdf():
+    """Real-world scanned PDF for integration testing.
+
+    This is a document that requires OCR to extract text.
+    Skip test if file doesn't exist (not in repo by default).
+    """
+    pdf_path = Path(__file__).parent / "fixtures" / "ocr-test-document.pdf"
+    if not pdf_path.exists():
+        pytest.skip(f"Real scanned PDF not found: {pdf_path}")
+    return pdf_path
