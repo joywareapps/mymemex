@@ -11,7 +11,17 @@
       "Bash(python3.13 --version:*)",
       "Bash(tesseract --version:*)",
       "Bash(dpkg -l:*)",
-      "Bash(apt list:*)"
+      "Bash(apt list:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(npx astro build:*)",
+      "Bash(pip show:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(/home/gorano/code/librarian/venv/bin/pip show:*)",
+      "Bash(/home/gorano/code/librarian/venv/bin/python:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:pypi.org)",
+      "WebSearch",
+      "Bash(python -c:*)"
     ]
   }
 }

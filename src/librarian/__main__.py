@@ -151,6 +151,25 @@ def serve(
     uvicorn.run(application, host=cfg.server.host, port=cfg.server.port, log_level="info")
 
 
+# --- MCP command group ---
+
+mcp_app = typer.Typer(help="MCP server commands")
+app.add_typer(mcp_app, name="mcp")
+
+
+@mcp_app.command("serve")
+def mcp_serve(
+    config_path: Path | None = typer.Option(None, "--config", "-c", help="Config file path"),
+):
+    """Start the MCP server (stdio transport for Claude Desktop)."""
+    cfg = load_config(config_path)
+
+    from .mcp import create_mcp_server
+
+    mcp_server = create_mcp_server(cfg)
+    mcp_server.run(transport="stdio")
+
+
 def main():
     app()
 

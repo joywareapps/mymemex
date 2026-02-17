@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import time
-from pathlib import Path
 
 from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 from .. import __version__
 from ..core.queue import TaskQueue
+from ..services.stats import StatsService
 from ..storage.database import get_session
-from ..storage.repositories import ChunkRepository, DocumentRepository
 
 router = APIRouter()
 
@@ -46,32 +45,23 @@ async def get_status(request: Request):
     config = request.app.state.config
 
     async with get_session() as session:
-        doc_repo = DocumentRepository(session)
-        chunk_repo = ChunkRepository(session)
-        queue = TaskQueue(session)
-
-        doc_stats = await doc_repo.get_stats()
-        total_chunks = await chunk_repo.get_total_count()
-        queue_stats = await queue.get_stats()
-
-        # SQLite file size
-        db_path = Path(config.database.path)
-        sqlite_size_mb = db_path.stat().st_size / (1024 * 1024) if db_path.exists() else 0
+        service = StatsService(session, config)
+        stats = await service.get_library_stats()
 
     return StatusResponse(
         version=__version__,
         uptime_seconds=int(time.time() - _start_time),
         queue=QueueStats(
-            pending=queue_stats.get("pending", 0),
-            running=queue_stats.get("running", 0),
-            completed=queue_stats.get("completed", 0),
-            failed=queue_stats.get("failed", 0),
-            waiting_llm=queue_stats.get("waiting_llm", 0),
+            pending=stats["queue_stats"].get("pending", 0),
+            running=stats["queue_stats"].get("running", 0),
+            completed=stats["queue_stats"].get("completed", 0),
+            failed=stats["queue_stats"].get("failed", 0),
+            waiting_llm=stats["queue_stats"].get("waiting_llm", 0),
         ),
         storage=StorageStats(
-            total_documents=doc_stats["total"],
-            total_chunks=total_chunks,
-            sqlite_size_mb=round(sqlite_size_mb, 2),
+            total_documents=stats["doc_stats"]["total"],
+            total_chunks=stats["total_chunks"],
+            sqlite_size_mb=stats["sqlite_size_mb"],
         ),
         watched_directories=config.watch.directories,
     )

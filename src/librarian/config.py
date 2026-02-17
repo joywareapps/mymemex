@@ -67,6 +67,20 @@ class AIConfig(BaseModel):
     semantic_search_enabled: bool = False
 
 
+class MCPSecurityConfig(BaseModel):
+    """MCP security boundaries."""
+
+    allowed_parent_paths: list[str] = Field(default_factory=list)
+    max_upload_size_mb: int = 5
+
+
+class MCPConfig(BaseModel):
+    """MCP server configuration."""
+
+    enabled: bool = True
+    security: MCPSecurityConfig = Field(default_factory=MCPSecurityConfig)
+
+
 class AppConfig(BaseSettings):
     """Main application configuration."""
 
@@ -87,6 +101,7 @@ class AppConfig(BaseSettings):
     ocr: OCRConfig = Field(default_factory=OCRConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
     ai: AIConfig = Field(default_factory=AIConfig)
+    mcp: MCPConfig = Field(default_factory=MCPConfig)
 
     @classmethod
     def from_yaml(cls, path: Path) -> AppConfig:
