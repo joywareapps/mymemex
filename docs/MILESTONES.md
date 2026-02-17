@@ -239,7 +239,34 @@ GROUP BY df.currency;
 
 ---
 
-### M10: Multi-User Support
+### M10: Deployment & Distribution
+
+**Goal:** Easy installation and production deployment.
+
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| Docker image | Multi-stage build, optimized size | Low |
+| docker-compose.yml | Full stack (Librarian + Ollama + ChromaDB) | Low |
+| Systemd service | Linux daemon with auto-restart | Low |
+| Backup/restore | Database + vector store backup tooling | Medium |
+| User documentation | Installation guide, configuration reference | Medium |
+| Monitoring | Health checks, log aggregation guidance | Low |
+
+**Estimated effort:** 1 week
+
+**Dependencies:** All core features should be stable. Docker/compose files already exist as stubs.
+
+**Technical approach:** Multi-stage Docker build for small image size. Docker Compose for full stack deployment. Systemd service file for bare-metal Linux. Backup script that exports SQLite + ChromaDB data.
+
+**Success criteria:**
+- `docker compose up` starts a working Librarian instance
+- Backup/restore works for both SQLite and ChromaDB data
+- Documentation covers installation, configuration, and common workflows
+- Health endpoint suitable for container orchestration
+
+---
+
+### M11: Multi-User Support
 
 **Goal:** Shared library with per-user ownership tracking. A family or small team shares one Librarian instance.
 
@@ -267,7 +294,7 @@ GROUP BY df.currency;
 
 ---
 
-### M11: Cloud OCR Fallback
+### M12: Cloud OCR Fallback
 
 **Goal:** High-fidelity OCR for difficult documents using cloud APIs, with privacy controls.
 
@@ -292,7 +319,7 @@ GROUP BY df.currency;
 
 ---
 
-### M12: Chat Interface
+### M13: Chat Interface
 
 **Goal:** Optional built-in conversational interface with RAG over the document library.
 
@@ -308,38 +335,13 @@ GROUP BY df.currency;
 
 **Dependencies:** M6 (semantic search), M8 (Web UI for embedding chat component).
 
-**Technical approach:** This is NOT needed for most users — MCP (M7) provides conversational access through external clients. M12 is for users who want a self-contained experience. Uses a separate Ollama model for generation (distinct from the embedding model).
+**Technical approach:** This is NOT needed for most users — MCP (M7) provides conversational access through external clients. M13 is for users who want a self-contained experience. Uses a separate Ollama model for generation (distinct from the embedding model).
 
 **Success criteria:**
 - Users can ask natural language questions about their library
 - Answers include citations with document + page references
 - Chat history is persisted across sessions
 - Works with local Ollama models (no cloud requirement)
-
----
-
-### M13: Deployment & Distribution
-
-**Goal:** Easy installation and production deployment.
-
-| Feature | Description | Effort |
-|---------|-------------|--------|
-| Docker image | Multi-stage build, optimized size | Low |
-| docker-compose.yml | Full stack (Librarian + Ollama + ChromaDB) | Low |
-| Systemd service | Linux daemon with auto-restart | Low |
-| Backup/restore | Database + vector store backup tooling | Medium |
-| User documentation | Installation guide, configuration reference | Medium |
-| Monitoring | Health checks, log aggregation guidance | Low |
-
-**Estimated effort:** 1 week
-
-**Dependencies:** All core features should be stable. Docker/compose files already exist as stubs.
-
-**Success criteria:**
-- `docker compose up` starts a working Librarian instance
-- Backup/restore works for both SQLite and ChromaDB data
-- Documentation covers installation, configuration, and common workflows
-- Health endpoint suitable for container orchestration
 
 ---
 
@@ -356,26 +358,26 @@ M7 (MCP Server) ─────────────────────�
     │                                   │               │
     ├──────────────┐                    │               │
     ▼              ▼                    ▼               ▼
-M8 (Web UI)   M9 (Auto-Tag)      M10 (Multi-User)  M11 (Cloud OCR)
+M8 (Web UI)   M9 (Auto-Tag)      M11 (Multi-User)  M12 (Cloud OCR)
     │              │                                (independent)
     │              ▼
     │         M9.5 (Extraction)
     │              │
     ▼              │
-M12 (Chat) ◄──────┘
+M13 (Chat) ◄──────┘
     │
     ▼
-M13 (Deployment)
+M10 (Deployment)
 ```
 
 **Notes:**
 - M6.5 (Service Layer) is the prerequisite for M7 — extracts shared business logic
-- M11 (Cloud OCR) is independent — can be built at any time after M5
 - M9 (Auto-Tag) establishes the LLM classification pipeline
 - M9.5 (Structured Extraction) extends M9 with entity extraction + aggregation queries
-- M10 (Multi-User) depends on M7 for MCP user context, but NOT on M8. Web UI user-switching integrates as part of M8 or post-M8
-- M12 (Chat) needs M8 for embedding the chat component; benefits from M9.5 for data-backed answers
-- M13 (Deployment) should wait until features stabilize
+- M10 (Deployment) comes before multi-user for easier single-user production deployment
+- M11 (Multi-User) depends on M7 for MCP user context, but NOT on M8
+- M12 (Cloud OCR) is independent — can be built at any time after M5
+- M13 (Chat) needs M8 for embedding the chat component; benefits from M9.5
 
 ---
 
@@ -388,12 +390,12 @@ M13 (Deployment)
 | M8 Web UI | ~3-4 weeks | Weeks 3-7 |
 | M9 Auto-Tagging | ~1 week | Week 4 (parallel with M8) |
 | M9.5 Structured Extraction | ~1.5-2 weeks | Weeks 5-6 (after M9) |
-| M10 Multi-User | ~2-3 weeks | Weeks 5-7 (parallel with M9.5) |
-| M11 Cloud OCR | ~3-4 days | Any time (independent) |
-| M12 Chat Interface | ~1-2 weeks | Weeks 8-9 |
-| M13 Deployment | ~1 week | Week 10 |
+| M10 Deployment | ~1 week | Week 7 |
+| M11 Multi-User | ~2-3 weeks | Weeks 8-10 |
+| M12 Cloud OCR | ~3-4 days | Any time (independent) |
+| M13 Chat Interface | ~1-2 weeks | Weeks 11-12 |
 
-**Total estimated effort:** 11.5-16 weeks for M6.5-M13.
+**Total estimated effort:** 12-17 weeks for M6.5-M13.
 
 ---
 
@@ -404,10 +406,10 @@ M13 (Deployment)
 | Service layer extraction breaks existing tests | M6.5 delay | Incremental refactoring, run tests after each service |
 | MCP SDK instability | M7 delay | Pin SDK version, wrap in thin abstraction |
 | Security vulnerabilities in MCP HTTP transport | M7 exposure | Localhost-only default, rate limiting, mandatory TLS for network |
-| Ollama model availability | M9, M12 blocked | Graceful degradation when LLM unavailable |
-| ChromaDB multi-user isolation | M10 complexity | Use metadata filtering, not separate collections |
+| Ollama model availability | M9, M13 blocked | Graceful degradation when LLM unavailable |
+| ChromaDB multi-user isolation | M11 complexity | Use metadata filtering, not separate collections |
 | Frontend framework churn | M8 rework | Choose boring tech (HTMX or vanilla JS) |
-| Cloud OCR cost/privacy | M11 adoption | Strict opt-in, per-directory policies |
+| Cloud OCR cost/privacy | M12 adoption | Strict opt-in, per-directory policies |
 
 ---
 
