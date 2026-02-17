@@ -421,3 +421,115 @@ mcp:
 - ✅ Simple configuration — sane defaults for personal use
 - ⚠️ Users who want broader filesystem access must explicitly configure it
 - ⚠️ TLS is a warning, not enforcement — users can ignore it
+
+---
+
+## ADR-010: Structured Data Extraction
+
+**Status:** Proposed
+**Date:** 2026-02-17
+
+### Context
+
+Users need to query aggregated data across documents — e.g., "How much tax did I pay from 2015-2025?" or "What's my total insurance premium across all policies?" Librarian currently extracts text and enables keyword/semantic search, but cannot:
+
+1. Identify document types (tax return, invoice, receipt)
+2. Extract structured entities (amounts, dates, organizations)
+3. Aggregate values across documents
+4. Answer quantitative questions
+
+### Decision
+
+Implement **structured data extraction** as a post-ingestion background task, storing extracted fields in a **separate typed table** (`document_fields`), with aggregation exposed via new MCP tools and service methods.
+
+### Storage Schema: Typed Key-Value Table (Option B)
+
+```sql
+CREATE TABLE document_fields (
+    id INTEGER PRIMARY KEY,
+    document_id INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    field_name TEXT NOT NULL,     -- 'total_tax', 'premium', 'invoice_total'
+    field_type TEXT NOT NULL,     -- 'currency', 'date', 'string', 'number'
+    value_text TEXT,              -- for string values
+    value_number REAL,            -- for numeric/currency values
+    value_date TEXT,              -- ISO 8601 date string
+    currency TEXT,                -- 'EUR', 'USD', etc. (when field_type='currency')
+    confidence REAL DEFAULT 1.0,  -- 0.0-1.0, extraction confidence
+    source TEXT NOT NULL,         -- 'llm', 'regex', 'manual'
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX ix_doc_fields_document ON document_fields(document_id);
+CREATE INDEX ix_doc_fields_name ON document_fields(field_name);
+```
+
+Additionally, add `document_date` to the `documents` table — the date the document refers to (tax year, invoice date), distinct from `ingested_at`:
+
+```sql
+ALTER TABLE documents ADD COLUMN document_date DATE;
+```
+
+**Why Option B over alternatives:**
+
+| Criterion | A (JSON column) | B (Typed table) | C (Hybrid) |
+|-----------|-----------------|-----------------|------------|
+| Aggregation (`SUM`, `GROUP BY`) | Fragile `json_extract()` paths | Native SQL | Partial |
+| Indexing | No JSON indexes in SQLite | Full index support | Partial |
+| Type safety | Everything is text | Typed columns per value type | Mixed |
+| Schema evolution | No migration needed | Add rows, not columns | Requires migration |
+| Query complexity | Complex JSONPath | Standard joins | Mixed |
+
+The primary value of structured extraction IS queryability. JSON storage would defeat that purpose. SQLite handles relational queries and joins efficiently at the 50K document scale.
+
+### Extraction Timing: Background Task After Ingestion
+
+Extraction runs **after** a document reaches `"ready"` status, as a separate background task:
+
+```
+Ingestion pipeline (existing)          Extraction pipeline (new)
+─────────────────────────              ──────────────────────────
+File → Extract text → Chunk → ready ──→ EXTRACT_METADATA task
+                                        → LLM classification
+                                        → Entity extraction
+                                        → Store document_fields
+                                        → Update category, document_date
+```
+
+**Why not during ingestion:**
+- Ingestion should remain fast and LLM-independent
+- Documents are immediately keyword-searchable while extraction runs
+- LLM failures don't block document availability
+- Aligns with existing pattern: embedding scheduler already runs as background task
+
+**Implementation:** Add `TaskType.EXTRACT_METADATA` to the task queue. After ingestion completes (`status="ready"`), enqueue an extraction task. The existing task worker dispatches it to the extraction pipeline.
+
+### LLM Provider Strategy: Local-First
+
+Follows ADR-005 (Local-First Privacy Model):
+
+1. **Default:** Ollama with a capable local model (e.g., `llama3:8b`, `mistral:7b`)
+2. **Cloud opt-in:** OpenAI/Anthropic for higher accuracy (explicit config)
+3. **Extraction prompt:** Structured JSON output with document type, amounts, dates, entities
+4. **Provider interface:** Abstract `LLMClient` class — same prompt, different backends
+
+The existing `LLMConfig` already has `provider: Literal["ollama", "openai", "anthropic", "none"]`. The extraction pipeline reads this config to select the backend.
+
+### Fallback Strategy: Graceful Degradation
+
+When extraction fails or LLM is unavailable:
+
+1. **No LLM configured** (`provider: "none"`) — Skip extraction entirely. Document is keyword-searchable but has no structured fields.
+2. **LLM unavailable** (Ollama down) — Task stays in queue, retries with exponential backoff (existing retry logic).
+3. **LLM returns unparseable output** — Log warning, mark task failed. Document remains `"ready"` and keyword-searchable.
+4. **Regex fallback** (future) — For common patterns (EUR/USD amounts, ISO dates), apply regex-based extraction as a supplement or fallback when LLM is unavailable.
+5. **Re-extraction** — Users can trigger re-extraction via `IngestService.reprocess()` or a new `reextract` endpoint after fixing LLM config.
+
+### Consequences
+
+- ✅ Enables quantitative queries across document library
+- ✅ Non-breaking: documents without extraction are unaffected
+- ✅ Decoupled from ingestion: no performance impact on file processing
+- ✅ Schema supports multiple extraction sources (LLM, regex, manual)
+- ✅ Confidence scores allow filtering unreliable extractions
+- ⚠️ Extraction quality depends on LLM model capability
+- ⚠️ Local models (7-8B) may produce lower-quality extractions than cloud APIs
+- ⚠️ Adds new table and task type — requires migration for existing databases

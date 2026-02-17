@@ -1,6 +1,6 @@
 # Librarian MCP Specification
 
-**Version:** 1.1
+**Version:** 1.2
 **Last Updated:** 2026-02-17
 
 This document specifies the Model Context Protocol (MCP) interface for Librarian.
@@ -336,6 +336,123 @@ Add a new directory to the watch list.
 
 ---
 
+### `aggregate_amounts` *(M9.5)*
+
+Aggregate monetary values across documents matching the given filters. Designed for quantitative queries like "How much tax did I pay from 2015-2025?"
+
+**Parameters:**
+```json
+{
+  "category": "string — document category filter (optional, e.g., 'tax_return', 'invoice')",
+  "tag": "string — tag filter (optional)",
+  "field_name": "string — field to aggregate (optional, e.g., 'total_tax', 'invoice_total')",
+  "date_from": "string — ISO date, inclusive (optional)",
+  "date_to": "string — ISO date, inclusive (optional)",
+  "currency": "string — filter by currency (optional, e.g., 'EUR')",
+  "min_confidence": "float — minimum extraction confidence, default: 0.5"
+}
+```
+
+**Returns:**
+```json
+{
+  "total": 142567.00,
+  "currency": "EUR",
+  "count": 11,
+  "date_range": {"from": "2015-01-01", "to": "2025-12-31"},
+  "breakdown": [
+    {"year": 2025, "total": 16200.00, "documents": 1},
+    {"year": 2024, "total": 15890.00, "documents": 1},
+    {"year": 2023, "total": 15234.56, "documents": 1}
+  ],
+  "documents": [
+    {"id": 45, "title": "Steuerbescheid 2025", "amount": 16200.00, "date": "2025-06-15"},
+    {"id": 38, "title": "Steuerbescheid 2024", "amount": 15890.00, "date": "2024-07-20"}
+  ]
+}
+```
+
+**Notes:**
+- At least one filter (`category`, `tag`, `field_name`, or date range) must be provided
+- Results are grouped by currency if multiple currencies are present
+- Only fields with `confidence >= min_confidence` are included
+- Documents without extracted fields are excluded from results
+
+---
+
+### `get_extracted_fields` *(M9.5)*
+
+View the structured fields extracted from a document.
+
+**Parameters:**
+```json
+{
+  "document_id": "integer — required"
+}
+```
+
+**Returns:**
+```json
+{
+  "document_id": 45,
+  "title": "Steuerbescheid 2025",
+  "category": "tax_return",
+  "document_date": "2025-06-15",
+  "fields": [
+    {
+      "name": "total_tax",
+      "type": "currency",
+      "value": 16200.00,
+      "currency": "EUR",
+      "confidence": 0.95,
+      "source": "llm"
+    },
+    {
+      "name": "taxable_income",
+      "type": "currency",
+      "value": 72000.00,
+      "currency": "EUR",
+      "confidence": 0.92,
+      "source": "llm"
+    },
+    {
+      "name": "tax_authority",
+      "type": "string",
+      "value": "Finanzamt Fürth",
+      "confidence": 0.98,
+      "source": "llm"
+    }
+  ],
+  "extraction_source": "llm",
+  "extracted_at": "2026-02-17T14:30:00Z"
+}
+```
+
+---
+
+### `list_document_types` *(M9.5)*
+
+List all auto-classified document types with counts.
+
+**Parameters:** None
+
+**Returns:**
+```json
+{
+  "types": [
+    {"type": "invoice", "count": 45, "example_title": "Invoice #2024-001"},
+    {"type": "tax_return", "count": 11, "example_title": "Steuerbescheid 2024"},
+    {"type": "insurance_policy", "count": 8, "example_title": "Haftpflicht Police 2024"},
+    {"type": "receipt", "count": 23, "example_title": "Amazon Rechnung"},
+    {"type": "contract", "count": 5, "example_title": "Mietvertrag"}
+  ],
+  "total_classified": 92,
+  "total_unclassified": 15
+}
+```
+
+---
+
 ## MCP Resources
 
 Resources provide contextual data that MCP clients can use to understand the library state. Resources are kept lean — use tools for detailed data retrieval.
@@ -442,6 +559,8 @@ All tools follow the MCP protocol error format. Errors are returned as tool resu
 | `DIRECTORY_NOT_FOUND` | Watch path does not exist |
 | `PERMISSION_DENIED` | Path outside `allowed_parent_paths` |
 | `PATH_NOT_ALLOWED` | Path violates security boundary |
+| `EXTRACTION_UNAVAILABLE` | LLM not configured or unavailable for extraction |
+| `NO_EXTRACTED_DATA` | Document has no extracted fields |
 
 **Implementation note:** Use the MCP SDK's `isError` flag on tool results. Do NOT use HTTP-style status codes (400, 503) — those are not part of the MCP protocol. Error codes above are embedded in the message text for programmatic debugging by clients.
 
@@ -605,3 +724,4 @@ Then synthesizes answer with citations
 |---------|------|---------|
 | 1.0 | 2026-02-17 | Initial specification |
 | 1.1 | 2026-02-17 | Add `get_document_text` tool; fix `upload_document` (file_path primary, size limits); simplify resources (remove `library://documents`, `library://document/{id}`); fix error handling to MCP protocol format; add Security section; harden authentication (localhost default, rate limiting, TLS warnings) |
+| 1.2 | 2026-02-17 | Add M9.5 aggregation tools: `aggregate_amounts`, `get_extracted_fields`, `list_document_types`; add error codes `EXTRACTION_UNAVAILABLE`, `NO_EXTRACTED_DATA` |

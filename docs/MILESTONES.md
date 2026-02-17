@@ -160,6 +160,85 @@ MCP tool handlers ──┘
 
 ---
 
+### M9.5: Structured Extraction & Aggregation
+
+**Goal:** Extract structured data (amounts, dates, entities) from documents using LLM inference and enable aggregation queries across the library (e.g., "How much tax did I pay from 2015-2025?").
+
+**Priority:** HIGH — Unlocks the core value proposition of a document intelligence platform. Without structured extraction, Librarian is a search engine; with it, Librarian becomes an analytical tool.
+
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| `DocumentField` model | New `document_fields` table with typed values (currency, date, string, number) | Low |
+| `document_date` column | Add document-date to `documents` table (distinct from `ingested_at`) | Low |
+| `LLMClient` abstraction | Abstract LLM interface supporting Ollama/OpenAI/Anthropic | Medium |
+| Extraction pipeline | Post-ingestion background task: classify + extract fields via LLM | Medium |
+| Extraction prompt | Structured JSON prompt for document type, amounts, dates, entities | Medium |
+| `ExtractionService` | Service for extraction orchestration + aggregation queries | Medium |
+| `DocumentFieldRepository` | Data access for `document_fields` table (CRUD + aggregation queries) | Low |
+| MCP tool: `aggregate_amounts` | Sum monetary values across filtered documents | Low |
+| MCP tool: `get_extracted_fields` | View extracted fields for a document | Low |
+| MCP tool: `list_document_types` | List auto-classified document types with counts | Low |
+| Bulk re-extraction | Re-extract metadata for existing documents | Low |
+| Migration | Alembic migration for new table + column | Low |
+
+**Estimated effort:** 1.5-2 weeks
+
+**Dependencies:** M9 (Auto-Tagging establishes the LLM classification pipeline that extraction extends)
+
+**Technical approach:**
+
+After a document reaches `"ready"` status, enqueue a `EXTRACT_METADATA` task. The extraction pipeline:
+1. Reads the document's first chunks (up to ~4000 chars)
+2. Sends a structured extraction prompt to the configured LLM
+3. Parses the JSON response into typed `DocumentField` rows
+4. Updates `document.category` and `document.document_date`
+5. Auto-tags based on extracted document type (reuses M9 tagging)
+
+Storage uses a separate `document_fields` table with typed columns (`value_number`, `value_date`, `value_text`) for proper SQL aggregation. See ADR-010 in [ARCHITECTURE.md](ARCHITECTURE.md) for schema design rationale.
+
+**Aggregation example:**
+```sql
+-- "How much tax did I pay 2015-2025?"
+SELECT SUM(df.value_number), df.currency
+FROM document_fields df
+JOIN documents d ON d.id = df.document_id
+WHERE d.category = 'tax_return'
+  AND df.field_name = 'total_tax'
+  AND d.document_date BETWEEN '2015-01-01' AND '2025-12-31'
+GROUP BY df.currency;
+```
+
+**New files:**
+| File | Purpose |
+|------|---------|
+| `src/librarian/intelligence/extractor.py` | LLM-based metadata extraction |
+| `src/librarian/intelligence/llm_client.py` | Abstract LLM client (Ollama, OpenAI, Anthropic) |
+| `src/librarian/services/extraction.py` | Extraction + aggregation service |
+| `src/librarian/storage/repositories.py` | Add `DocumentFieldRepository` |
+
+**Modified files:**
+| File | Change |
+|------|--------|
+| `src/librarian/storage/models.py` | Add `DocumentField` model, `document_date` column on `Document` |
+| `src/librarian/core/queue.py` | Add `TaskType.EXTRACT_METADATA` |
+| `src/librarian/processing/pipeline.py` | Enqueue extraction task after ingestion completes |
+| `src/librarian/mcp/tools.py` | Add aggregation tools |
+| `src/librarian/config.py` | Add extraction config (enabled flag, prompt template path) |
+
+**Success criteria:**
+- Documents are auto-classified with a `category` on ingest (when LLM is configured)
+- Key entities (amounts, dates, organizations) are extracted into `document_fields`
+- Aggregation queries work via MCP tools (`aggregate_amounts`)
+- "How much tax did I pay 2015-2025?" returns an accurate, sourced answer
+- Extraction works offline with local Ollama models
+- Existing documents can be re-processed for extraction
+- Documents without extraction remain fully functional (keyword search, manual tags)
+- Extraction failures don't affect document availability
+
+**ADR:** See [ARCHITECTURE.md](ARCHITECTURE.md) ADR-010 for design rationale.
+
+---
+
 ### M10: Multi-User Support
 
 **Goal:** Shared library with per-user ownership tracking. A family or small team shares one Librarian instance.
@@ -279,6 +358,8 @@ M7 (MCP Server) ─────────────────────�
     ▼              ▼                    ▼               ▼
 M8 (Web UI)   M9 (Auto-Tag)      M10 (Multi-User)  M11 (Cloud OCR)
     │              │                                (independent)
+    │              ▼
+    │         M9.5 (Extraction)
     │              │
     ▼              │
 M12 (Chat) ◄──────┘
@@ -290,9 +371,10 @@ M13 (Deployment)
 **Notes:**
 - M6.5 (Service Layer) is the prerequisite for M7 — extracts shared business logic
 - M11 (Cloud OCR) is independent — can be built at any time after M5
-- M9 (Auto-Tag) can start after M7 but benefits from M8 for tag management UI
+- M9 (Auto-Tag) establishes the LLM classification pipeline
+- M9.5 (Structured Extraction) extends M9 with entity extraction + aggregation queries
 - M10 (Multi-User) depends on M7 for MCP user context, but NOT on M8. Web UI user-switching integrates as part of M8 or post-M8
-- M12 (Chat) needs M8 for embedding the chat component
+- M12 (Chat) needs M8 for embedding the chat component; benefits from M9.5 for data-backed answers
 - M13 (Deployment) should wait until features stabilize
 
 ---
@@ -305,12 +387,13 @@ M13 (Deployment)
 | M7 MCP Server | ~1.5-2 weeks | Weeks 1-3 |
 | M8 Web UI | ~3-4 weeks | Weeks 3-7 |
 | M9 Auto-Tagging | ~1 week | Week 4 (parallel with M8) |
-| M10 Multi-User | ~2-3 weeks | Weeks 4-6 (parallel with M8) |
+| M9.5 Structured Extraction | ~1.5-2 weeks | Weeks 5-6 (after M9) |
+| M10 Multi-User | ~2-3 weeks | Weeks 5-7 (parallel with M9.5) |
 | M11 Cloud OCR | ~3-4 days | Any time (independent) |
 | M12 Chat Interface | ~1-2 weeks | Weeks 8-9 |
 | M13 Deployment | ~1 week | Week 10 |
 
-**Total estimated effort:** 10-14 weeks for M6.5-M13.
+**Total estimated effort:** 11.5-16 weeks for M6.5-M13.
 
 ---
 
