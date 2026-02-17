@@ -19,18 +19,18 @@ import Layout from '../layouts/Layout.astro';
   <section class="py-16">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-2xl font-bold mb-8 text-emerald-400">Core Principles</h2>
-      
+
       <div class="grid md:grid-cols-3 gap-6 mb-12">
         <div class="border border-slate-800 rounded-xl p-6">
           <div class="text-emerald-400 font-bold text-lg mb-2">1. No In-Process AI</div>
-          <p class="text-slate-400 text-sm">Zero ML framework dependencies. All embeddings and LLM calls via external HTTP APIs (LiteLLM + httpx).</p>
+          <p class="text-slate-400 text-sm">Zero ML framework dependencies. All embeddings and LLM calls via external HTTP APIs (Ollama + httpx).</p>
         </div>
-        
+
         <div class="border border-slate-800 rounded-xl p-6">
           <div class="text-emerald-400 font-bold text-lg mb-2">2. Graceful Degradation</div>
           <p class="text-slate-400 text-sm">Keyword search works without AI. AI-dependent tasks queue and resume when services return.</p>
         </div>
-        
+
         <div class="border border-slate-800 rounded-xl p-6">
           <div class="text-emerald-400 font-bold text-lg mb-2">3. NAS-Optimized</div>
           <p class="text-slate-400 text-sm">~500MB RAM footprint. SQLite-backed queue. Single process. Designed for Synology and similar.</p>
@@ -40,7 +40,7 @@ import Layout from '../layouts/Layout.astro';
       <!-- Architecture Diagram -->
       <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8 mb-12">
         <h3 class="text-xl font-semibold mb-6 text-center">System Architecture</h3>
-        
+
         <div class="space-y-6">
           <!-- Layer 1: File System -->
           <div class="border border-slate-700 rounded-lg p-4">
@@ -79,7 +79,7 @@ import Layout from '../layouts/Layout.astro';
               <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">PyMuPDF</span>
               <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Tesseract</span>
               <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Custom chunker</span>
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">LiteLLM</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Ollama embeddings</span>
             </div>
           </div>
 
@@ -103,8 +103,8 @@ import Layout from '../layouts/Layout.astro';
             </div>
           </div>
 
-          <!-- Layer 4: Intelligence -->
-          <div class="border border-slate-700 rounded-lg p-4">
+          <!-- Layer 4: Service Layer -->
+          <div class="border border-violet-500/20 rounded-lg p-4">
             <div class="flex items-center gap-3 mb-3">
               <div class="w-10 h-10 bg-violet-500/20 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,18 +112,18 @@ import Layout from '../layouts/Layout.astro';
                 </svg>
               </div>
               <div>
-                <h4 class="font-semibold">Intelligence Layer</h4>
-                <p class="text-slate-400 text-sm">Classification, RAG, filing suggestions, natural language queries</p>
+                <h4 class="font-semibold">Service Layer <span class="text-xs text-yellow-400 ml-2">(M6.5)</span></h4>
+                <p class="text-slate-400 text-sm">Shared business logic: search, documents, tags, ingest, stats</p>
               </div>
             </div>
             <div class="flex flex-wrap gap-2">
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Jinja2 prompts</span>
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Reciprocal Rank Fusion</span>
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Hybrid search</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">DocumentService</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">SearchService</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">TagService</span>
             </div>
           </div>
 
-          <!-- Layer 5: API -->
+          <!-- Layer 5: Interface Layer -->
           <div class="border border-slate-700 rounded-lg p-4">
             <div class="flex items-center gap-3 mb-3">
               <div class="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
@@ -132,17 +132,86 @@ import Layout from '../layouts/Layout.astro';
                 </svg>
               </div>
               <div>
-                <h4 class="font-semibold">API Layer</h4>
-                <p class="text-slate-400 text-sm">REST endpoints, WebSocket events, real-time updates</p>
+                <h4 class="font-semibold">Interface Layer</h4>
+                <p class="text-slate-400 text-sm">REST API, MCP server, CLI — all calling the shared service layer</p>
               </div>
             </div>
             <div class="flex flex-wrap gap-2">
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">FastAPI</span>
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">WebSocket</span>
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Pydantic schemas</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">FastAPI (REST)</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">MCP Server (M7)</span>
+              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Typer CLI</span>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MCP-First Section -->
+  <section class="py-16 border-t border-slate-800">
+    <div class="max-w-6xl mx-auto px-6">
+      <h2 class="text-2xl font-bold mb-8 text-violet-400">MCP-First Conversational Interface</h2>
+
+      <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8 mb-8">
+        <p class="text-lg text-slate-300 mb-6">
+          Instead of building a custom chat UI, Librarian exposes its capabilities via the
+          <strong class="text-violet-400">Model Context Protocol (MCP)</strong>. This means you can
+          talk to your documents through your existing AI assistants.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-xl font-semibold mb-4 text-violet-400">Supported Clients</h3>
+            <ul class="space-y-2 text-slate-400">
+              <li class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-violet-400 rounded-full"></span>
+                Claude Desktop (stdio transport)
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-violet-400 rounded-full"></span>
+                OpenClaw (HTTP/SSE transport)
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-violet-400 rounded-full"></span>
+                Any MCP-compatible client
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold mb-4 text-violet-400">Available Tools</h3>
+            <ul class="space-y-2 text-slate-400 text-sm">
+              <li><code class="text-cyan-400">search_documents</code> — Keyword / semantic / hybrid</li>
+              <li><code class="text-cyan-400">get_document</code> — Full document + chunks</li>
+              <li><code class="text-cyan-400">get_document_text</code> — Page-range access</li>
+              <li><code class="text-cyan-400">list_documents</code> — Paginated listing</li>
+              <li><code class="text-cyan-400">add_tag / remove_tag</code> — Tag management</li>
+              <li><code class="text-cyan-400">upload_document</code> — Add new files</li>
+              <li><code class="text-cyan-400">get_library_stats</code> — Library overview</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/50 border border-emerald-500/20 rounded-xl p-6">
+        <h3 class="text-lg font-semibold mb-3 text-emerald-400">Why MCP-First?</h3>
+        <ul class="space-y-2 text-slate-400">
+          <li class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Works with your existing AI assistants (no new app to learn)
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Faster development (no custom chat UI needed for MVP)
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Flexible integration (any MCP client can connect)
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Future-proof (custom chat UI can be added later in M12)
+          </li>
+        </ul>
       </div>
     </div>
   </section>
@@ -151,22 +220,23 @@ import Layout from '../layouts/Layout.astro';
   <section class="py-16 border-t border-slate-800 bg-slate-900/30">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-2xl font-bold mb-8 text-cyan-400">Key Architectural Decisions</h2>
-      
+
       <div class="space-y-6">
         <div class="border border-slate-700 rounded-xl p-6">
           <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
             <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
             </svg>
-            OCR-as-a-Service Pattern
+            Service Layer Extraction (M6.5)
           </h3>
           <p class="text-slate-400 mb-3">
-            Tesseract is built-in (no ML deps). Users who want PaddleOCR accuracy can configure an external OCR service endpoint, 
-            mirroring the LLM externalization pattern. This follows the constraint's spirit — "externalize all AI" — without violating it.
+            Business logic lives in a shared service layer. REST API handlers and MCP tools are thin wrappers —
+            they validate input, call a service method, and format the response. No duplicate logic.
           </p>
-          <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Three-tier OCR: native → service → Tesseract → cloud</span>
-            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Optional external OCR service</span>
+          <div class="bg-slate-900/50 rounded-lg p-4 font-mono text-sm text-slate-400">
+            <div>REST API handlers ──┐</div>
+            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──&gt; Service Layer ──&gt; Repositories ──&gt; SQLite / ChromaDB</div>
+            <div>MCP tool handlers ──┘</div>
           </div>
         </div>
 
@@ -178,30 +248,13 @@ import Layout from '../layouts/Layout.astro';
             SQLite-Backed Task Queue
           </h3>
           <p class="text-slate-400 mb-3">
-            For a single-user NAS system, Redis adds operational complexity without meaningful benefit. SQLite queue gives us persistence, 
+            For a single-user NAS system, Redis adds operational complexity without meaningful benefit. SQLite queue gives us persistence,
             prioritization, retryability, and visibility — all with zero extra dependencies. Upgrade path to Redis if needed.
           </p>
           <div class="flex flex-wrap gap-2">
             <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Exponential backoff</span>
             <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Priority levels</span>
-            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">waiting_llm state</span>
-          </div>
-        </div>
-
-        <div class="border border-slate-700 rounded-xl p-6">
-          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-            Progressive Milestones
-          </h3>
-          <p class="text-slate-400 mb-3">
-            By moving PyMuPDF extraction and FTS5 keyword search to M3 (before OCR and AI), users get a working searchable archive with 
-            zero AI dependencies. This makes the product useful at M4 — long before Ollama, embeddings, or LLM are configured.
-          </p>
-          <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">M4: Keyword search works (no AI)</span>
-            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Progressive enhancement</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Crash recovery</span>
           </div>
         </div>
 
@@ -213,8 +266,71 @@ import Layout from '../layouts/Layout.astro';
             Hybrid Search with RRF
           </h3>
           <p class="text-slate-400 mb-3">
-            Combines full-text keyword search (FTS5) with semantic vector search using Reciprocal Rank Fusion. 
+            Combines full-text keyword search (FTS5) with semantic vector search using Reciprocal Rank Fusion.
             Find exact phrases OR conceptual matches. FTS5 works offline; vector search enhances when AI available.
           </p>
           <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1 bg-slate-800 rounded-full
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">SQLite FTS5</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">ChromaDB cosine</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Reciprocal Rank Fusion</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-700 rounded-xl p-6">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            Progressive Milestones
+          </h3>
+          <p class="text-slate-400 mb-3">
+            By moving PyMuPDF extraction and FTS5 keyword search to M3 (before OCR and AI), users get a working searchable archive with
+            zero AI dependencies. This makes the product useful at M4 — long before Ollama, embeddings, or LLM are configured.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">M4: Keyword search (no AI)</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">M6: Full semantic search</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Progressive enhancement</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-700 rounded-xl p-6">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            MCP Security Model
+          </h3>
+          <p class="text-slate-400 mb-3">
+            Defense-in-depth for MCP operations: path boundaries prevent filesystem escape, HTTP transport binds to localhost by default,
+            rate limiting prevents abuse, and TLS is strongly recommended for network exposure.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Path boundaries</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Localhost default</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Rate limiting</span>
+            <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">TLS for network</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 border-t border-slate-800">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <h2 class="text-2xl font-bold mb-4">See It in Action</h2>
+      <p class="text-slate-400 mb-6">
+        Check the roadmap for current status and upcoming features.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/roadmap" class="w-full sm:w-auto px-6 py-3 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors text-center">
+          View Roadmap
+        </a>
+        <a href="https://github.com/joywareapps/librarian" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg font-semibold text-slate-950 hover:from-emerald-400 hover:to-cyan-400 transition-all text-center">
+          View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>

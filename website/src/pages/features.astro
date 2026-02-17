@@ -19,9 +19,33 @@ import Layout from '../layouts/Layout.astro';
   <section class="py-16">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-2xl font-bold mb-8 text-emerald-400">Core Capabilities</h2>
-      
+
       <div class="grid gap-8">
-        <!-- Feature 1 -->
+        <!-- Feature 1: Hybrid Search -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8">
+          <div class="flex items-start gap-6">
+            <div class="w-14 h-14 bg-cyan-500/20 rounded-xl flex items-center justify-center shrink-0">
+              <svg class="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Hybrid Search</h3>
+              <p class="text-slate-400 mb-4">
+                Combines full-text keyword search (FTS5) with semantic vector search using Reciprocal Rank Fusion.
+                Find exact phrases OR conceptual matches. Works even when AI services are down.
+              </p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">SQLite FTS5</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">ChromaDB</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">RRF Fusion</span>
+                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-sm">Working</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 2: OCR Pipeline -->
         <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8">
           <div class="flex items-start gap-6">
             <div class="w-14 h-14 bg-emerald-500/20 rounded-xl flex items-center justify-center shrink-0">
@@ -33,44 +57,19 @@ import Layout from '../layouts/Layout.astro';
             <div>
               <h3 class="text-xl font-semibold mb-2">Intelligent OCR Pipeline</h3>
               <p class="text-slate-400 mb-4">
-                Multi-tier OCR with automatic fallback: native PDF text extraction (instant for born-digital documents), 
-                local Tesseract OCR, optional external OCR services, and cloud OCR fallback for challenging documents.
+                Multi-tier OCR with automatic fallback: native PDF text extraction (instant for born-digital documents),
+                local Tesseract OCR for scanned documents. Cloud OCR fallback planned for M11.
               </p>
               <div class="flex flex-wrap gap-2">
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">PyMuPDF</span>
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Tesseract</span>
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">AWS Textract</span>
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Google Vision</span>
+                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-sm">Working</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Feature 2 -->
-        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8">
-          <div class="flex items-start gap-6">
-            <div class="w-14 h-14 bg-cyan-500/20 rounded-xl flex items-center justify-center shrink-0">
-              <svg class="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold mb-2">Hybrid Search</h3>
-              <p class="text-slate-400 mb-4">
-                Combines full-text keyword search (FTS5) with semantic vector search using Reciprocal Rank Fusion. 
-                Find exact phrases OR conceptual matches. Works even when AI services are down.
-              </p>
-              <div class="flex flex-wrap gap-2">
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">SQLite FTS5</span>
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">ChromaDB</span>
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">RAG</span>
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">RRF Fusion</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Feature 3 -->
+        <!-- Feature 3: Privacy -->
         <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8">
           <div class="flex items-start gap-6">
             <div class="w-14 h-14 bg-blue-500/20 rounded-xl flex items-center justify-center shrink-0">
@@ -81,7 +80,7 @@ import Layout from '../layouts/Layout.astro';
             <div>
               <h3 class="text-xl font-semibold mb-2">Local-First Privacy</h3>
               <p class="text-slate-400 mb-4">
-                All processing runs on your hardware by default. Sensitive paths enforced as local-only. 
+                All processing runs on your hardware by default. Sensitive paths enforced as local-only.
                 Cloud services require explicit opt-in per document. Your financial, medical, and legal documents never leave your network.
               </p>
               <div class="flex flex-wrap gap-2">
@@ -93,30 +92,31 @@ import Layout from '../layouts/Layout.astro';
           </div>
         </div>
 
-        <!-- Feature 4 -->
-        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8">
+        <!-- Feature 4: MCP Conversational Access -->
+        <div class="bg-slate-900/50 border border-violet-500/20 rounded-xl p-8">
           <div class="flex items-start gap-6">
             <div class="w-14 h-14 bg-violet-500/20 rounded-xl flex items-center justify-center shrink-0">
               <svg class="w-7 h-7 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
               </svg>
             </div>
             <div>
-              <h3 class="text-xl font-semibold mb-2">Auto-Classification & Tagging</h3>
+              <h3 class="text-xl font-semibold mb-2">Conversational Access via MCP <span class="ml-2 px-2 py-1 bg-violet-500/20 text-violet-400 rounded text-xs font-semibold">Coming in M7</span></h3>
               <p class="text-slate-400 mb-4">
-                LLM-powered analysis automatically categorizes documents and assigns relevant tags. 
-                Invoices, contracts, medical records — sorted without manual effort. Override or refine anytime.
+                Talk to your documents through Claude Desktop, OpenClaw, or any MCP-compatible client.
+                No custom chat UI needed — use your existing AI assistants. 8 tools for search, browsing, tagging, and upload.
               </p>
               <div class="flex flex-wrap gap-2">
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">LLM Classification</span>
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Auto-Tagging</span>
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Manual Override</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Claude Desktop</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">OpenClaw</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">stdio + HTTP/SSE</span>
+                <span class="px-3 py-1 bg-violet-500/20 text-violet-400 rounded-full text-sm">M7</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Feature 5 -->
+        <!-- Feature 5: Deduplication -->
         <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8">
           <div class="flex items-start gap-6">
             <div class="w-14 h-14 bg-orange-500/20 rounded-xl flex items-center justify-center shrink-0">
@@ -127,36 +127,37 @@ import Layout from '../layouts/Layout.astro';
             <div>
               <h3 class="text-xl font-semibold mb-2">Smart Deduplication</h3>
               <p class="text-slate-400 mb-4">
-                Content-addressed storage with two-phase hashing. Detect duplicates instantly across folders and drives. 
+                Content-addressed storage with two-phase hashing. Detect duplicates instantly across folders and drives.
                 Same document in multiple locations? One record, many paths. Never process the same file twice.
               </p>
               <div class="flex flex-wrap gap-2">
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">SHA-256</span>
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">xxHash Pre-filter</span>
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Content-Addressed</span>
+                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-sm">Working</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Feature 6 -->
+        <!-- Feature 6: Auto-Tagging -->
         <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8">
           <div class="flex items-start gap-6">
             <div class="w-14 h-14 bg-pink-500/20 rounded-xl flex items-center justify-center shrink-0">
               <svg class="w-7 h-7 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
               </svg>
             </div>
             <div>
-              <h3 class="text-xl font-semibold mb-2">Filing Suggestions</h3>
+              <h3 class="text-xl font-semibold mb-2">Auto-Classification & Tagging <span class="ml-2 px-2 py-1 bg-slate-700 text-slate-300 rounded text-xs font-semibold">M9</span></h3>
               <p class="text-slate-400 mb-4">
-                The organization agent analyzes document content and suggests optimal filing locations. 
-                Review, accept, or reject suggestions. Gradually transform chaos into order.
+                LLM-powered analysis automatically categorizes documents and assigns relevant tags.
+                Invoices, contracts, medical records — sorted without manual effort. Override or refine anytime.
               </p>
               <div class="flex flex-wrap gap-2">
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">AI Suggestions</span>
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">User Approval</span>
-                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Batch Operations</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">LLM Classification</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Auto-Tagging</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Manual Override</span>
               </div>
             </div>
           </div>
@@ -169,7 +170,7 @@ import Layout from '../layouts/Layout.astro';
   <section class="py-16 border-t border-slate-800 bg-slate-900/30">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-2xl font-bold mb-8 text-cyan-400">Technical Highlights</h2>
-      
+
       <div class="grid md:grid-cols-2 gap-6">
         <div class="border border-slate-700 rounded-lg p-6">
           <h3 class="font-semibold mb-2 flex items-center gap-2">
@@ -180,17 +181,7 @@ import Layout from '../layouts/Layout.astro';
           </h3>
           <p class="text-slate-400 text-sm">Keyword search works without AI. AI-dependent tasks queue and resume when services return.</p>
         </div>
-        
-        <div class="border border-slate-700 rounded-lg p-6">
-          <h3 class="font-semibold mb-2 flex items-center gap-2">
-            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            Provider Agnostic
-          </h3>
-          <p class="text-slate-400 text-sm">Switch between Ollama, OpenAI, Anthropic, or any OpenAI-compatible provider via LiteLLM.</p>
-        </div>
-        
+
         <div class="border border-slate-700 rounded-lg p-6">
           <h3 class="font-semibold mb-2 flex items-center gap-2">
             <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,9 +189,9 @@ import Layout from '../layouts/Layout.astro';
             </svg>
             Zero ML Dependencies
           </h3>
-          <p class="text-slate-400 text-sm">No PyTorch, TensorFlow, or sentence-transformers. All AI via external HTTP APIs.</p>
+          <p class="text-slate-400 text-sm">No PyTorch, TensorFlow, or sentence-transformers. All AI via external HTTP APIs (Ollama).</p>
         </div>
-        
+
         <div class="border border-slate-700 rounded-lg p-6">
           <h3 class="font-semibold mb-2 flex items-center gap-2">
             <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,25 +201,35 @@ import Layout from '../layouts/Layout.astro';
           </h3>
           <p class="text-slate-400 text-sm">~500MB RAM footprint. SQLite-backed queue. Single process. Designed for Synology and similar.</p>
         </div>
-        
+
         <div class="border border-slate-700 rounded-lg p-6">
           <h3 class="font-semibold mb-2 flex items-center gap-2">
             <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
-            Real-Time Updates
+            Full REST API
           </h3>
-          <p class="text-slate-400 text-sm">WebSocket events for live progress, LLM status, and document completion notifications.</p>
+          <p class="text-slate-400 text-sm">Complete programmatic access via FastAPI. MCP server (M7) adds conversational access.</p>
         </div>
-        
+
         <div class="border border-slate-700 rounded-lg p-6">
           <h3 class="font-semibold mb-2 flex items-center gap-2">
             <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
-            Full REST + WebSocket API
+            Three Search Modes
           </h3>
-          <p class="text-slate-400 text-sm">Complete programmatic access. Build your own UI or integrate with other tools.</p>
+          <p class="text-slate-400 text-sm">Keyword (FTS5), semantic (embeddings), and hybrid (RRF merge). Use the right mode for each query.</p>
+        </div>
+
+        <div class="border border-slate-700 rounded-lg p-6">
+          <h3 class="font-semibold mb-2 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Background Processing
+          </h3>
+          <p class="text-slate-400 text-sm">Embedding scheduler generates vectors in the background. File watcher detects new documents in real-time.</p>
         </div>
       </div>
     </div>
