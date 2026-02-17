@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from librarian.storage.models import Document, Chunk, Tag
+from librarian.storage.models import Chunk, Document, Tag, Task
 from librarian.storage.repositories import ChunkRepository, DocumentRepository, TagRepository
 
 
@@ -194,3 +194,60 @@ async def test_document_delete(db_session):
 
     found = await repo.get_by_id(doc.id)
     assert found is None
+
+
+@pytest.mark.asyncio
+async def test_find_stuck_processing(db_session):
+    """find_stuck_processing returns only orphaned processing documents."""
+    repo = DocumentRepository(db_session)
+
+    # 1) processing doc with NO task -> should be found
+    stuck = await repo.create(
+        content_hash="stuck1" + "0" * 59,
+        quick_hash="700:aaaaaaaaaaaaaaaa",
+        file_size=100,
+        original_path="/tmp/stuck.pdf",
+        original_filename="stuck.pdf",
+        mime_type="application/pdf",
+        file_modified_at=1700000000.0,
+    )
+    await repo.update_status(stuck, "processing")
+
+    # 2) processing doc WITH a pending task -> should NOT be found
+    active = await repo.create(
+        content_hash="activ1" + "0" * 59,
+        quick_hash="701:bbbbbbbbbbbbbbbb",
+        file_size=100,
+        original_path="/tmp/active.pdf",
+        original_filename="active.pdf",
+        mime_type="application/pdf",
+        file_modified_at=1700000000.0,
+    )
+    await repo.update_status(active, "processing")
+    task = Task(
+        task_type="ingest",
+        payload="{}",
+        document_id=active.id,
+        status="pending",
+    )
+    db_session.add(task)
+    await db_session.commit()
+
+    # 3) ready doc -> should NOT be found
+    ready = await repo.create(
+        content_hash="ready1" + "0" * 59,
+        quick_hash="702:cccccccccccccccc",
+        file_size=100,
+        original_path="/tmp/ready.pdf",
+        original_filename="ready.pdf",
+        mime_type="application/pdf",
+        file_modified_at=1700000000.0,
+    )
+    await repo.update_status(ready, "ready")
+
+    results = await repo.find_stuck_processing()
+    result_ids = [d.id for d in results]
+
+    assert stuck.id in result_ids
+    assert active.id not in result_ids
+    assert ready.id not in result_ids

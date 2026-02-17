@@ -13,11 +13,12 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import AppConfig, load_config
 from .core.events import EventManager
-from .core.queue import TaskQueue
+from .core.queue import TaskQueue, TaskType
 from .core.watcher import FileWatcher
 from .core.scheduler import embedding_scheduler
 from .processing.pipeline import handle_new_file, task_worker
 from .storage.database import get_session, init_database
+from .storage.repositories import DocumentRepository
 
 log = structlog.get_logger()
 
@@ -41,6 +42,22 @@ async def lifespan(app: FastAPI):
         recovered = await queue.recover_stale()
         if recovered:
             log.info("Recovered stale tasks from previous run", count=recovered)
+
+    # Recover documents stuck in "processing" with no active task
+    async with get_session() as session:
+        doc_repo = DocumentRepository(session)
+        queue = TaskQueue(session)
+        stuck = await doc_repo.find_stuck_processing()
+        for doc in stuck:
+            await doc_repo.update_status(doc, "pending")
+            await queue.enqueue(
+                task_type=TaskType.INGEST,
+                payload={"document_id": doc.id, "path": doc.original_path},
+                document_id=doc.id,
+                priority=8,
+            )
+        if stuck:
+            log.info("Recovered stuck documents", count=len(stuck))
 
     # Start file watcher
     async def on_new_file(path):

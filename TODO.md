@@ -28,12 +28,11 @@ Bugs, issues, and improvements to address.
   - Lock should release immediately after write completes
   - Keep transaction scope minimal
 
-- [ ] **Startup recovery for documents stuck in "processing" status**
-  - Current: Only tasks in RUNNING state are recovered
-  - Missing: Documents left in "processing" or "pending" status after crash
-  - Solution: On startup, find documents in "processing" status without active task
-  - Re-queue them for processing
-  - Also consider: documents in "ready" status that may be incomplete
+- [x] **Startup recovery for documents stuck in "processing" status**
+  - Implemented: `find_stuck_processing()` in DocumentRepository
+  - On startup: Find documents in "processing" without active task
+  - Reset to "pending" and re-queue for processing
+  - Test: `test_find_stuck_processing()` verifies behavior
   - Currently silently uses defaults with empty watch directories
   - Should warn user: "No config file found. Using defaults. Run `librarian init` to configure."
   - Applies to: `serve` and `mcp serve` commands

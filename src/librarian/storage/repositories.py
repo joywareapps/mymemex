@@ -191,6 +191,20 @@ class DocumentRepository:
 
         return {"total": total, "by_status": by_status}
 
+    async def find_stuck_processing(self) -> list[Document]:
+        """Find documents stuck in 'processing' with no active task."""
+        active_task_doc_ids = (
+            select(Task.document_id)
+            .where(Task.document_id.isnot(None))
+            .where(Task.status.in_(["pending", "running", "waiting_llm"]))
+        )
+        result = await self.session.execute(
+            select(Document)
+            .where(Document.status == "processing")
+            .where(Document.id.notin_(active_task_doc_ids))
+        )
+        return list(result.scalars().all())
+
     async def delete(self, doc_id: int) -> bool:
         doc = await self.get_by_id(doc_id)
         if not doc:
