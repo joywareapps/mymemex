@@ -11,6 +11,11 @@ Bugs, issues, and improvements to address.
   - WAL mode already enabled
   - SQLite handles concurrent reads, but writes serialize
 
+- [x] **Ollama endpoint configuration**
+  - Fixed: Added `llm.api_base` to config.yaml
+  - Default: `http://localhost:11434`
+  - User configured: `http://office-pc:11434`
+
 - [ ] **Show warning message when running without config**
   - Currently silently uses defaults with empty watch directories
   - Should warn user: "No config file found. Using defaults. Run `librarian init` to configure."
