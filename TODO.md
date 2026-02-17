@@ -27,6 +27,13 @@ Bugs, issues, and improvements to address.
   - Add semaphore/queue for concurrent uploads
   - Lock should release immediately after write completes
   - Keep transaction scope minimal
+
+- [ ] **Startup recovery for documents stuck in "processing" status**
+  - Current: Only tasks in RUNNING state are recovered
+  - Missing: Documents left in "processing" or "pending" status after crash
+  - Solution: On startup, find documents in "processing" status without active task
+  - Re-queue them for processing
+  - Also consider: documents in "ready" status that may be incomplete
   - Currently silently uses defaults with empty watch directories
   - Should warn user: "No config file found. Using defaults. Run `librarian init` to configure."
   - Applies to: `serve` and `mcp serve` commands
