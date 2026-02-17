@@ -57,6 +57,7 @@ def show_config(
         add_section("server", cfg.server)
         add_section("ocr", cfg.ocr)
         add_section("llm", cfg.llm)
+        add_section("ai", cfg.ai)
 
         console.print(table)
     else:
@@ -112,6 +113,11 @@ ocr:
 
 llm:
   provider: none  # Set to 'ollama' for AI features (M6+)
+
+ai:
+  semantic_search_enabled: false  # Enable semantic search (M6)
+  embedding_model: nomic-embed-text
+  embedding_batch_size: 8
 """
         config_path.write_text(config_content)
         console.print(f"[green]Created:[/] {config_path}")

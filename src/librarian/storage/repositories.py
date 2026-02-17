@@ -289,6 +289,22 @@ class ChunkRepository:
 
         return results, total
 
+    async def get_chunks_without_embeddings(self, limit: int = 100) -> list[Chunk]:
+        """Get chunks that don't have embeddings yet."""
+        result = await self.session.execute(
+            select(Chunk)
+            .where(Chunk.has_embedding == False)  # noqa: E712
+            .order_by(Chunk.id)
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+
+    async def update(self, chunk: Chunk, **kwargs) -> None:
+        """Update chunk attributes."""
+        for key, value in kwargs.items():
+            setattr(chunk, key, value)
+        await self.session.flush()
+
     async def get_total_count(self) -> int:
         result = await self.session.scalar(select(func.count(Chunk.id)))
         return result or 0

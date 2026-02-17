@@ -103,6 +103,7 @@ class Chunk(Base):
     char_count: Mapped[int] = mapped_column(Integer, nullable=False)
     extraction_method: Mapped[str | None] = mapped_column(String(32), nullable=True)
     has_embedding: Mapped[bool] = mapped_column(Boolean, default=False)
+    vector_id: Mapped[str | None] = mapped_column(String(36), unique=True, nullable=True)
 
     document: Mapped[Document] = relationship("Document", back_populates="chunks")
 

@@ -68,6 +68,9 @@ packages = ["src/librarian"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "integration: Tests that require live Ollama instance (run with OLLAMA_API_BASE set)",
+]
 
 [tool.ruff]
 line-length = 100

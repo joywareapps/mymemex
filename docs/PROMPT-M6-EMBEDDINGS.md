@@ -27,7 +27,7 @@ Add semantic search capabilities using vector embeddings. This enables meaning-b
 
 ## Prerequisites
 
-**1. Ollama Installation (if not already installed):**
+**1. Ollama Installation (on office-pc):**
 ```bash
 # Linux
 curl -fsSL https://ollama.com/install.sh | sh
@@ -39,9 +39,9 @@ ollama serve
 ollama pull nomic-embed-text
 ```
 
-**2. Verify Ollama is running:**
+**2. Verify Ollama is running (on office-pc):**
 ```bash
-curl http://localhost:11434/api/embeddings \
+curl http://office-pc:11434/api/embeddings \
   -d '{"model": "nomic-embed-text", "prompt": "test"}'
 ```
 
@@ -741,7 +741,7 @@ async def test_embedder_unavailable():
     config = LLMConfig(
         provider="ollama",
         model="nomic-embed-text",
-        api_base="http://localhost:99999",  # Wrong port
+        api_base="http://office-pc:99999",  # Wrong port
     )
     embedder = Embedder(config)
 
@@ -862,7 +862,7 @@ def test_vector_store_count(vector_store):
 llm:
   provider: ollama
   model: nomic-embed-text
-  api_base: http://localhost:11434
+  api_base: http://office-pc:11434
 
 ai:
   embedding_model: nomic-embed-text
@@ -878,8 +878,9 @@ database:
 
 ## Usage Examples
 
-**1. Start Ollama:**
+**1. Start Ollama (on office-pc):**
 ```bash
+# Run on office-pc
 ollama serve
 ollama pull nomic-embed-text
 ```
@@ -908,11 +909,12 @@ curl "http://localhost:8000/api/v1/system/stats"
 
 ## Important Notes
 
-1. **Batch Processing:** Embeddings are CPU-intensive. Process in batches.
-2. **Memory:** ChromaDB uses mmap, doesn't pin RAM.
-3. **Latency:** Embedding generation ~50-100ms per chunk.
-4. **Fallback:** System works without Ollama (keyword-only mode).
-5. **Persistence:** ChromaDB data stored in `~/.local/share/librarian/chromadb/`.
+1. **Ollama Host:** Ollama runs on `office-pc` (not localhost). Ensure network connectivity.
+2. **Batch Processing:** Embeddings are CPU-intensive. Process in batches.
+3. **Memory:** ChromaDB uses mmap, doesn't pin RAM.
+4. **Latency:** Embedding generation ~50-100ms per chunk.
+5. **Fallback:** System works without Ollama (keyword-only mode).
+6. **Persistence:** ChromaDB data stored in `~/.local/share/librarian/chromadb/`.
 
 ---
 

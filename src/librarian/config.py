@@ -51,11 +51,20 @@ class OCRConfig(BaseModel):
 
 
 class LLMConfig(BaseModel):
-    """LLM configuration (for M6+, stub for now)."""
+    """LLM configuration (for M6+)."""
 
     provider: Literal["ollama", "openai", "anthropic", "none"] = "none"
     model: str = ""
     api_base: str = "http://localhost:11434"
+
+
+class AIConfig(BaseModel):
+    """AI feature configuration (M6+)."""
+
+    embedding_model: str = "nomic-embed-text"
+    embedding_dimension: int = 768
+    embedding_batch_size: int = 8
+    semantic_search_enabled: bool = False
 
 
 class AppConfig(BaseSettings):
@@ -77,6 +86,7 @@ class AppConfig(BaseSettings):
     server: ServerConfig = Field(default_factory=ServerConfig)
     ocr: OCRConfig = Field(default_factory=OCRConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
+    ai: AIConfig = Field(default_factory=AIConfig)
 
     @classmethod
     def from_yaml(cls, path: Path) -> AppConfig:

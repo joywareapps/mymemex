@@ -13,6 +13,7 @@ from .config import AppConfig, load_config
 from .core.events import EventManager
 from .core.queue import TaskQueue
 from .core.watcher import FileWatcher
+from .core.scheduler import embedding_scheduler
 from .processing.pipeline import handle_new_file, task_worker
 from .storage.database import get_session, init_database
 
@@ -54,6 +55,13 @@ async def lifespan(app: FastAPI):
         workers.append(worker)
     app.state.workers = workers
 
+    # Start embedding scheduler (if AI enabled)
+    scheduler_task = None
+    if config.ai.semantic_search_enabled:
+        scheduler_task = asyncio.create_task(embedding_scheduler(config))
+        app.state.scheduler_task = scheduler_task
+        log.info("Embedding scheduler started")
+
     log.info("Librarian ready", watched_dirs=config.watch.directories)
     await events.broadcast("system.started", {"version": "0.1.0"})
 
@@ -62,10 +70,16 @@ async def lifespan(app: FastAPI):
     # Shutdown
     log.info("Librarian shutting down")
 
+    if scheduler_task:
+        scheduler_task.cancel()
+        try:
+            await scheduler_task
+        except asyncio.CancelledError:
+            pass
+
     for worker in workers:
         worker.cancel()
 
-    # Wait for workers to finish
     for worker in workers:
         try:
             await worker
