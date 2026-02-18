@@ -304,6 +304,157 @@ def register(mcp: FastMCP) -> None:
         else:
             return "Specify document_ids or set all_documents=true."
 
+    @mcp.tool()
+    async def aggregate_amounts(
+        category: str | None = None,
+        field_name: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        currency: str | None = None,
+        min_confidence: float = 0.5,
+        ctx: Context = None,
+    ) -> str:
+        """Aggregate monetary values across filtered documents.
+
+        Use for queries like "How much tax did I pay from 2015-2025?"
+
+        Args:
+            category: Filter by document category (e.g., 'tax', 'invoice').
+            field_name: Field to aggregate (e.g., 'total_tax', 'premium').
+            date_from: ISO date, inclusive (e.g., '2015-01-01').
+            date_to: ISO date, inclusive (e.g., '2025-12-31').
+            currency: Filter by currency (e.g., 'EUR').
+            min_confidence: Minimum extraction confidence (default: 0.5).
+        """
+        from ..services.extraction import ExtractionService
+
+        lctx = _get_ctx(ctx)
+        service = ExtractionService(lctx.config)
+
+        result = await service.aggregate_amounts(
+            field_name=field_name,
+            category=category,
+            date_from=date_from,
+            date_to=date_to,
+            currency=currency,
+            min_confidence=min_confidence,
+        )
+
+        lines = ["# Amount Aggregation\n"]
+
+        if result["aggregation"]["results"]:
+            for agg in result["aggregation"]["results"]:
+                lines.append(f"**Total:** {agg['currency']} {agg['total']:,.2f}")
+                lines.append(f"**Documents:** {agg['count']}")
+                lines.append("")
+
+        if result["yearly_breakdown"]:
+            lines.append("## Yearly Breakdown\n")
+            lines.append("| Year | Currency | Total | Documents |")
+            lines.append("|------|----------|-------|-----------|")
+            for row in result["yearly_breakdown"]:
+                lines.append(
+                    f"| {row['year']} | {row['currency']} | {row['total']:,.2f} | {row['count']} |"
+                )
+
+        return "\n".join(lines) if len(lines) > 1 else "No amounts found matching the filters."
+
+    @mcp.tool()
+    async def get_extracted_fields(document_id: int, ctx: Context = None) -> str:
+        """View extracted structured fields for a document.
+
+        Args:
+            document_id: The document ID.
+        """
+        from ..services.extraction import ExtractionService
+
+        lctx = _get_ctx(ctx)
+        service = ExtractionService(lctx.config)
+
+        result = await service.get_document_fields(document_id)
+
+        if "error" in result:
+            raise ValueError(f"[DOCUMENT_NOT_FOUND] {result['error']}")
+
+        lines = [
+            f"# {result['title']}\n",
+            f"**Document ID:** {result['document_id']}",
+            f"**Category:** {result['category'] or 'Not classified'}",
+            f"**Document Date:** {result['document_date'] or 'Unknown'}\n",
+        ]
+
+        if result["fields"]:
+            lines.append("## Extracted Fields\n")
+            lines.append("| Field | Type | Value | Confidence |")
+            lines.append("|-------|------|-------|------------|")
+            for f in result["fields"]:
+                value = f["value"]
+                if f["currency"] and isinstance(value, (int, float)):
+                    value = f"{f['currency']} {value:,.2f}"
+                lines.append(
+                    f"| {f['name']} | {f['type']} | {value} | {f['confidence']:.0%} |"
+                )
+        else:
+            lines.append("_No fields extracted yet._")
+
+        return "\n".join(lines)
+
+    @mcp.tool()
+    async def list_document_types(ctx: Context = None) -> str:
+        """List all auto-classified document types with counts."""
+        from ..services.extraction import ExtractionService
+
+        lctx = _get_ctx(ctx)
+        service = ExtractionService(lctx.config)
+
+        types = await service.list_document_types()
+
+        if not types:
+            return "No document types found. Upload and process documents first."
+
+        lines = [
+            "# Document Types\n",
+            "| Category | Documents |",
+            "|----------|-----------|",
+        ]
+        for t in types:
+            lines.append(f"| {t['category']} | {t['count']} |")
+
+        return "\n".join(lines)
+
+    @mcp.tool()
+    async def reextract_documents(
+        document_ids: list[int] | None = None,
+        all_documents: bool = False,
+        ctx: Context = None,
+    ) -> str:
+        """Re-extract structured metadata from documents using LLM.
+
+        Args:
+            document_ids: Specific document IDs to re-extract.
+            all_documents: If true, re-extract all ready documents.
+        """
+        from ..services.extraction import ExtractionService
+
+        lctx = _get_ctx(ctx)
+        service = ExtractionService(lctx.config)
+
+        if all_documents:
+            count = await service.reextract_all()
+            return f"Re-extracted {count} documents."
+        elif document_ids:
+            results = []
+            for doc_id in document_ids:
+                result = await service.extract_document(doc_id)
+                if result:
+                    results.append(
+                        f"Document {doc_id}: {result.category or 'unknown'} "
+                        f"({len(result.amounts)} amounts, {len(result.entities)} entities)"
+                    )
+            return "\n".join(results) or "No documents extracted."
+        else:
+            return "Specify document_ids or set all_documents=true."
+
 
 # --- Formatting helpers ---
 

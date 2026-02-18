@@ -77,6 +77,14 @@ class ClassificationConfig(BaseModel):
     prompt_template: str = ""  # Custom classification prompt
 
 
+class ExtractionConfig(BaseModel):
+    """Structured extraction configuration (M9.5)."""
+
+    enabled: bool = True
+    min_confidence: float = Field(default=0.5, ge=0.0, le=1.0)
+    prompt_template: str = ""  # Custom extraction prompt
+
+
 class MCPSecurityConfig(BaseModel):
     """MCP security boundaries."""
 
@@ -113,6 +121,7 @@ class AppConfig(BaseSettings):
     ai: AIConfig = Field(default_factory=AIConfig)
     mcp: MCPConfig = Field(default_factory=MCPConfig)
     classification: ClassificationConfig = Field(default_factory=ClassificationConfig)
+    extraction: ExtractionConfig = Field(default_factory=ExtractionConfig)
 
     @classmethod
     def from_yaml(cls, path: Path) -> AppConfig:

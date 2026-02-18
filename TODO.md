@@ -56,11 +56,14 @@ Bugs, issues, and improvements to address.
 
 ---
 
-## Priority: Low
+## Priority: Low (Gemini-Suitable)
+
+These tasks are good candidates for Gemini CLI delegation (large context, simple implementation):
 
 - [ ] **Web UI: Dark mode**
   - Tailwind dark: variant support
   - Toggle in settings
+  - Run: `gemini "Add dark mode to the Web UI using Tailwind dark: variants"`
 
 - [ ] **Web UI: Keyboard shortcuts**
   - `/` to focus search

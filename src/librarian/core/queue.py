@@ -23,6 +23,7 @@ class TaskType(str, Enum):
     CHUNK = "chunk"
     EMBED = "embed"
     CLASSIFY = "classify"
+    EXTRACT_METADATA = "extract_metadata"
     SUGGEST = "suggest"
 
 

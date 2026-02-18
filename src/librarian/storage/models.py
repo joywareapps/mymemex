@@ -7,7 +7,9 @@ from datetime import datetime
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    Date,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -48,6 +50,7 @@ class Document(Base):
     # AI-generated metadata (nullable, for M6+)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     category: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    document_date: Mapped[datetime | None] = mapped_column(Date, nullable=True)
     has_embedding: Mapped[bool] = mapped_column(Boolean, default=False)
     embedding_model: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
@@ -72,6 +75,9 @@ class Document(Base):
     )
     tags: Mapped[list[DocumentTag]] = relationship(
         "DocumentTag", back_populates="document", cascade="all, delete-orphan"
+    )
+    extracted_fields: Mapped[list["DocumentField"]] = relationship(
+        "DocumentField", back_populates="document", cascade="all, delete-orphan"
     )
 
 
@@ -137,6 +143,39 @@ class DocumentTag(Base):
 
     document: Mapped[Document] = relationship("Document", back_populates="tags")
     tag: Mapped[Tag] = relationship("Tag", back_populates="documents")
+
+
+class DocumentField(Base):
+    """Extracted structured field from a document."""
+
+    __tablename__ = "document_fields"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    document_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False
+    )
+    field_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    field_type: Mapped[str] = mapped_column(String(20), nullable=False)  # currency, date, string, number
+
+    # Typed value storage (only one populated per field)
+    value_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    value_number: Mapped[float | None] = mapped_column(Float, nullable=True)
+    value_date: Mapped[str | None] = mapped_column(String(20), nullable=True)  # ISO date
+
+    # For currency fields
+    currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+
+    # Metadata
+    confidence: Mapped[float] = mapped_column(Float, default=1.0)
+    source: Mapped[str] = mapped_column(String(20), nullable=False)  # llm, regex, manual
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    document: Mapped["Document"] = relationship("Document", back_populates="extracted_fields")
+
+    __table_args__ = (
+        Index("ix_doc_fields_document", "document_id"),
+        Index("ix_doc_fields_name", "field_name"),
+    )
 
 
 class Task(Base):

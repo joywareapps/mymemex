@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 import structlog
-from sqlalchemy import func, select, text, update
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .models import Chunk, Document, DocumentTag, FilePath, Tag, Task
+from .models import Chunk, Document, DocumentField, DocumentTag, FilePath, Tag, Task
 
 log = structlog.get_logger()
 
@@ -407,3 +407,160 @@ class TagRepository:
         await self.session.delete(tag)
         await self.session.commit()
         return True
+
+
+class DocumentFieldRepository:
+    """Data access for extracted document fields."""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(
+        self,
+        document_id: int,
+        field_name: str,
+        field_type: str,
+        value_text: str | None = None,
+        value_number: float | None = None,
+        value_date: str | None = None,
+        currency: str | None = None,
+        confidence: float = 1.0,
+        source: str = "llm",
+    ) -> DocumentField:
+        """Create a new document field."""
+        field = DocumentField(
+            document_id=document_id,
+            field_name=field_name,
+            field_type=field_type,
+            value_text=value_text,
+            value_number=value_number,
+            value_date=value_date,
+            currency=currency,
+            confidence=confidence,
+            source=source,
+        )
+        self.session.add(field)
+        await self.session.commit()
+        await self.session.refresh(field)
+        return field
+
+    async def get_by_document(self, document_id: int) -> list[DocumentField]:
+        """Get all fields for a document."""
+        result = await self.session.execute(
+            select(DocumentField).where(DocumentField.document_id == document_id)
+        )
+        return list(result.scalars().all())
+
+    async def delete_for_document(self, document_id: int) -> int:
+        """Delete all fields for a document (for re-extraction)."""
+        result = await self.session.execute(
+            delete(DocumentField).where(DocumentField.document_id == document_id)
+        )
+        await self.session.commit()
+        return result.rowcount  # type: ignore[return-value]
+
+    async def aggregate_amounts(
+        self,
+        field_name: str | None = None,
+        category: str | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
+        currency: str | None = None,
+        min_confidence: float = 0.5,
+    ) -> dict:
+        """Aggregate monetary amounts across documents."""
+        query = (
+            select(
+                DocumentField.currency,
+                func.sum(DocumentField.value_number).label("total"),
+                func.count(DocumentField.id).label("count"),
+            )
+            .select_from(DocumentField)
+            .join(Document)
+            .where(DocumentField.field_type == "currency")
+            .where(DocumentField.confidence >= min_confidence)
+        )
+
+        if field_name:
+            query = query.where(DocumentField.field_name == field_name)
+        if category:
+            query = query.where(Document.category == category)
+        if date_from:
+            query = query.where(Document.document_date >= date_from)
+        if date_to:
+            query = query.where(Document.document_date <= date_to)
+        if currency:
+            query = query.where(DocumentField.currency == currency)
+
+        query = query.group_by(DocumentField.currency)
+
+        result = await self.session.execute(query)
+        rows = result.all()
+
+        return {
+            "results": [
+                {"currency": row.currency, "total": row.total, "count": row.count}
+                for row in rows
+            ]
+        }
+
+    async def get_yearly_breakdown(
+        self,
+        field_name: str | None = None,
+        category: str | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
+        currency: str | None = None,
+        min_confidence: float = 0.5,
+    ) -> list[dict]:
+        """Get amounts grouped by year."""
+        query = (
+            select(
+                func.strftime("%Y", Document.document_date).label("year"),
+                DocumentField.currency,
+                func.sum(DocumentField.value_number).label("total"),
+                func.count(DocumentField.id).label("count"),
+            )
+            .select_from(DocumentField)
+            .join(Document)
+            .where(DocumentField.field_type == "currency")
+            .where(DocumentField.confidence >= min_confidence)
+            .where(Document.document_date.isnot(None))
+        )
+
+        if field_name:
+            query = query.where(DocumentField.field_name == field_name)
+        if category:
+            query = query.where(Document.category == category)
+        if date_from:
+            query = query.where(Document.document_date >= date_from)
+        if date_to:
+            query = query.where(Document.document_date <= date_to)
+        if currency:
+            query = query.where(DocumentField.currency == currency)
+
+        query = query.group_by("year", DocumentField.currency).order_by("year")
+
+        result = await self.session.execute(query)
+        return [
+            {"year": int(row.year), "currency": row.currency, "total": row.total, "count": row.count}
+            for row in result.all()
+        ]
+
+    async def list_document_types(self) -> list[dict]:
+        """List all document categories with counts."""
+        query = (
+            select(
+                Document.category,
+                func.count(Document.id).label("count"),
+            )
+            .where(Document.category.isnot(None))
+            .group_by(Document.category)
+            .order_by(func.count(Document.id).desc())
+        )
+
+        result = await self.session.execute(query)
+        return [
+            {"category": row.category, "count": row.count}
+            for row in result.all()
+        ]

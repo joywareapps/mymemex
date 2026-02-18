@@ -266,6 +266,21 @@ async def run_ingest_pipeline(
                 )
                 log.info("Classification task enqueued", doc_id=doc.id)
 
+            # Step 7: Enqueue structured extraction if LLM configured
+            if (
+                config.extraction.enabled
+                and config.llm.provider
+                and config.llm.provider != "none"
+                and total_chunks > 0
+            ):
+                await queue.enqueue(
+                    task_type=TaskType.EXTRACT_METADATA,
+                    payload={"document_id": doc.id},
+                    document_id=doc.id,
+                    priority=2,
+                )
+                log.info("Extraction task enqueued", doc_id=doc.id)
+
             if events:
                 await events.broadcast(
                     "document.completed",
@@ -349,6 +364,14 @@ async def _process_task(
         doc_id = payload["document_id"]
         service = ClassificationService(config)
         await service.classify_document(doc_id)
+        await queue.complete(task)
+
+    elif task.task_type == TaskType.EXTRACT_METADATA.value:
+        from ..services.extraction import ExtractionService
+
+        doc_id = payload["document_id"]
+        service = ExtractionService(config)
+        await service.extract_document(doc_id)
         await queue.complete(task)
 
     elif task.task_type == TaskType.EMBED.value:
