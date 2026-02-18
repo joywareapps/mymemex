@@ -40,6 +40,27 @@ Bugs, issues, and improvements to address.
 
 ## Priority: Medium
 
+- [ ] **Feature: Delete document**
+  - API endpoint: `DELETE /api/v1/documents/{id}`
+  - MCP tool: `delete_document`
+  - Web UI: Delete button with confirmation
+  - Should delete: document record, chunks, FTS entries, extracted fields
+  - Keep file on disk (or add option to delete file too)
+
+- [ ] **Feature: Reprocess document**
+  - Re-run ingestion + classification + extraction pipeline
+  - Useful when new features added (e.g., title extraction)
+  - API endpoint: `POST /api/v1/documents/{id}/reprocess`
+  - MCP tool: `reprocess_document`
+  - Web UI: "Reprocess" button in document detail
+  - Already exists in IngestService.reprocess() — needs API/MCP/UI exposure
+
+- [ ] **Web UI: Show extracted title in document grid**
+  - Display `doc.title` (extracted from content) instead of `original_filename`
+  - Fall back to filename if no title extracted
+  - Applies to: document list, search results, detail view
+  - Depends on: title extraction prompt being implemented
+
 - [ ] **Web UI: Empty state improvements**
   - Show setup instructions when no documents exist
   - Link to upload page
