@@ -53,10 +53,10 @@
 - [x] Update docker-compose.full.yml references
 
 ### 4. Update README.md
-- [ ] Title: "MyMemex - Your AI Document Memory"
-- [ ] Update all `librarian` commands to `mymemex`
-- [ ] Update Docker examples
-- [ ] Update links to new GitHub URL
+- [x] Title: "MyMemex - Your AI Document Memory"
+- [x] Update all `librarian` commands to `mymemex`
+- [x] Update Docker examples
+- [x] Update links to new GitHub URL
 
 ### 5. Update Other Website Pages
 - [ ] features.astro — Replace "Librarian" → "MyMemex"
