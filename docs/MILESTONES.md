@@ -241,7 +241,7 @@ GROUP BY df.currency;
 
 ### M10: Deployment & Distribution
 
-**Goal:** Easy installation and production deployment with pre-built Docker images.
+**Goal:** Easy installation and production deployment with pre-built Docker images and cloud LLM support.
 
 | Feature | Description | Effort |
 |---------|-------------|--------|
@@ -249,13 +249,15 @@ GROUP BY df.currency;
 | GitHub Actions workflow | Build on tags, multi-arch (amd64/arm64) | Low |
 | docker-compose.full.yml | Full stack (Librarian + Ollama) | Low |
 | docker-compose.yml | Standalone with external Ollama | Low |
+| **Cloud LLM support** | OpenAI/Anthropic for users without Ollama | Medium |
+| **API key configuration** | Environment variable based secrets | Low |
 | Systemd service | Linux daemon with auto-restart | Low |
 | Backup CLI | `librarian backup` command | Medium |
 | Backup scheduling | Cron-compatible, configurable retention | Low |
 | User documentation | Installation guide, configuration reference | Medium |
 | Health checks | Docker health, monitoring guidance | Low |
 
-**Estimated effort:** 1 week
+**Estimated effort:** 1-2 weeks
 
 **Dependencies:** All core features should be stable. Docker/compose files already exist as stubs.
 
@@ -265,9 +267,62 @@ GROUP BY df.currency;
 - Two compose files: standalone (external Ollama) and full stack (with Ollama)
 - Backup CLI creates timestamped archive of database + vectors + config
 
+**Cloud LLM Configuration:**
+
+For users without local GPU/Ollama, Librarian supports cloud providers via API keys.
+
+```yaml
+# config.yaml
+llm:
+  provider: openai  # ollama, openai, anthropic, none
+  model: gpt-4o-mini
+  # API key from environment (recommended)
+```
+
+```bash
+# .env (not committed to git)
+OPENAI_API_KEY=sk-xxx
+ANTHROPIC_API_KEY=sk-ant-xxx
+```
+
+```yaml
+# docker-compose.yml
+services:
+  librarian:
+    image: ghcr.io/joywareapps/librarian:latest
+    env_file:
+      - .env  # Contains API keys
+    # OR inline:
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+```
+
+**Config changes needed:**
+
+```python
+# LLMConfig - add api_key field
+class LLMConfig(BaseModel):
+    provider: Literal["ollama", "openai", "anthropic", "none"] = "none"
+    model: str = ""
+    api_base: str = "http://localhost:11434"
+    api_key: str | None = None  # NEW: For cloud providers
+```
+
+**Deployment scenarios:**
+
+| Scenario | Config |
+|----------|--------|
+| Local Ollama | `provider: ollama`, `api_base: http://localhost:11434` |
+| Remote Ollama | `provider: ollama`, `api_base: http://office-pc:11434` |
+| OpenAI | `provider: openai`, `model: gpt-4o-mini`, `OPENAI_API_KEY` env |
+| Anthropic | `provider: anthropic`, `model: claude-3-haiku`, `ANTHROPIC_API_KEY` env |
+
 **Success criteria:**
 - `docker pull ghcr.io/joywareapps/librarian:latest` works
 - `docker compose up` starts a working Librarian instance
+- Users can configure OpenAI/Anthropic without local Ollama
+- API keys are read from environment variables (not logged)
 - Backup/restore works for both SQLite and ChromaDB data
 - Documentation covers installation, configuration, and common workflows
 - Health endpoint suitable for container orchestration
@@ -538,7 +593,7 @@ M13 (Chat Interface)
 | M8 Web UI | ~3-4 weeks | Weeks 3-7 |
 | M9 Auto-Tagging | ~1 week | Week 4 (parallel with M8) |
 | M9.5 Structured Extraction | ~1.5-2 weeks | Weeks 5-6 (after M9) |
-| M10 Deployment | ~1 week | Week 7 |
+| M10 Deployment | ~1-2 weeks | Week 7-8 |
 | M11 Admin Panel | ~2-3 weeks | Weeks 8-10 |
 | M12 Multi-User | ~2-3 weeks | Weeks 11-13 |
 | M13 Chat Interface | ~1-2 weeks | Weeks 14-15 |
