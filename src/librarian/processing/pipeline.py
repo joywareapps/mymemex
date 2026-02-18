@@ -157,34 +157,31 @@ async def run_ingest_pipeline(
     4. Store chunks (triggers FTS5 indexing)
     5. Update document status
     """
-    semaphore = _get_ingest_semaphore(config)
+    async with get_session() as session:
+        repo = DocumentRepository(session)
+        chunk_repo = ChunkRepository(session)
+        queue = TaskQueue(session)
 
-    async with semaphore:
-        async with get_session() as session:
-            repo = DocumentRepository(session)
-            chunk_repo = ChunkRepository(session)
-            queue = TaskQueue(session)
+        doc = await repo.get_by_id(document_id)
+        if not doc:
+            log.error("Document not found", doc_id=document_id)
+            return
 
-            doc = await repo.get_by_id(document_id)
-            if not doc:
-                log.error("Document not found", doc_id=document_id)
-                return
+        path = Path(doc.original_path)
+        if not path.exists():
+            log.error("File not found", path=str(path))
+            await repo.update_status(doc, "failed", error="File not found on disk")
+            return
 
-            path = Path(doc.original_path)
-            if not path.exists():
-                log.error("File not found", path=str(path))
-                await repo.update_status(doc, "failed", error="File not found on disk")
-                return
+        await repo.update_status(doc, "processing")
 
-            await repo.update_status(doc, "processing")
+        if events:
+            await events.broadcast(
+                "document.processing",
+                {"id": doc.id, "step": "metadata", "progress": 0.0},
+            )
 
-            if events:
-                await events.broadcast(
-                    "document.processing",
-                    {"id": doc.id, "step": "metadata", "progress": 0.0},
-                )
-
-            try:
+        try:
                 # Only process PDFs for now (images handled in M5 with OCR)
                 if doc.mime_type != "application/pdf":
                     log.info("Non-PDF file, skipping text extraction", doc_id=doc.id, mime=doc.mime_type)
@@ -321,15 +318,15 @@ async def run_ingest_pipeline(
                         },
                     )
 
-            except Exception as e:
-                log.exception("Ingestion failed", doc_id=doc.id, error=str(e))
-                await repo.update_status(doc, "failed", error=str(e))
+        except Exception as e:
+            log.exception("Ingestion failed", doc_id=doc.id, error=str(e))
+            await repo.update_status(doc, "failed", error=str(e))
 
-                if events:
-                    await events.broadcast(
-                        "document.error",
-                        {"id": doc.id, "error": str(e), "retryable": True},
-                    )
+            if events:
+                await events.broadcast(
+                    "document.error",
+                    {"id": doc.id, "error": str(e), "retryable": True},
+                )
 
 
 async def task_worker(
@@ -375,37 +372,40 @@ async def _process_task(
     events: EventManager | None,
 ) -> None:
     """Process a single task based on its type."""
-    log.info("Processing task", task_id=task.id, type=task.task_type)
+    semaphore = _get_ingest_semaphore(config)
 
-    if task.task_type == TaskType.INGEST.value:
-        doc_id = payload["document_id"]
-        await run_ingest_pipeline(doc_id, config, events)
-        await queue.complete(task)
+    async with semaphore:
+        log.info("Processing task", task_id=task.id, type=task.task_type)
 
-    elif task.task_type == TaskType.OCR_PAGE.value:
-        log.warning("OCR not yet implemented (M5)", task_id=task.id)
-        await queue.fail(task, "OCR not implemented in M1-M4", retryable=False)
+        if task.task_type == TaskType.INGEST.value:
+            doc_id = payload["document_id"]
+            await run_ingest_pipeline(doc_id, config, events)
+            await queue.complete(task)
 
-    elif task.task_type == TaskType.CLASSIFY.value:
-        from ..services.classification import ClassificationService
+        elif task.task_type == TaskType.OCR_PAGE.value:
+            log.warning("OCR not yet implemented (M5)", task_id=task.id)
+            await queue.fail(task, "OCR not implemented in M1-M4", retryable=False)
 
-        doc_id = payload["document_id"]
-        service = ClassificationService(config)
-        await service.classify_document(doc_id)
-        await queue.complete(task)
+        elif task.task_type == TaskType.CLASSIFY.value:
+            from ..services.classification import ClassificationService
 
-    elif task.task_type == TaskType.EXTRACT_METADATA.value:
-        from ..services.extraction import ExtractionService
+            doc_id = payload["document_id"]
+            service = ClassificationService(config)
+            await service.classify_document(doc_id)
+            await queue.complete(task)
 
-        doc_id = payload["document_id"]
-        service = ExtractionService(config)
-        await service.extract_document(doc_id)
-        await queue.complete(task)
+        elif task.task_type == TaskType.EXTRACT_METADATA.value:
+            from ..services.extraction import ExtractionService
 
-    elif task.task_type == TaskType.EMBED.value:
-        log.warning("Embed task not yet implemented", task_id=task.id)
-        await queue.fail(task, "Embed task not implemented", retryable=False)
+            doc_id = payload["document_id"]
+            service = ExtractionService(config)
+            await service.extract_document(doc_id)
+            await queue.complete(task)
 
-    else:
-        log.warning("Unknown task type", task_id=task.id, type=task.task_type)
-        await queue.fail(task, f"Unknown task type: {task.task_type}", retryable=False)
+        elif task.task_type == TaskType.EMBED.value:
+            log.warning("Embed task not yet implemented", task_id=task.id)
+            await queue.fail(task, "Embed task not implemented", retryable=False)
+
+        else:
+            log.warning("Unknown task type", task_id=task.id, type=task.task_type)
+            await queue.fail(task, f"Unknown task type: {task.task_type}", retryable=False)

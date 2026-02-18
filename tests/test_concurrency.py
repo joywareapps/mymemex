@@ -62,8 +62,15 @@ async def test_ingest_semaphore_limits_concurrency(test_config, db_session, samp
     ):
         
         # Run 3 ingestions concurrently
+        # IMPORTANT: We simulate what _process_task does (acquiring semaphore)
+        sem = _get_ingest_semaphore(test_config)
+        
+        async def run_with_sem(doc_id):
+            async with sem:
+                await run_ingest_pipeline(doc_id, test_config)
+
         tasks = [
-            run_ingest_pipeline(doc.id, test_config)
+            run_with_sem(doc.id)
             for doc in docs
         ]
         await asyncio.gather(*tasks)

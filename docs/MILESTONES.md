@@ -241,24 +241,32 @@ GROUP BY df.currency;
 
 ### M10: Deployment & Distribution
 
-**Goal:** Easy installation and production deployment.
+**Goal:** Easy installation and production deployment with pre-built Docker images.
 
 | Feature | Description | Effort |
 |---------|-------------|--------|
-| Docker image | Multi-stage build, optimized size | Low |
-| docker-compose.yml | Full stack (Librarian + Ollama + ChromaDB) | Low |
+| Pre-built Docker image | Automatic publishing to GHCR | Low |
+| GitHub Actions workflow | Build on tags, multi-arch (amd64/arm64) | Low |
+| docker-compose.full.yml | Full stack (Librarian + Ollama) | Low |
+| docker-compose.yml | Standalone with external Ollama | Low |
 | Systemd service | Linux daemon with auto-restart | Low |
-| Backup/restore | Database + vector store backup tooling | Medium |
+| Backup CLI | `librarian backup` command | Medium |
+| Backup scheduling | Cron-compatible, configurable retention | Low |
 | User documentation | Installation guide, configuration reference | Medium |
-| Monitoring | Health checks, log aggregation guidance | Low |
+| Health checks | Docker health, monitoring guidance | Low |
 
 **Estimated effort:** 1 week
 
 **Dependencies:** All core features should be stable. Docker/compose files already exist as stubs.
 
-**Technical approach:** Multi-stage Docker build for small image size. Docker Compose for full stack deployment. Systemd service file for bare-metal Linux. Backup script that exports SQLite + ChromaDB data.
+**Technical approach:**
+- GitHub Actions builds and pushes to `ghcr.io/joywareapps/librarian` on version tags
+- Multi-stage Docker build for ~400MB image size
+- Two compose files: standalone (external Ollama) and full stack (with Ollama)
+- Backup CLI creates timestamped archive of database + vectors + config
 
 **Success criteria:**
+- `docker pull ghcr.io/joywareapps/librarian:latest` works
 - `docker compose up` starts a working Librarian instance
 - Backup/restore works for both SQLite and ChromaDB data
 - Documentation covers installation, configuration, and common workflows
@@ -345,6 +353,65 @@ GROUP BY df.currency;
 
 ---
 
+### M14: Admin Panel & File Management
+
+**Goal:** Web-based administration interface for configuration, backup, and file management policies.
+
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| Settings editor | Edit config.yaml through Web UI | Medium |
+| Watch folder management | Add/remove watched directories | Low |
+| Backup configuration | Schedule backups, retention policy, destination | Medium |
+| Backup execution | Manual backup trigger, backup history | Low |
+| Post-ingestion policies | Define what happens to files after processing | Medium |
+| File organization | Rename/move/copy based on classification | Medium |
+| Storage stats | Disk usage, document count by location | Low |
+
+**Estimated effort:** 2-3 weeks
+
+**Dependencies:** M8 (Web UI), M10 (Deployment for backup infrastructure).
+
+**Post-Ingestion File Policies:**
+
+| Policy | Description |
+|--------|-------------|
+| `keep_original` | Leave file in place (default) |
+| `rename_template` | Rename in place using template (e.g., `{date}_{category}_{title}.pdf`) |
+| `move_to_archive` | Move to archive directory after processing |
+| `copy_organized` | Keep original, copy organized version to output directory |
+| `delete_original` | Remove original after successful ingestion (dangerous) |
+
+**Template Variables for Renaming:**
+- `{date}` — Document date (extracted or file mtime)
+- `{year}`, `{month}`, `{day}` — Date components
+- `{category}` — Auto-classified category
+- `{title}` — Extracted title
+- `{original_name}` — Original filename
+- `{hash}` — First 8 chars of content hash
+
+**Backup Configuration:**
+
+```yaml
+backup:
+  enabled: true
+  schedule: "0 3 * * *"  # Cron: 3 AM daily
+  retention_days: 30
+  destination: /mnt/backup/librarian
+  include:
+    - database
+    - vectors
+    - config
+```
+
+**Success criteria:**
+- All config options editable through UI (no manual YAML editing required)
+- Backup can be triggered manually or scheduled
+- Users can define file organization policies per watch folder
+- File operations are safe (atomic moves, no data loss on failure)
+- Audit log shows all file operations
+
+---
+
 ## Dependency Graph
 
 ```
@@ -368,6 +435,9 @@ M13 (Chat) ◄──────┘
     │
     ▼
 M10 (Deployment)
+    │
+    ▼
+M14 (Admin Panel)
 ```
 
 **Notes:**
@@ -378,6 +448,7 @@ M10 (Deployment)
 - M11 (Multi-User) depends on M7 for MCP user context, but NOT on M8
 - M12 (Cloud OCR) is independent — can be built at any time after M5
 - M13 (Chat) needs M8 for embedding the chat component; benefits from M9.5
+- M14 (Admin Panel) needs M8 (UI) and M10 (backup infrastructure)
 
 ---
 
@@ -394,8 +465,9 @@ M10 (Deployment)
 | M11 Multi-User | ~2-3 weeks | Weeks 8-10 |
 | M12 Cloud OCR | ~3-4 days | Any time (independent) |
 | M13 Chat Interface | ~1-2 weeks | Weeks 11-12 |
+| M14 Admin Panel | ~2-3 weeks | Weeks 13-15 |
 
-**Total estimated effort:** 12-17 weeks for M6.5-M13.
+**Total estimated effort:** 14-20 weeks for M6.5-M14.
 
 ---
 
