@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 import structlog
+from sqlalchemy.exc import IntegrityError
 
 from ..config import AppConfig
 from ..core.events import EventManager
@@ -105,15 +106,25 @@ async def handle_new_file(
 
         # New document
         mime_type = get_mime_type(path)
-        doc = await repo.create(
-            content_hash=file_hash.content_hash,
-            quick_hash=file_hash.quick_hash,
-            file_size=file_hash.file_size,
-            original_path=str(path),
-            original_filename=path.name,
-            mime_type=mime_type,
-            file_modified_at=path.stat().st_mtime,
-        )
+        try:
+            doc = await repo.create(
+                content_hash=file_hash.content_hash,
+                quick_hash=file_hash.quick_hash,
+                file_size=file_hash.file_size,
+                original_path=str(path),
+                original_filename=path.name,
+                mime_type=mime_type,
+                file_modified_at=path.stat().st_mtime,
+            )
+        except IntegrityError:
+            # Race condition: another coroutine inserted the same hash concurrently
+            # (e.g. watcher + upload both processing the same file)
+            await session.rollback()
+            existing = await repo.find_by_content_hash(file_hash.content_hash)
+            if existing:
+                log.info("Duplicate detected (race)", path=str(path), existing_id=existing.id)
+                await repo.add_file_path(existing.id, str(path))
+            return
 
         await queue.enqueue(
             task_type=TaskType.INGEST,
