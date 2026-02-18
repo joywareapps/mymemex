@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,10 +28,10 @@ class DatabaseConfig(BaseModel):
 
     path: Path = Field(default=Path("~/.local/share/librarian/librarian.db"))
 
-    @field_validator("path", mode="before")
-    @classmethod
-    def expand_path(cls, v: str | Path) -> Path:
-        return Path(v).expanduser()
+    @model_validator(mode="after")
+    def expand_path(self) -> DatabaseConfig:
+        self.path = self.path.expanduser()
+        return self
 
 
 class ServerConfig(BaseModel):
