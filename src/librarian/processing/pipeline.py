@@ -23,6 +23,20 @@ from ..storage.repositories import ChunkRepository, DocumentRepository
 log = structlog.get_logger()
 
 
+# Module-level semaphore to limit concurrent ingestion (SQLite write protection)
+_ingest_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_ingest_semaphore(config: AppConfig) -> asyncio.Semaphore:
+    """Get or create the global ingestion semaphore."""
+    global _ingest_semaphore
+    if _ingest_semaphore is None:
+        # Use a default of 2 if not configured (should be in IngestionConfig)
+        limit = getattr(config.ingestion, "max_concurrent", 2)
+        _ingest_semaphore = asyncio.Semaphore(limit)
+    return _ingest_semaphore
+
+
 def get_mime_type(path: Path) -> str:
     """Get MIME type for a file."""
     try:
@@ -132,176 +146,179 @@ async def run_ingest_pipeline(
     4. Store chunks (triggers FTS5 indexing)
     5. Update document status
     """
-    async with get_session() as session:
-        repo = DocumentRepository(session)
-        chunk_repo = ChunkRepository(session)
-        queue = TaskQueue(session)
+    semaphore = _get_ingest_semaphore(config)
 
-        doc = await repo.get_by_id(document_id)
-        if not doc:
-            log.error("Document not found", doc_id=document_id)
-            return
+    async with semaphore:
+        async with get_session() as session:
+            repo = DocumentRepository(session)
+            chunk_repo = ChunkRepository(session)
+            queue = TaskQueue(session)
 
-        path = Path(doc.original_path)
-        if not path.exists():
-            log.error("File not found", path=str(path))
-            await repo.update_status(doc, "failed", error="File not found on disk")
-            return
-
-        await repo.update_status(doc, "processing")
-
-        if events:
-            await events.broadcast(
-                "document.processing",
-                {"id": doc.id, "step": "metadata", "progress": 0.0},
-            )
-
-        try:
-            # Only process PDFs for now (images handled in M5 with OCR)
-            if doc.mime_type != "application/pdf":
-                log.info("Non-PDF file, skipping text extraction", doc_id=doc.id, mime=doc.mime_type)
-                await repo.update_status(doc, "ready")
-                await repo.update(doc, processed_at=datetime.utcnow())
+            doc = await repo.get_by_id(document_id)
+            if not doc:
+                log.error("Document not found", doc_id=document_id)
                 return
 
-            # Step 1: Extract metadata
-            metadata = extract_pdf_metadata(path)
-            await repo.update(
-                doc,
-                page_count=metadata["page_count"],
-                title=metadata["title"],
-                author=metadata["author"],
-            )
+            path = Path(doc.original_path)
+            if not path.exists():
+                log.error("File not found", path=str(path))
+                await repo.update_status(doc, "failed", error="File not found on disk")
+                return
+
+            await repo.update_status(doc, "processing")
 
             if events:
                 await events.broadcast(
                     "document.processing",
-                    {"id": doc.id, "step": "text_extraction", "progress": 0.2},
+                    {"id": doc.id, "step": "metadata", "progress": 0.0},
                 )
 
-            # Step 2: Extract text page by page
-            pages_with_text: list[tuple[int, str]] = []
-            pages_needing_ocr: list[int] = []
+            try:
+                # Only process PDFs for now (images handled in M5 with OCR)
+                if doc.mime_type != "application/pdf":
+                    log.info("Non-PDF file, skipping text extraction", doc_id=doc.id, mime=doc.mime_type)
+                    await repo.update_status(doc, "ready")
+                    await repo.update(doc, processed_at=datetime.utcnow())
+                    return
 
-            for page in extract_text_from_pdf(path):
-                if page.method == "needs_ocr":
-                    pages_needing_ocr.append(page.page_number)
-                    continue
-                if page.text.strip():
-                    pages_with_text.append((page.page_number, page.text))
-
-            if events:
-                await events.broadcast(
-                    "document.processing",
-                    {"id": doc.id, "step": "chunking", "progress": 0.4},
+                # Step 1: Extract metadata
+                metadata = extract_pdf_metadata(path)
+                await repo.update(
+                    doc,
+                    page_count=metadata["page_count"],
+                    title=metadata["title"],
+                    author=metadata["author"],
                 )
-
-            # Step 3: Chunk native text and store
-            all_chunks = chunk_pages(pages_with_text)
-            for chunk in all_chunks:
-                await chunk_repo.create(
-                    document_id=doc.id,
-                    chunk_index=chunk.chunk_index,
-                    page_number=chunk.page_number,
-                    text=chunk.text,
-                    char_count=chunk.char_count,
-                    extraction_method="pymupdf_native",
-                )
-
-            # Step 4: OCR pages that need it
-            ocr_chunk_count = 0
-            if config.ocr.enabled and pages_needing_ocr:
-                log.info("Processing OCR pages", doc_id=doc.id, count=len(pages_needing_ocr))
 
                 if events:
                     await events.broadcast(
                         "document.processing",
-                        {"id": doc.id, "step": "ocr", "progress": 0.5},
+                        {"id": doc.id, "step": "text_extraction", "progress": 0.2},
                     )
 
-                global_index = len(all_chunks)
-                for page_num in pages_needing_ocr:
-                    text = await ocr_page(path, page_num, config.ocr)
-                    if not text.strip():
+                # Step 2: Extract text page by page
+                pages_with_text: list[tuple[int, str]] = []
+                pages_needing_ocr: list[int] = []
+
+                for page in extract_text_from_pdf(path):
+                    if page.method == "needs_ocr":
+                        pages_needing_ocr.append(page.page_number)
                         continue
+                    if page.text.strip():
+                        pages_with_text.append((page.page_number, page.text))
 
-                    page_chunks = chunk_text(text, page_number=page_num)
-                    for chunk in page_chunks:
-                        chunk.chunk_index = global_index
-                        global_index += 1
-                        await chunk_repo.create(
-                            document_id=doc.id,
-                            chunk_index=chunk.chunk_index,
-                            page_number=chunk.page_number,
-                            text=chunk.text,
-                            char_count=chunk.char_count,
-                            extraction_method="tesseract_ocr",
+                if events:
+                    await events.broadcast(
+                        "document.processing",
+                        {"id": doc.id, "step": "chunking", "progress": 0.4},
+                    )
+
+                # Step 3: Chunk native text and store
+                all_chunks = chunk_pages(pages_with_text)
+                for chunk in all_chunks:
+                    await chunk_repo.create(
+                        document_id=doc.id,
+                        chunk_index=chunk.chunk_index,
+                        page_number=chunk.page_number,
+                        text=chunk.text,
+                        char_count=chunk.char_count,
+                        extraction_method="pymupdf_native",
+                    )
+
+                # Step 4: OCR pages that need it
+                ocr_chunk_count = 0
+                if config.ocr.enabled and pages_needing_ocr:
+                    log.info("Processing OCR pages", doc_id=doc.id, count=len(pages_needing_ocr))
+
+                    if events:
+                        await events.broadcast(
+                            "document.processing",
+                            {"id": doc.id, "step": "ocr", "progress": 0.5},
                         )
-                        ocr_chunk_count += 1
 
-            await session.commit()
+                    global_index = len(all_chunks)
+                    for page_num in pages_needing_ocr:
+                        text = await ocr_page(path, page_num, config.ocr)
+                        if not text.strip():
+                            continue
 
-            # Step 5: Update document status
-            await repo.update_status(doc, "ready")
-            await repo.update(doc, processed_at=datetime.utcnow())
+                        page_chunks = chunk_text(text, page_number=page_num)
+                        for chunk in page_chunks:
+                            chunk.chunk_index = global_index
+                            global_index += 1
+                            await chunk_repo.create(
+                                document_id=doc.id,
+                                chunk_index=chunk.chunk_index,
+                                page_number=chunk.page_number,
+                                text=chunk.text,
+                                char_count=chunk.char_count,
+                                extraction_method="tesseract_ocr",
+                            )
+                            ocr_chunk_count += 1
 
-            total_chunks = len(all_chunks) + ocr_chunk_count
-            log.info(
-                "Document ingested",
-                doc_id=doc.id,
-                native_chunks=len(all_chunks),
-                ocr_chunks=ocr_chunk_count,
-                total_chunks=total_chunks,
-                pages=metadata["page_count"],
-                pages_ocr=len(pages_needing_ocr),
-            )
+                await session.commit()
 
-            # Step 6: Enqueue classification if enabled
-            if config.classification.enabled and total_chunks > 0:
-                await queue.enqueue(
-                    task_type=TaskType.CLASSIFY,
-                    payload={"document_id": doc.id},
-                    document_id=doc.id,
-                    priority=3,
-                )
-                log.info("Classification task enqueued", doc_id=doc.id)
+                # Step 5: Update document status
+                await repo.update_status(doc, "ready")
+                await repo.update(doc, processed_at=datetime.utcnow())
 
-            # Step 7: Enqueue structured extraction if LLM configured
-            if (
-                config.extraction.enabled
-                and config.llm.provider
-                and config.llm.provider != "none"
-                and total_chunks > 0
-            ):
-                await queue.enqueue(
-                    task_type=TaskType.EXTRACT_METADATA,
-                    payload={"document_id": doc.id},
-                    document_id=doc.id,
-                    priority=2,
-                )
-                log.info("Extraction task enqueued", doc_id=doc.id)
-
-            if events:
-                await events.broadcast(
-                    "document.completed",
-                    {
-                        "id": doc.id,
-                        "title": doc.title or doc.original_filename,
-                        "chunks": total_chunks,
-                        "ocr_chunks": ocr_chunk_count,
-                        "pages_needing_ocr": len(pages_needing_ocr),
-                    },
+                total_chunks = len(all_chunks) + ocr_chunk_count
+                log.info(
+                    "Document ingested",
+                    doc_id=doc.id,
+                    native_chunks=len(all_chunks),
+                    ocr_chunks=ocr_chunk_count,
+                    total_chunks=total_chunks,
+                    pages=metadata["page_count"],
+                    pages_ocr=len(pages_needing_ocr),
                 )
 
-        except Exception as e:
-            log.exception("Ingestion failed", doc_id=doc.id, error=str(e))
-            await repo.update_status(doc, "failed", error=str(e))
+                # Step 6: Enqueue classification if enabled
+                if config.classification.enabled and total_chunks > 0:
+                    await queue.enqueue(
+                        task_type=TaskType.CLASSIFY,
+                        payload={"document_id": doc.id},
+                        document_id=doc.id,
+                        priority=3,
+                    )
+                    log.info("Classification task enqueued", doc_id=doc.id)
 
-            if events:
-                await events.broadcast(
-                    "document.error",
-                    {"id": doc.id, "error": str(e), "retryable": True},
-                )
+                # Step 7: Enqueue structured extraction if LLM configured
+                if (
+                    config.extraction.enabled
+                    and config.llm.provider
+                    and config.llm.provider != "none"
+                    and total_chunks > 0
+                ):
+                    await queue.enqueue(
+                        task_type=TaskType.EXTRACT_METADATA,
+                        payload={"document_id": doc.id},
+                        document_id=doc.id,
+                        priority=2,
+                    )
+                    log.info("Extraction task enqueued", doc_id=doc.id)
+
+                if events:
+                    await events.broadcast(
+                        "document.completed",
+                        {
+                            "id": doc.id,
+                            "title": doc.title or doc.original_filename,
+                            "chunks": total_chunks,
+                            "ocr_chunks": ocr_chunk_count,
+                            "pages_needing_ocr": len(pages_needing_ocr),
+                        },
+                    )
+
+            except Exception as e:
+                log.exception("Ingestion failed", doc_id=doc.id, error=str(e))
+                await repo.update_status(doc, "failed", error=str(e))
+
+                if events:
+                    await events.broadcast(
+                        "document.error",
+                        {"id": doc.id, "error": str(e), "retryable": True},
+                    )
 
 
 async def task_worker(

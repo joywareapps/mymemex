@@ -85,6 +85,12 @@ class ExtractionConfig(BaseModel):
     prompt_template: str = ""  # Custom extraction prompt
 
 
+class IngestionConfig(BaseModel):
+    """Document ingestion configuration."""
+
+    max_concurrent: int = Field(default=2, ge=1, le=10)
+
+
 class MCPSecurityConfig(BaseModel):
     """MCP security boundaries."""
 
@@ -122,6 +128,7 @@ class AppConfig(BaseSettings):
     mcp: MCPConfig = Field(default_factory=MCPConfig)
     classification: ClassificationConfig = Field(default_factory=ClassificationConfig)
     extraction: ExtractionConfig = Field(default_factory=ExtractionConfig)
+    ingestion: IngestionConfig = Field(default_factory=IngestionConfig)
 
     @classmethod
     def from_yaml(cls, path: Path) -> AppConfig:
