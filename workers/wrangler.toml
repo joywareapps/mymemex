@@ -1,0 +1,28 @@
+name = "mymemex-subscribe"
+main = "subscribe.js"
+compatibility_date = "2024-01-01"
+
+# Routes - this worker will be accessible at /api/subscribe on mymemex.io
+# Uncomment and adjust after deploying:
+# routes = [
+#   { pattern = "mymemex.io/api/subscribe", zone_name = "mymemex.io" }
+# ]
+
+# Or use a workers.dev subdomain for testing:
+# workers_dev = true
+
+# KV namespace for storing subscribers (optional but recommended)
+# Create with: wrangler kv:namespace create SUBSCRIBERS
+# Then uncomment and add the binding:
+# [[kv_namespaces]]
+# binding = "SUBSCRIBERS"
+# id = "your-kv-namespace-id"
+
+# Environment variables (non-sensitive)
+[vars]
+ALLOWED_ORIGIN = "https://mymemex.io"
+
+# Secrets (set with wrangler secret put)
+# - TURNSTILE_SECRET_KEY: From Cloudflare Turnstile dashboard
+# - NOTIFICATION_EMAIL: Your email to receive signup notifications
+# - FROM_EMAIL: noreply@mymemex.io (or your verified sender)

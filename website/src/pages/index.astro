@@ -1,214 +1,262 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const tagline = "For 80 years it was science fiction. Now, it's yours.";
+const subtitle = "The memex, reborn for AI";
 ---
 
-<Layout title="Librarian - Sovereign Document Intelligence">
-  <!-- Hero Section -->
-  <section class="relative overflow-hidden">
-    <!-- Background gradient -->
-    <div class="absolute inset-0 bg-gradient-to-br from-emerald-950/50 via-slate-950 to-cyan-950/30"></div>
-    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMyMDI0MmEiIGZpbGwtb3BhY2l0eT0iMC40Ij48cGF0aCBkPSJNMzYgMzRoLTJWMTZoMnYxOHptLTQgMGgtMlYxNmgydjE4em0tNCAwaC0yVjE2aDJ2MTh6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
-
-    <div class="relative max-w-6xl mx-auto px-6 py-24 md:py-32">
-      <div class="text-center max-w-4xl mx-auto">
-        <div class="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 mb-8">
-          <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-          <span class="text-emerald-400 text-sm font-medium">M1-M8 Complete — Production Ready</span>
+<Layout title="MyMemex - Your AI Document Memory">
+  <!-- Hero -->
+  <section class="min-h-screen flex items-center justify-center px-6 relative overflow-hidden">
+    <!-- Background decoration -->
+    <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/5 via-transparent to-transparent"></div>
+    <div class="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+    
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+      <!-- Logo -->
+      <div class="mb-8 flex justify-center">
+        <div class="w-20 h-20 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30">
+          <svg class="w-12 h-12 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="3"></circle>
+            <circle cx="12" cy="12" r="8" stroke-dasharray="4 4"></circle>
+            <path d="M12 1v3"></path>
+            <path d="M12 20v3"></path>
+            <path d="M1 12h3"></path>
+            <path d="M20 12h3"></path>
+            <path d="M4.93 4.93l2.12 2.12"></path>
+            <path d="M16.95 16.95l2.12 2.12"></path>
+            <path d="M4.93 19.07l2.12-2.12"></path>
+            <path d="M16.95 7.05l2.12-2.12"></path>
+          </svg>
         </div>
+      </div>
 
-        <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-          Your Documents,
-          <span class="bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-            Finally Intelligent
-          </span>
-        </h1>
+      <!-- Brand -->
+      <h1 class="text-6xl md:text-8xl font-bold mb-4">
+        <span class="bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">MyMemex</span>
+      </h1>
+      
+      <!-- Tagline -->
+      <p class="text-xl md:text-2xl text-slate-300 mb-4 font-light">
+        {tagline}
+      </p>
+      
+      <p class="text-lg text-slate-500 mb-8">
+        {subtitle} — <a href="https://en.wikipedia.org/wiki/Memex" target="_blank" rel="noopener" class="text-cyan-400 hover:text-cyan-300 transition-colors border-b border-cyan-400/30 hover:border-cyan-300">What's a memex?</a>
+      </p>
 
-        <p class="text-xl md:text-2xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Transform your personal archive into a searchable, agentic database.
-          Local-first privacy. AI-powered intelligence.
+      <!-- Quote -->
+      <blockquote class="max-w-2xl mx-auto mb-12 p-6 bg-slate-900/50 border border-slate-800 rounded-xl">
+        <p class="text-slate-400 italic mb-3">
+          "Thus science may implement the ways in which man produces, stores, and consults the record of the race."
         </p>
+        <cite class="text-slate-500 text-sm not-italic">
+          — <span class="text-emerald-400">Vannevar Bush</span>, As We May Think (1945)
+        </cite>
+      </blockquote>
 
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a href="/features" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg font-semibold text-slate-950 hover:from-emerald-400 hover:to-cyan-400 transition-all shadow-lg shadow-emerald-500/25 text-center">
-            Explore Features
-          </a>
-          <a href="https://github.com/joywareapps/librarian" class="w-full sm:w-auto px-8 py-4 bg-slate-800 border border-slate-700 rounded-lg font-semibold hover:bg-slate-700 transition-colors text-center">
-            View on GitHub
-          </a>
+      <!-- Status -->
+      <div class="mb-12">
+        <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full text-yellow-400 text-sm">
+          <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+          Coming Soon — Open Source
+        </span>
+      </div>
+
+      <!-- What's Coming -->
+      <div class="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12">
+        <div class="p-6 bg-slate-900/50 border border-slate-800 rounded-xl text-left">
+          <div class="text-2xl mb-2">🐳</div>
+          <h3 class="text-lg font-semibold mb-2">Self-Hosted (Free)</h3>
+          <p class="text-slate-400 text-sm">
+            Open-source, free for personal use. Run it on your own hardware with Docker. 
+            Your documents, your AI, your control.
+          </p>
         </div>
+        
+        <div class="p-6 bg-slate-900/50 border border-slate-800 rounded-xl text-left">
+          <div class="text-2xl mb-2">🍎</div>
+          <h3 class="text-lg font-semibold mb-2">Mac App (Planned)</h3>
+          <p class="text-slate-400 text-sm">
+            Not a command-line person? We're considering a native Mac app. 
+            Sign up below to get notified — and help us prioritize!
+          </p>
+        </div>
+      </div>
+
+      <!-- Email Signup -->
+      <div class="max-w-md mx-auto">
+        <p class="text-slate-400 mb-4">Get notified when MyMemex launches:</p>
+        <form id="signup-form" class="flex flex-col sm:flex-row gap-3">
+          <input 
+            type="email" 
+            name="email" 
+            id="email-input"
+            required
+            placeholder="your@email.com"
+            class="flex-1 px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+          />
+          <button 
+            type="submit"
+            id="submit-button"
+            class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span id="button-text">Notify Me</span>
+          </button>
+        </form>
+        <!-- Cloudflare Turnstile -->
+        <div class="flex justify-center mt-3">
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAAA0000000000000000" data-theme="dark"></div>
+        </div>
+        <p class="text-slate-600 text-xs mt-3 text-center" id="form-message">
+          No spam. Just launch updates and major announcements.
+        </p>
+      </div>
+
+      <!-- Early Access -->
+      <div class="mt-12 text-sm text-slate-500">
+        <p>
+          Want early access? 
+          <a href="https://github.com/joywareapps/mymemex" class="text-cyan-400 hover:text-cyan-300 transition-colors">
+            Star the repo on GitHub
+          </a> 
+          and we'll reach out to beta testers first.
+        </p>
       </div>
     </div>
   </section>
 
-  <!-- Stats Section -->
-  <section class="py-8 border-t border-slate-800">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-4 text-center">
-          <div class="text-3xl font-bold text-emerald-400">102+</div>
-          <div class="text-sm text-slate-400">Tests</div>
-        </div>
-        <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-4 text-center">
-          <div class="text-3xl font-bold text-cyan-400">10</div>
-          <div class="text-sm text-slate-400">Milestones Complete</div>
-        </div>
-        <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-4 text-center">
-          <div class="text-3xl font-bold text-blue-400">8</div>
-          <div class="text-sm text-slate-400">MCP Tools</div>
-        </div>
-        <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-4 text-center">
-          <div class="text-3xl font-bold text-violet-400">M9</div>
-          <div class="text-sm text-slate-400">Auto-Tagging Next</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Problem Section -->
-  <section class="py-20 border-t border-slate-800">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">The Problem</h2>
-        <p class="text-slate-400 text-lg max-w-2xl mx-auto">
-          Your documents are trapped in silos, forgotten in folders, invisible to search.
-        </p>
-      </div>
-
+  <!-- Features Preview -->
+  <section class="py-20 px-6 border-t border-slate-800">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">
+        <span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">What Will MyMemex Do?</span>
+      </h2>
+      
       <div class="grid md:grid-cols-3 gap-8">
-        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-          <div class="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Scanned & Unsearchable</h3>
-          <p class="text-slate-400">Years of scanned documents, receipts, and contracts locked in images. No OCR, no search.</p>
-        </div>
-
-        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-          <div class="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Folder Chaos</h3>
-          <p class="text-slate-400">Documents scattered across folders, NAS drives, and cloud storage. No unified view.</p>
-        </div>
-
-        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-          <div class="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Privacy Compromises</h3>
-          <p class="text-slate-400">Upload sensitive documents to third-party clouds? No thank you. But what's the alternative?</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Solution Section -->
-  <section class="py-20 border-t border-slate-800">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">The Solution</h2>
-        <p class="text-slate-400 text-lg max-w-2xl mx-auto">
-          A sovereign document intelligence platform that runs entirely on your hardware.
-        </p>
-      </div>
-
-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 rounded-xl p-6 text-center">
-          <div class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="text-center">
+          <div class="w-14 h-14 mx-auto mb-4 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+            <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-semibold mb-2">Hybrid Search</h3>
-          <p class="text-slate-400 text-sm">Keyword + semantic + hybrid RRF search. Three modes, one query.</p>
+          <h3 class="text-lg font-semibold mb-2">Find Anything</h3>
+          <p class="text-slate-400 text-sm">
+            Search your documents with AI. Ask questions in natural language, get instant answers with citations.
+          </p>
         </div>
-
-        <div class="bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 rounded-xl p-6 text-center">
-          <div class="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+        
+        <div class="text-center">
+          <div class="w-14 h-14 mx-auto mb-4 bg-cyan-500/10 rounded-xl flex items-center justify-center">
+            <svg class="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-semibold mb-2">Local-First Privacy</h3>
-          <p class="text-slate-400 text-sm">Your documents never leave your network. Period.</p>
+          <h3 class="text-lg font-semibold mb-2">Auto-Organize</h3>
+          <p class="text-slate-400 text-sm">
+            AI tags and categorizes your documents automatically. Extract amounts, dates, entities — no manual work.
+          </p>
         </div>
-
-        <div class="bg-gradient-to-br from-violet-500/10 to-transparent border border-violet-500/20 rounded-xl p-6 text-center">
-          <div class="w-16 h-16 bg-violet-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        
+        <div class="text-center">
+          <div class="w-14 h-14 mx-auto mb-4 bg-purple-500/10 rounded-xl flex items-center justify-center">
+            <svg class="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-semibold mb-2">MCP Integration</h3>
-          <p class="text-slate-400 text-sm">Talk to your docs via Claude Desktop, OpenClaw, or any MCP client.</p>
-        </div>
-
-        <div class="bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20 rounded-xl p-6 text-center">
-          <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-semibold mb-2">Smart Organization</h3>
-          <p class="text-slate-400 text-sm">Auto-tagging, deduplication, and filing suggestions.</p>
+          <h3 class="text-lg font-semibold mb-2">Stay Private</h3>
+          <p class="text-slate-400 text-sm">
+            Self-hosted on your hardware. Your documents never leave your control. Works offline with local AI.
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- How It Works -->
-  <section class="py-20 border-t border-slate-800 bg-slate-900/30">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-        <p class="text-slate-400 text-lg max-w-2xl mx-auto">
-          Three simple steps to document intelligence
-        </p>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="relative">
-          <div class="text-6xl font-bold text-slate-800 mb-4">01</div>
-          <h3 class="text-xl font-semibold mb-3">Point to Your Files</h3>
-          <p class="text-slate-400">Configure watched folders on your NAS or local storage. Librarian detects new and changed files automatically.</p>
-        </div>
-
-        <div class="relative">
-          <div class="text-6xl font-bold text-slate-800 mb-4">02</div>
-          <h3 class="text-xl font-semibold mb-3">Intelligent Processing</h3>
-          <p class="text-slate-400">OCR extracts text from scans. AI generates embeddings for semantic search. Documents are auto-categorized and tagged.</p>
-        </div>
-
-        <div class="relative">
-          <div class="text-6xl font-bold text-slate-800 mb-4">03</div>
-          <h3 class="text-xl font-semibold mb-3">Ask Anything</h3>
-          <p class="text-slate-400">Query via Claude Desktop, OpenClaw, or any MCP client. Get answers with source citations. Find what you forgot you had.</p>
-        </div>
+  <!-- Tech Stack -->
+  <section class="py-16 px-6 bg-slate-900/50">
+    <div class="max-w-4xl mx-auto text-center">
+      <p class="text-slate-500 text-sm mb-6">Built with modern, open technologies</p>
+      <div class="flex flex-wrap justify-center gap-6 text-slate-400">
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M14.25.18l.9.2.73.26.59.3.45.32.34.34.25.34.16.33.1.3.04.26.02.2-.01.13V8.5l-.05.63-.13.55-.21.46-.26.38-.3.31-.33.25-.35.19-.35.14-.33.1-.3.07-.26.04-.21.02H8.77l-.69.05-.59.14-.5.22-.41.27-.33.32-.27.35-.2.36-.15.37-.1.35-.07.32-.04.27-.02.21v3.06H3.17l-.21-.03-.28-.07-.32-.12-.35-.18-.36-.26-.36-.36-.35-.46-.32-.59-.28-.73-.21-.88-.14-1.05-.05-1.23.06-1.22.16-1.04.24-.87.32-.71.36-.57.4-.44.42-.33.42-.24.4-.16.36-.1.32-.05.24-.01h.16l.06.01h8.16v-.83H6.18l-.01-2.75-.02-.37.05-.34.11-.31.17-.28.25-.26.31-.23.38-.2.44-.18.51-.15.58-.12.64-.1.71-.06.77-.04.84-.02 1.27.05zm-6.3 1.98l-.23.33-.08.41.08.41.23.34.33.22.41.09.41-.09.33-.22.23-.34.08-.41-.08-.41-.23-.33-.33-.22-.41-.09-.41.09zm13.09 3.95l.28.06.32.12.35.18.36.27.36.35.35.47.32.59.28.73.21.88.14 1.04.05 1.23-.06 1.23-.16 1.04-.24.86-.32.71-.36.57-.4.45-.42.33-.42.24-.4.16-.36.09-.32.05-.24.02-.16-.01h-8.22v.82h5.84l.01 2.76.02.36-.05.34-.11.31-.17.29-.25.25-.31.24-.38.2-.44.17-.51.15-.58.13-.64.09-.71.07-.77.04-.84.01-1.27-.04-1.07-.14-.9-.2-.73-.25-.59-.3-.45-.33-.34-.34-.25-.34-.16-.33-.1-.3-.04-.25-.02-.2.01-.13v-5.34l.05-.64.13-.54.21-.46.26-.38.3-.32.33-.24.35-.2.35-.14.33-.1.3-.06.26-.04.21-.02.13-.01h5.84l.69-.05.59-.14.5-.21.41-.28.33-.32.27-.35.2-.36.15-.36.1-.35.07-.32.04-.28.02-.21V6.07h2.09l.14.01zm-6.47 14.25l-.23.33-.08.41.08.41.23.33.33.23.41.08.41-.08.33-.23.23-.33.08-.41-.08-.41-.23-.33-.33-.23-.41-.08-.41.08z"/></svg>
+          Python
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.018 6.537c-2.5 0-4.6 1.712-5.241 4.015-.56-1.232-1.793-2.105-3.225-2.105A3.569 3.569 0 000 12.018a3.569 3.569 0 003.552 3.571c1.432 0 2.664-.873 3.224-2.105.642 2.304 2.742 4.015 5.241 4.015 2.5 0 4.6-1.711 5.242-4.015.56 1.232 1.792 2.105 3.224 2.105a3.569 3.569 0 003.552-3.571 3.569 3.569 0 00-3.552-3.571c-1.432 0-2.664.873-3.224 2.105-.642-2.303-2.742-4.015-5.242-4.015z"/></svg>
+          FastAPI
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 3a7 7 0 100 14 7 7 0 000-14z"/></svg>
+          Ollama
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.186.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.186.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.186.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/></svg>
+          Docker
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12c0 4.628 2.618 8.645 6.452 10.612-.03-.81-.006-1.785.204-2.667l1.51-6.39s-.375-.751-.375-1.858c0-1.74 1.008-3.041 2.264-3.041 1.068 0 1.584.802 1.584 1.763 0 1.074-.684 2.68-1.036 4.17-.295 1.247.626 2.263 1.854 2.263 2.226 0 3.72-2.86 3.72-6.24 0-2.573-1.732-4.498-4.88-4.498-3.558 0-5.774 2.654-5.774 5.62 0 1.023.302 1.745.776 2.304.217.258.248.362.168.659-.057.218-.185.742-.24.95-.078.298-.318.404-.587.294-1.64-.67-2.406-2.468-2.406-4.49 0-3.34 2.817-7.342 8.402-7.342 4.49 0 7.444 3.247 7.444 6.73 0 4.613-2.566 8.057-6.35 8.057-1.269 0-2.461-.686-2.87-1.464 0 0-.682 2.706-.827 3.229-.248.901-.733 1.802-1.176 2.503.938.276 1.93.425 2.957.425 6.627 0 12-5.373 12-12S18.627 0 12 0"/></svg>
+          MCP
+        </span>
       </div>
     </div>
   </section>
 
-  <!-- CTA Section -->
-  <section class="py-20 border-t border-slate-800">
-    <div class="max-w-4xl mx-auto px-6 text-center">
-      <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Take Control?</h2>
-      <p class="text-slate-400 text-lg mb-8 max-w-2xl mx-auto">
-        M1-M8 complete. MCP server, Web UI, and semantic search all working. Structured extraction coming next.
-      </p>
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="/roadmap" class="w-full sm:w-auto px-8 py-4 bg-slate-800 border border-slate-700 rounded-lg font-semibold hover:bg-slate-700 transition-colors text-center">
-          View Roadmap
-        </a>
-        <a href="https://github.com/joywareapps/librarian" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg font-semibold text-slate-950 hover:from-emerald-400 hover:to-cyan-400 transition-all text-center">
-          Star on GitHub
-        </a>
-      </div>
-    </div>
-  </section>
+  <!-- Cloudflare Turnstile -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  
+  <!-- Form Handler -->
+  <script>
+    const API_ENDPOINT = 'https://mymemex.io/api/subscribe'; // Update after worker deployed
+    
+    const form = document.getElementById('signup-form');
+    const emailInput = document.getElementById('email-input');
+    const submitButton = document.getElementById('submit-button');
+    const buttonText = document.getElementById('button-text');
+    const formMessage = document.getElementById('form-message');
+    
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = emailInput.value.trim();
+      const turnstileToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
+      
+      // Disable button
+      submitButton.disabled = true;
+      buttonText.textContent = 'Signing up...';
+      
+      try {
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, turnstileToken }),
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          formMessage.textContent = data.message || 'Thanks for signing up!';
+          formMessage.classList.remove('text-slate-600');
+          formMessage.classList.add('text-emerald-400');
+          emailInput.value = '';
+          form.reset();
+          
+          // Reset Turnstile
+          if (window.turnstile) {
+            turnstile.reset();
+          }
+        } else {
+          throw new Error(data.error || 'Something went wrong');
+        }
+      } catch (error) {
+        formMessage.textContent = error.message || 'Something went wrong. Please try again.';
+        formMessage.classList.remove('text-slate-600');
+        formMessage.classList.add('text-red-400');
+      } finally {
+        submitButton.disabled = false;
+        buttonText.textContent = 'Notify Me';
+      }
+    });
+  </script>
 </Layout>
