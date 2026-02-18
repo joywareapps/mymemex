@@ -29,32 +29,32 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
           </div>
           <div>
             <h2 class="text-2xl font-bold">Current Status</h2>
-            <p class="text-slate-400">M1-M8 Complete — Production Ready!</p>
+            <p class="text-slate-400">M1-M9.5 Complete — Ready for Deployment!</p>
           </div>
         </div>
         <div class="grid md:grid-cols-3 gap-4 mb-4">
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Phase</div>
-            <div class="text-lg font-semibold text-emerald-400">M1-M8 Complete</div>
+            <div class="text-lg font-semibold text-emerald-400">M1-M9.5 Complete</div>
           </div>
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Next Milestone</div>
-            <div class="text-lg font-semibold">M9: Auto-Tagging</div>
+            <div class="text-lg font-semibold">M10: Deployment</div>
           </div>
           <div class="bg-slate-900/50 rounded-lg p-4">
-            <div class="text-sm text-slate-400 mb-1">Then</div>
-            <div class="text-lg font-semibold">M9.5: Structured Extraction</div>
+            <div class="text-sm text-slate-400 mb-1">Tests</div>
+            <div class="text-lg font-semibold text-emerald-400">139 passing</div>
           </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
           <div class="bg-slate-900/30 rounded-lg p-3">
-            <span class="text-slate-400">Tests:</span> <span class="font-semibold text-emerald-400">102+ passing</span>
-          </div>
-          <div class="bg-slate-900/30 rounded-lg p-3">
-            <span class="text-slate-400">MCP Tools:</span> <span class="font-semibold">8 tools</span>
+            <span class="text-slate-400">MCP Tools:</span> <span class="font-semibold text-emerald-400">13 tools</span>
           </div>
           <div class="bg-slate-900/30 rounded-lg p-3">
             <span class="text-slate-400">Deployment:</span> <span class="font-semibold">Docker ready</span>
+          </div>
+          <div class="bg-slate-900/30 rounded-lg p-3">
+            <span class="text-slate-400">AI Features:</span> <span class="font-semibold">Classification + Extraction</span>
           </div>
           <div class="bg-slate-900/30 rounded-lg p-3">
             <span class="text-slate-400">GitHub:</span> <span class="font-semibold">joywareapps/librarian</span>
@@ -62,290 +62,179 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
         </div>
       </div>
 
-      <!-- Milestones -->
-      <h2 class="text-2xl font-bold mb-8 text-emerald-400">Completed Milestones</h2>
+      <!-- Core Features Complete -->
+      <h2 class="text-2xl font-bold mb-8 text-emerald-400">Core Features Complete ✅</h2>
 
-      <div class="space-y-8">
-        <!-- M1 -->
-        <div class="border border-slate-800 rounded-xl p-6">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M1</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">Project Skeleton <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
-              <p class="text-slate-400">Configuration, CLI, SQLite schema, Alembic migrations</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> <code>librarian init</code> command</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Hierarchical config (YAML + env vars)</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Full SQLite schema with FTS5</li>
-            </ul>
-            <div class="mt-4">
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">No AI Required</span>
-            </div>
-          </div>
+      <div class="grid md:grid-cols-2 gap-6 mb-12">
+        <div class="border border-emerald-500/20 rounded-xl p-6 bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            Document Processing
+          </h3>
+          <ul class="space-y-2 text-slate-400 text-sm">
+            <li>• PDF text extraction (PyMuPDF)</li>
+            <li>• OCR for scanned documents (Tesseract)</li>
+            <li>• Auto-classification via LLM</li>
+            <li>• Structured data extraction</li>
+          </ul>
+        </div>
+        
+        <div class="border border-emerald-500/20 rounded-xl p-6 bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            Search & Discovery
+          </h3>
+          <ul class="space-y-2 text-slate-400 text-sm">
+            <li>• Keyword search (FTS5)</li>
+            <li>• Semantic search (Ollama + ChromaDB)</li>
+            <li>• Hybrid search with RRF merge</li>
+            <li>• Filter by tags, category, date</li>
+          </ul>
         </div>
 
-        <!-- M2 -->
-        <div class="border border-slate-800 rounded-xl p-6">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M2</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">File Watching & Dedup <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
-              <p class="text-slate-400">Real-time file detection, two-phase hashing, task queue</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> <code>watchdog</code> integration with debouncing</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Two-phase hashing (xxhash pre-filter + SHA-256)</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> SQLite-backed task queue with priorities</li>
-            </ul>
-            <div class="mt-4">
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">No AI Required</span>
-            </div>
-          </div>
+        <div class="border border-emerald-500/20 rounded-xl p-6 bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            Interfaces
+          </h3>
+          <ul class="space-y-2 text-slate-400 text-sm">
+            <li>• REST API (FastAPI)</li>
+            <li>• MCP Server (Claude Desktop, OpenClaw)</li>
+            <li>• Web UI (HTMX + Alpine.js)</li>
+            <li>• CLI (Typer)</li>
+          </ul>
         </div>
 
-        <!-- M3 -->
-        <div class="border border-slate-800 rounded-xl p-6">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M3</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">Text Extraction & Chunking <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
-              <p class="text-slate-400">PyMuPDF native extraction, custom chunker, FTS5 indexing</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> PyMuPDF text extraction (instant for ~60% of PDFs)</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Custom chunker (paragraphs -> lines -> sentences)</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> FTS5 full-text search index</li>
-            </ul>
-            <div class="mt-4">
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">No AI Required</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- M4 -->
-        <div class="border border-emerald-500/30 rounded-xl p-6 bg-gradient-to-r from-emerald-500/5 to-transparent">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/30 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M4</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">REST API & Keyword Search <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
-              <p class="text-slate-400">REST API, document browsing, keyword search — works without AI!</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> FastAPI REST endpoints for document CRUD</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> FTS5 keyword search with filtering</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Tag management and document upload</li>
-            </ul>
-            <div class="mt-4">
-              <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-sm font-medium">First Usable Version</span>
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300 ml-2">No AI Required</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- M5 -->
-        <div class="border border-emerald-500/30 rounded-xl p-6 bg-gradient-to-r from-emerald-500/5 to-transparent">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/30 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M5</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">OCR Integration <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
-              <p class="text-slate-400">Tesseract OCR for scanned PDFs with automatic fallback</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Automatic OCR fallback for image-based PDFs</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Thread pool for CPU-bound OCR operations</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Configurable DPI and language settings</li>
-            </ul>
-            <div class="mt-4">
-              <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm font-medium">Optional: Tesseract</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- M6 -->
-        <div class="border border-emerald-500/30 rounded-xl p-6 bg-gradient-to-r from-emerald-500/5 to-transparent">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/30 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M6</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">Semantic Search <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
-              <p class="text-slate-400">Vector embeddings + similarity search + hybrid RRF merge</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Ollama embeddings (nomic-embed-text, 768D vectors)</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> ChromaDB vector store with cosine similarity</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Hybrid search: keyword + semantic with RRF merge</li>
-            </ul>
-            <div class="mt-4">
-              <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm font-medium">AI-Powered</span>
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300 ml-2">Graceful degradation</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recently Completed -->
-      <h2 class="text-2xl font-bold mt-16 mb-8 text-cyan-400">Recently Completed</h2>
-
-      <div class="space-y-8">
-        <!-- M6.5 -->
-        <div class="border border-slate-800 rounded-xl p-6">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M6.5</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">Service Layer Extraction <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
-              <p class="text-slate-400">Shared business logic for MCP + REST API + CLI</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> DocumentService, SearchService, TagService, IngestService, StatsService</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Thin API handlers — no duplicate logic</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- M7 -->
-        <div class="border border-slate-800 rounded-xl p-6">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M7</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">MCP Server <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
-              <p class="text-slate-400">Conversational access via Claude Desktop, OpenClaw, any MCP client</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> 8 tools: search, get_document, get_document_text, upload, tags, stats</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Two transports: stdio (Claude Desktop) + HTTP/SSE (OpenClaw)</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Security: path boundaries, localhost default, rate limiting</li>
-            </ul>
-            <div class="mt-4">
-              <span class="px-3 py-1 bg-violet-500/20 text-violet-400 rounded-full text-sm font-medium">Talk to Your Documents</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- M8 -->
-        <div class="border border-slate-800 rounded-xl p-6">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M8</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">Web UI <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">COMPLETE</span></h3>
-              <p class="text-slate-400">Browser-based document management with HTMX + Alpine.js</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Document browser with search, filters, and pagination</li>
-              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Tag management and drag-and-drop upload</li>
-            </ul>
-          </div>
+        <div class="border border-emerald-500/20 rounded-xl p-6 bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            Intelligence
+          </h3>
+          <ul class="space-y-2 text-slate-400 text-sm">
+            <li>• Auto-tagging with confidence thresholds</li>
+            <li>• Structured extraction (amounts, dates)</li>
+            <li>• Aggregation queries ("tax paid 2024?")</li>
+            <li>• 64 extracted fields per document avg</li>
+          </ul>
         </div>
       </div>
 
       <!-- Upcoming Milestones -->
       <h2 class="text-2xl font-bold mt-16 mb-8 text-cyan-400">Upcoming Milestones</h2>
 
-      <div class="space-y-8">
-        <!-- M9 -->
-        <div class="border border-cyan-500/30 rounded-xl p-6">
+      <div class="space-y-6">
+        <!-- M10 -->
+        <div class="border border-cyan-500/30 rounded-xl p-6 bg-gradient-to-r from-cyan-500/5 to-transparent">
           <div class="flex items-center gap-4 mb-4">
             <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-cyan-400 font-bold">M9</span>
+              <span class="text-cyan-400 font-bold">M10</span>
             </div>
             <div>
-              <h3 class="text-xl font-semibold">Auto-Tagging <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs font-semibold">NEXT UP</span></h3>
-              <p class="text-slate-400">LLM-powered document classification and tag suggestions</p>
-            </div>
-          </div>
-          <div class="ml-14 text-slate-400">
-            <p>Automatically classify and tag documents on ingest using Ollama. Confidence thresholds prevent low-quality tags.</p>
-            <p class="mt-2 text-sm"><span class="text-cyan-400">Effort:</span> ~1 week</p>
-          </div>
-        </div>
-
-        <!-- M9.5 (highlighted) -->
-        <div class="border border-amber-500/30 rounded-xl p-6 bg-gradient-to-r from-amber-500/5 to-transparent">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-amber-500/30 rounded-lg flex items-center justify-center">
-              <span class="text-amber-400 font-bold">M9.5</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">Structured Extraction & Aggregation <span class="ml-2 px-2 py-1 bg-amber-500/20 text-amber-400 rounded text-xs font-semibold">KEY FEATURE</span></h3>
-              <p class="text-slate-400">Extract amounts, dates, and entities — then aggregate across your archive</p>
+              <h3 class="text-xl font-semibold">Deployment & Distribution <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs font-semibold">IN PROGRESS</span></h3>
+              <p class="text-slate-400">Pre-built Docker images, cloud LLM support, backup infrastructure</p>
             </div>
           </div>
           <div class="ml-14">
             <ul class="space-y-2 text-slate-400">
-              <li>"How much tax did I pay from 2015-2025?" — answered with sources</li>
-              <li>LLM extracts structured data (amounts, dates, organizations) after ingestion</li>
-              <li>Typed storage with SQL aggregation (SUM, GROUP BY)</li>
-              <li>3 new MCP tools: aggregate_amounts, get_extracted_fields, list_document_types</li>
+              <li>• GitHub Actions → GHCR (ghcr.io/joywareapps/librarian)</li>
+              <li>• Cloud LLM support (OpenAI, Anthropic) for users without Ollama</li>
+              <li>• API keys via environment variables</li>
+              <li>• Backup CLI: librarian backup create/restore/list</li>
             </ul>
             <div class="mt-4">
-              <span class="px-3 py-1 bg-amber-500/20 text-amber-400 rounded-full text-sm font-medium">Document Intelligence</span>
-              <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300 ml-2">1.5-2 weeks</span>
+              <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm font-medium">1-2 weeks</span>
             </div>
           </div>
         </div>
 
-        <!-- M10+ Future -->
+        <!-- M11 -->
         <div class="border border-slate-800 rounded-xl p-6">
           <div class="flex items-center gap-4 mb-4">
             <div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center">
-              <span class="text-slate-400 font-bold">M10+</span>
+              <span class="text-slate-400 font-bold">M11</span>
             </div>
             <div>
-              <h3 class="text-xl font-semibold">Future Enhancements</h3>
-              <p class="text-slate-400">Multi-user, cloud OCR, chat interface, deployment</p>
+              <h3 class="text-xl font-semibold">Admin Panel & File Management</h3>
+              <p class="text-slate-400">Web-based configuration, MCP access tokens, file organization policies</p>
             </div>
           </div>
-          <div class="ml-14">
-            <div class="grid md:grid-cols-3 gap-3 text-sm">
-              <div class="bg-slate-900/50 rounded p-3">
-                <span class="text-slate-300">M10:</span> <span class="text-slate-400">Multi-User (2-3 weeks)</span>
-              </div>
-              <div class="bg-slate-900/50 rounded p-3">
-                <span class="text-slate-300">M11:</span> <span class="text-slate-400">Cloud OCR (3-4 days)</span>
-              </div>
-              <div class="bg-slate-900/50 rounded p-3">
-                <span class="text-slate-300">M12:</span> <span class="text-slate-400">Chat UI (1-2 weeks)</span>
-              </div>
-              <div class="bg-slate-900/50 rounded p-3">
-                <span class="text-slate-300">M13:</span> <span class="text-slate-400">Deployment (1 week)</span>
-              </div>
-            </div>
+          <div class="ml-14 text-slate-400">
+            <p>Configure watch folders, backup schedules, MCP tokens, and post-ingestion file policies (rename, move, archive) through the Web UI.</p>
+            <p class="mt-2 text-sm"><span class="text-cyan-400">Effort:</span> ~2-3 weeks</p>
           </div>
+        </div>
+
+        <!-- M12, M13, M14 in grid -->
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="border border-slate-800 rounded-xl p-5">
+            <div class="text-sm font-semibold text-slate-300 mb-2">M12: Multi-User</div>
+            <p class="text-slate-400 text-sm">Named profiles, document ownership, per-user filtering</p>
+            <p class="text-slate-500 text-xs mt-2">~2-3 weeks</p>
+          </div>
+          <div class="border border-slate-800 rounded-xl p-5">
+            <div class="text-sm font-semibold text-slate-300 mb-2">M13: Chat Interface</div>
+            <p class="text-slate-400 text-sm">Built-in RAG chat with citations (optional, MCP already works)</p>
+            <p class="text-slate-500 text-xs mt-2">~1-2 weeks</p>
+          </div>
+          <div class="border border-slate-800 rounded-xl p-5">
+            <div class="text-sm font-semibold text-slate-300 mb-2">M14: Cloud OCR</div>
+            <p class="text-slate-400 text-sm">AWS Textract/Google Vision fallback for difficult documents</p>
+            <p class="text-slate-500 text-xs mt-2">~3-4 days</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed Milestones Summary -->
+      <h2 class="text-2xl font-bold mt-16 mb-8 text-emerald-400">Completed Milestones</h2>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M1</span>
+          <span class="text-slate-300 ml-2">Project Skeleton, CLI, Config</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M2</span>
+          <span class="text-slate-300 ml-2">File Watching, Deduplication</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M3</span>
+          <span class="text-slate-300 ml-2">Text Extraction, Chunking</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M4</span>
+          <span class="text-slate-300 ml-2">REST API, Keyword Search</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M5</span>
+          <span class="text-slate-300 ml-2">OCR (Tesseract)</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M6</span>
+          <span class="text-slate-300 ml-2">Semantic Search (Ollama)</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M6.5</span>
+          <span class="text-slate-300 ml-2">Service Layer</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M7</span>
+          <span class="text-slate-300 ml-2">MCP Server (13 tools)</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M7.5</span>
+          <span class="text-slate-300 ml-2">OpenClaw Skill</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M8</span>
+          <span class="text-slate-300 ml-2">Web UI</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M9</span>
+          <span class="text-slate-300 ml-2">Auto-Tagging</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M9.5</span>
+          <span class="text-slate-300 ml-2">Structured Extraction</span>
         </div>
       </div>
     </div>
