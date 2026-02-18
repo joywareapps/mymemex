@@ -274,7 +274,7 @@ GROUP BY df.currency;
 
 ---
 
-### M11: Multi-User Support
+### M12: Multi-User Support
 
 **Goal:** Shared library with per-user ownership tracking. A family or small team shares one Librarian instance.
 
@@ -302,7 +302,7 @@ GROUP BY df.currency;
 
 ---
 
-### M12: Cloud OCR Fallback
+### M14: Cloud OCR Fallback
 
 **Goal:** High-fidelity OCR for difficult documents using cloud APIs, with privacy controls.
 
@@ -353,7 +353,7 @@ GROUP BY df.currency;
 
 ---
 
-### M14: Admin Panel & File Management
+### M11: Admin Panel & File Management
 
 **Goal:** Web-based administration interface for configuration, backup, file management policies, and MCP access control.
 
@@ -502,7 +502,7 @@ M7 (MCP Server) ─────────────────────�
     │                                   │               │
     ├──────────────┐                    │               │
     ▼              ▼                    ▼               ▼
-M8 (Web UI)   M9 (Auto-Tag)      M11 (Multi-User)  M12 (Cloud OCR)
+M8 (Web UI)   M9 (Auto-Tag)      M12 (Multi-User)  M14 (Cloud OCR)
     │              │                                (independent)
     │              ▼
     │         M9.5 (Extraction)
@@ -511,7 +511,7 @@ M8 (Web UI)   M9 (Auto-Tag)      M11 (Multi-User)  M12 (Cloud OCR)
 M10 (Deployment) ◄┘
     │
     ▼
-M14 (Admin Panel)
+M11 (Admin Panel)
     │
     ▼
 M13 (Chat Interface)
@@ -522,9 +522,9 @@ M13 (Chat Interface)
 - M9 (Auto-Tag) establishes the LLM classification pipeline
 - M9.5 (Structured Extraction) extends M9 with entity extraction + aggregation queries
 - M10 (Deployment) comes before multi-user for easier single-user production deployment
-- M11 (Multi-User) depends on M7 for MCP user context, but NOT on M8
-- M12 (Cloud OCR) is independent — can be built at any time after M5
-- M14 (Admin Panel) needs M8 (UI), M7 (MCP config), and M10 (backup infrastructure)
+- M12 (Multi-User) depends on M7 for MCP user context, but NOT on M8
+- M14 (Cloud OCR) is independent — can be built at any time after M5
+- M11 (Admin Panel) needs M8 (UI), M7 (MCP config), and M10 (backup infrastructure)
 - M13 (Chat) needs M8 for embedding the chat component; benefits from M9.5 and M14
 
 ---
@@ -539,10 +539,10 @@ M13 (Chat Interface)
 | M9 Auto-Tagging | ~1 week | Week 4 (parallel with M8) |
 | M9.5 Structured Extraction | ~1.5-2 weeks | Weeks 5-6 (after M9) |
 | M10 Deployment | ~1 week | Week 7 |
-| M14 Admin Panel | ~2-3 weeks | Weeks 8-10 |
-| M11 Multi-User | ~2-3 weeks | Weeks 11-13 |
+| M11 Admin Panel | ~2-3 weeks | Weeks 8-10 |
+| M12 Multi-User | ~2-3 weeks | Weeks 11-13 |
 | M13 Chat Interface | ~1-2 weeks | Weeks 14-15 |
-| M12 Cloud OCR | ~3-4 days | Any time (independent) |
+| M14 Cloud OCR | ~3-4 days | Any time (independent) |
 
 **Total estimated effort:** 15-20 weeks for M6.5-M14.
 
@@ -556,9 +556,9 @@ M13 (Chat Interface)
 | MCP SDK instability | M7 delay | Pin SDK version, wrap in thin abstraction |
 | Security vulnerabilities in MCP HTTP transport | M7 exposure | Localhost-only default, rate limiting, mandatory TLS for network |
 | Ollama model availability | M9, M13 blocked | Graceful degradation when LLM unavailable |
-| ChromaDB multi-user isolation | M11 complexity | Use metadata filtering, not separate collections |
+| ChromaDB multi-user isolation | M12 complexity | Use metadata filtering, not separate collections |
 | Frontend framework churn | M8 rework | Choose boring tech (HTMX or vanilla JS) |
-| Cloud OCR cost/privacy | M12 adoption | Strict opt-in, per-directory policies |
+| Cloud OCR cost/privacy | M14 adoption | Strict opt-in, per-directory policies |
 
 ---
 
