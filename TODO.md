@@ -1,10 +1,25 @@
-# Librarian TODO
+# MyMemex TODO
 
 Bugs, issues, and improvements to address.
 
 ---
 
 ## Priority: High
+
+- [ ] **Joyware Apps Organization Website**
+  - **Current state:** Placeholder at https://joywareapps.com/
+  - **Location:** `smb://server-tiny-1/joywareapps-htdocs/`
+  - **Purpose:** 
+    - Showcase organization and projects
+    - Link to MyMemex and future projects
+    - Contact information
+    - Professional landing page
+  - **Content to include:**
+    - About Joyware Apps
+    - Projects: MyMemex (and future ones)
+    - Contact/support links
+    - Maybe blog for updates
+  - **Tech:** Static site (Astro?) or simple HTML/CSS
 
 - [x] **Database lock on concurrent uploads**
   - Fixed: Increased `busy_timeout` from 5s to 30s
@@ -18,7 +33,7 @@ Bugs, issues, and improvements to address.
 
 - [ ] **Show warning message when running without config**
   - Currently silently uses defaults with empty watch directories
-  - Should warn user: "No config file found. Using defaults. Run `librarian init` to configure."
+  - Should warn user: "No config file found. Using defaults. Run `mymemex init` to configure."
   - Applies to: `serve` and `mcp serve` commands
 
 - [x] **Optimize database lock duration on uploads**
@@ -35,10 +50,10 @@ Bugs, issues, and improvements to address.
 
 - [ ] **MCP: HTTP/SSE transport for OpenClaw integration**
   - Current: MCP only supports stdio (Claude Desktop)
-  - Goal: Allow OpenClaw to query librarian via MCP (aggregate_amounts, get_extracted_fields, etc.)
+  - Goal: Allow OpenClaw to query mymemex via MCP (aggregate_amounts, get_extracted_fields, etc.)
   - Options:
-    - Add HTTP/SSE transport to librarian MCP server
-    - OR configure mcporter to expose librarian MCP via HTTP
+    - Add HTTP/SSE transport to mymemex MCP server
+    - OR configure mcporter to expose mymemex MCP via HTTP
   - Required for: Tax queries, document aggregation, extracted field access
   - Depends on: Security hardening (localhost-only, auth)
 
@@ -133,7 +148,7 @@ Bugs, issues, and improvements to address.
   - Link to upload page
   - Show "Configure watch directory" prompt if empty
 
-- [ ] **CLI: `librarian init` should create config file**
+- [ ] **CLI: `mymemex init` should create config file**
   - Currently only shows config location
   - Should create default config with watch directory prompt
 
