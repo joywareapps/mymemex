@@ -3,84 +3,84 @@
 
 {% block content %}
 <!-- Breadcrumb -->
-<nav class="mb-4 text-sm text-gray-500">
-    <a href="/ui/" class="hover:text-gray-700">Documents</a>
+<nav class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+    <a href="/ui/" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200">Documents</a>
     <span class="mx-1">/</span>
-    <span class="text-gray-900">{{ doc.title or doc.original_filename }}</span>
+    <span class="text-gray-900 dark:text-white">{{ doc.title or doc.original_filename }}</span>
 </nav>
 
 <div x-data="{ showDeleteConfirm: false }">
     <!-- Header -->
     <div class="flex items-start justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ doc.title or doc.original_filename }}</h1>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ doc.title or doc.original_filename }}</h1>
             {% if doc.title %}
-            <p class="text-sm text-gray-500 mt-1">{{ doc.original_filename }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ doc.original_filename }}</p>
             {% endif %}
         </div>
         <button @click="showDeleteConfirm = true"
-                class="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50">
+                class="px-3 py-1.5 text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200">
             Delete
         </button>
     </div>
 
     <!-- Delete Confirmation Modal -->
     <div x-show="showDeleteConfirm" x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div class="bg-white rounded-lg p-6 max-w-sm mx-4 shadow-xl">
-            <h3 class="text-lg font-medium text-gray-900">Delete document?</h3>
-            <p class="mt-2 text-sm text-gray-500">This will remove the document from the index. The original file on disk is not deleted.</p>
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm mx-4 shadow-xl border border-gray-200 dark:border-gray-700 transition-colors duration-200">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Delete document?</h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">This will remove the document from the index. The original file on disk is not deleted.</p>
             <div class="mt-4 flex justify-end space-x-3">
                 <button @click="showDeleteConfirm = false"
-                        class="px-3 py-1.5 text-sm border rounded-md hover:bg-gray-50">Cancel</button>
+                        class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">Cancel</button>
                 <button @click="fetch('/api/v1/documents/{{ doc.id }}', {method: 'DELETE'}).then(() => window.location = '/ui/')"
-                        class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700">Delete</button>
+                        class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200">Delete</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Metadata Grid -->
-<div class="bg-white shadow-sm rounded-lg border border-gray-200 p-4 mb-6">
+<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6 transition-colors duration-200">
     <dl class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <div>
-            <dt class="text-xs font-medium text-gray-500 uppercase">Status</dt>
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</dt>
             <dd class="mt-1">
                 <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full badge-{{ doc.status }}">{{ doc.status }}</span>
             </dd>
         </div>
         <div>
-            <dt class="text-xs font-medium text-gray-500 uppercase">Pages</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ doc.page_count or "—" }}</dd>
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Pages</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ doc.page_count or "—" }}</dd>
         </div>
         <div>
-            <dt class="text-xs font-medium text-gray-500 uppercase">Size</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ "%.1f"|format(doc.file_size / 1024 / 1024) }} MB</dd>
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Size</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ "%.1f"|format(doc.file_size / 1024 / 1024) }} MB</dd>
         </div>
         <div>
-            <dt class="text-xs font-medium text-gray-500 uppercase">Category</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ doc.category or "—" }}</dd>
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Category</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ doc.category or "—" }}</dd>
         </div>
         <div>
-            <dt class="text-xs font-medium text-gray-500 uppercase">Language</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ doc.language or "—" }}</dd>
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Language</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ doc.language or "—" }}</dd>
         </div>
         <div>
-            <dt class="text-xs font-medium text-gray-500 uppercase">Ingested</dt>
-            <dd class="mt-1 text-sm text-gray-900">{{ doc.ingested_at[:10] if doc.ingested_at else "—" }}</dd>
+            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ingested</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ doc.ingested_at[:10] if doc.ingested_at else "—" }}</dd>
         </div>
     </dl>
 </div>
 
 <!-- Tags -->
-<div class="bg-white shadow-sm rounded-lg border border-gray-200 p-4 mb-6"
+<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6 transition-colors duration-200"
      x-data="{ newTag: '', adding: false }">
-    <h2 class="text-sm font-medium text-gray-700 mb-3">Tags</h2>
+    <h2 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Tags</h2>
     <div class="flex flex-wrap gap-2 items-center">
         {% for tag in doc.tags %}
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm bg-blue-100 text-blue-800">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 transition-colors duration-200">
             {{ tag }}
-            <button class="ml-1.5 text-blue-600 hover:text-blue-900"
+            <button class="ml-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-200 focus:outline-none"
                     @click="fetch('/api/v1/documents/{{ doc.id }}', {
                         method: 'PATCH',
                         headers: {'Content-Type': 'application/json'},
@@ -91,7 +91,7 @@
 
         <!-- Add tag -->
         <template x-if="!adding">
-            <button @click="adding = true" class="text-sm text-blue-600 hover:text-blue-800">+ Add tag</button>
+            <button @click="adding = true" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200">+ Add tag</button>
         </template>
         <template x-if="adding">
             <form class="inline-flex" @submit.prevent="
@@ -105,11 +105,11 @@
             ">
                 <input type="text" x-model="newTag" x-ref="tagInput"
                        x-init="$nextTick(() => $refs.tagInput.focus())"
-                       class="px-2 py-0.5 text-sm border rounded-l-md w-32 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                       class="px-2 py-0.5 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-l-md w-32 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200"
                        placeholder="Tag name">
-                <button type="submit" class="px-2 py-0.5 text-sm bg-blue-600 text-white rounded-r-md">Add</button>
+                <button type="submit" class="px-2 py-0.5 text-sm bg-blue-600 text-white rounded-r-md hover:bg-blue-700 transition-colors duration-200">Add</button>
                 <button type="button" @click="adding = false; newTag = ''"
-                        class="ml-1 text-sm text-gray-400 hover:text-gray-600">&times;</button>
+                        class="ml-1 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200">&times;</button>
             </form>
         </template>
     </div>
@@ -117,19 +117,19 @@
 
 <!-- Content Chunks -->
 {% if doc.chunks %}
-<div class="bg-white shadow-sm rounded-lg border border-gray-200 p-4">
-    <h2 class="text-sm font-medium text-gray-700 mb-3">Content ({{ doc.chunks|length }} chunks)</h2>
+<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 p-4 transition-colors duration-200">
+    <h2 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Content ({{ doc.chunks|length }} chunks)</h2>
     <div class="space-y-4">
         {% for chunk in doc.chunks %}
-        <div class="border-l-2 border-gray-200 pl-4">
+        <div class="border-l-2 border-gray-200 dark:border-gray-700 pl-4 transition-colors duration-200">
             <div class="flex items-center gap-2 mb-1">
-                <span class="text-xs font-medium text-gray-500">Chunk {{ chunk.chunk_index }}</span>
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Chunk {{ chunk.chunk_index }}</span>
                 {% if chunk.page_number %}
-                <span class="text-xs text-gray-400">Page {{ chunk.page_number }}</span>
+                <span class="text-xs text-gray-400 dark:text-gray-500">Page {{ chunk.page_number }}</span>
                 {% endif %}
-                <span class="text-xs text-gray-400">{{ chunk.char_count }} chars</span>
+                <span class="text-xs text-gray-400 dark:text-gray-500">{{ chunk.char_count }} chars</span>
             </div>
-            <p class="text-sm text-gray-700 whitespace-pre-wrap line-clamp-2">{{ chunk.text }}</p>
+            <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap line-clamp-2">{{ chunk.text }}</p>
         </div>
         {% endfor %}
     </div>
@@ -137,9 +137,9 @@
 {% endif %}
 
 {% if doc.last_error %}
-<div class="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
-    <h2 class="text-sm font-medium text-red-800 mb-1">Last Error</h2>
-    <p class="text-sm text-red-700">{{ doc.last_error }}</p>
+<div class="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 transition-colors duration-200">
+    <h2 class="text-sm font-medium text-red-800 dark:text-red-300 mb-1">Last Error</h2>
+    <p class="text-sm text-red-700 dark:text-red-200">{{ doc.last_error }}</p>
 </div>
 {% endif %}
 {% endblock %}

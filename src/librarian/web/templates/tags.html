@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Tags</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tags</h1>
 </div>
 
 <!-- Create Tag Form -->
@@ -22,9 +22,9 @@
         }
     " class="flex gap-2 max-w-md">
         <input type="text" x-model="name" placeholder="New tag name..."
-               class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+               class="flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200">
         <button type="submit" :disabled="creating"
-                class="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50">
+                class="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors duration-200">
             Create
         </button>
     </form>
@@ -34,12 +34,12 @@
 {% if tags %}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for tag in tags %}
-    <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-4 flex items-center justify-between">
+    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between transition-colors duration-200">
         <div>
-            <a href="/ui/?tag={{ tag.name }}" class="text-sm font-medium text-gray-900 hover:text-blue-600">{{ tag.name }}</a>
-            <p class="text-xs text-gray-500 mt-0.5">{{ tag.document_count }} document{{ "s" if tag.document_count != 1 else "" }}</p>
+            <a href="/ui/?tag={{ tag.name }}" class="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">{{ tag.name }}</a>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ tag.document_count }} document{{ "s" if tag.document_count != 1 else "" }}</p>
         </div>
-        <button class="text-gray-400 hover:text-red-600 text-sm"
+        <button class="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 text-sm transition-colors duration-200"
                 @click="if (confirm('Delete tag \'{{ tag.name }}\'?')) {
                     fetch('/api/v1/tags/{{ tag.id }}', {method: 'DELETE'}).then(() => location.reload());
                 }">
@@ -50,7 +50,7 @@
 </div>
 {% else %}
 <div class="text-center py-16">
-    <p class="text-gray-500">No tags yet. Create one above.</p>
+    <p class="text-gray-500 dark:text-gray-400">No tags yet. Create one above.</p>
 </div>
 {% endif %}
 {% endblock %}

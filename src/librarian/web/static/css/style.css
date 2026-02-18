@@ -18,6 +18,13 @@
     border-color: #3b82f6;
     background-color: #eff6ff;
 }
+.dark .drop-zone {
+    border-color: #4b5563;
+}
+.dark .drop-zone.drag-over {
+    border-color: #60a5fa;
+    background-color: #1e3a8a;
+}
 
 /* Toast notifications */
 .toast-enter {
@@ -41,11 +48,21 @@
 .badge-pending    { background-color: #e0e7ff; color: #3730a3; }
 .badge-error      { background-color: #fee2e2; color: #991b1b; }
 
+/* Dark mode badges */
+.dark .badge-processed  { background-color: #064e3b; color: #a7f3d0; }
+.dark .badge-processing { background-color: #78350f; color: #fde68a; }
+.dark .badge-pending    { background-color: #312e81; color: #c7d2fe; }
+.dark .badge-error      { background-color: #7f1d1d; color: #fecaca; }
+
 /* Snippet highlight */
 mark {
     background-color: #fef08a;
     padding: 0 2px;
     border-radius: 2px;
+}
+.dark mark {
+    background-color: #854d0e;
+    color: #fef08a;
 }
 
 /* Truncate long text */
