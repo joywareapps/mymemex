@@ -59,10 +59,10 @@
 - [x] Update links to new GitHub URL
 
 ### 5. Update Other Website Pages
-- [ ] features.astro — Replace "Librarian" → "MyMemex"
-- [ ] architecture.astro — Replace "Librarian" → "MyMemex"
-- [ ] roadmap.astro — Replace "Librarian" → "MyMemex"
-- [ ] All GitHub links to `joywareapps/mymemex`
+- [x] features.astro — Replace "Librarian" → "MyMemex"
+- [x] architecture.astro — Replace "Librarian" → "MyMemex"
+- [x] roadmap.astro — Replace "Librarian" → "MyMemex"
+- [x] All GitHub links to `joywareapps/mymemex`
 
 ---
 
