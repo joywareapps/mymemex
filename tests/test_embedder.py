@@ -5,23 +5,16 @@ from __future__ import annotations
 import pytest
 import pytest_asyncio
 
-from librarian.config import LLMConfig
 from librarian.intelligence.embedder import Embedder
 
 
 @pytest.fixture
-def llm_config():
-    """LLM config pointing at a non-existent Ollama instance."""
-    return LLMConfig(
-        provider="ollama",
-        model="nomic-embed-text",
+def embedder():
+    """Embedder pointing at a non-existent Ollama instance."""
+    return Embedder(
         api_base="http://localhost:99999",  # unreachable
+        embedding_model="nomic-embed-text",
     )
-
-
-@pytest.fixture
-def embedder(llm_config):
-    return Embedder(llm_config)
 
 
 @pytest.mark.asyncio
@@ -65,7 +58,7 @@ async def test_reset_availability(embedder):
 
 
 @pytest.mark.asyncio
-async def test_embed_with_mock_ollama(llm_config):
+async def test_embed_with_mock_ollama():
     """When Ollama returns a proper embedding, embed() returns the vector."""
     from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -82,7 +75,10 @@ async def test_embed_with_mock_ollama(llm_config):
     mock_embed_resp.raise_for_status = MagicMock()
     mock_embed_resp.json.return_value = {"embedding": fake_embedding}
 
-    embedder = Embedder(llm_config)
+    embedder = Embedder(
+        api_base="http://localhost:11434",
+        embedding_model="nomic-embed-text",
+    )
 
     # Patch the async client for is_available
     with patch("httpx.AsyncClient") as mock_async:

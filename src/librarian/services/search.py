@@ -43,7 +43,10 @@ class SearchService:
         if not CHROMADB_AVAILABLE:
             raise ServiceUnavailableError("ChromaDB not installed")
 
-        embedder = Embedder(self.config.llm)
+        embedder = Embedder(
+            api_base=self.config.llm.api_base,
+            embedding_model=self.config.ai.embedding_model,
+        )
         if not await embedder.is_available():
             raise ServiceUnavailableError(
                 "Embedding model not available (Ollama unreachable)"
@@ -76,7 +79,10 @@ class SearchService:
                 from ..storage.vector_store import CHROMADB_AVAILABLE, VectorStore
 
                 if CHROMADB_AVAILABLE:
-                    embedder = Embedder(self.config.llm)
+                    embedder = Embedder(
+                        api_base=self.config.llm.api_base,
+                        embedding_model=self.config.ai.embedding_model,
+                    )
                     if await embedder.is_available():
                         query_embedding = await embedder.embed(query)
                         if query_embedding:

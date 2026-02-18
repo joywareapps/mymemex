@@ -25,6 +25,7 @@ from librarian.storage.repositories import (
 def test_extraction_result_from_dict():
     """Test ExtractionResult parsing."""
     data = {
+        "title": "Tax Return 2023",
         "document_type": "tax_return",
         "document_date": "2023-12-31",
         "category": "tax",
@@ -39,6 +40,7 @@ def test_extraction_result_from_dict():
 
     result = ExtractionResult.from_dict(data)
 
+    assert result.title == "Tax Return 2023"
     assert result.document_type == "tax_return"
     assert result.document_date == "2023-12-31"
     assert result.category == "tax"
@@ -51,6 +53,7 @@ def test_extraction_result_defaults():
     """Test ExtractionResult with missing fields."""
     result = ExtractionResult.from_dict({})
 
+    assert result.title is None
     assert result.document_type is None
     assert result.document_date is None
     assert result.category is None
@@ -152,6 +155,7 @@ async def test_extract_document_stores_fields(db_session_for_extraction, sample_
 
     mock_llm = AsyncMock(spec=LLMClient)
     mock_llm.generate_json.return_value = {
+        "title": "Tax Return 2023 - Finanzamt",
         "document_type": "tax_return",
         "document_date": "2023-12-31",
         "category": "tax",
@@ -170,6 +174,7 @@ async def test_extract_document_stores_fields(db_session_for_extraction, sample_
     result = await service.extract_document(doc.id)
 
     assert result is not None
+    assert result.title == "Tax Return 2023 - Finanzamt"
     assert result.document_type == "tax_return"
     assert result.category == "tax"
     assert len(result.amounts) == 2
@@ -195,6 +200,7 @@ async def test_extract_document_stores_fields(db_session_for_extraction, sample_
         doc_repo = DocumentRepository(session)
         updated_doc = await doc_repo.get_by_id(doc.id)
 
+    assert updated_doc.title == "Tax Return 2023 - Finanzamt"
     assert updated_doc.category == "tax"
     assert updated_doc.document_date == date(2023, 12, 31)
 

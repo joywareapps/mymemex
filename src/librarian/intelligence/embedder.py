@@ -8,16 +8,15 @@ from typing import Optional
 import httpx
 import structlog
 
-from ..config import LLMConfig
-
 log = structlog.get_logger()
 
 
 class Embedder:
     """Generate embeddings via Ollama HTTP API."""
 
-    def __init__(self, config: LLMConfig):
-        self.config = config
+    def __init__(self, api_base: str, embedding_model: str):
+        self.api_base = api_base
+        self.embedding_model = embedding_model
         self._model_available: Optional[bool] = None
 
     async def is_available(self) -> bool:
@@ -27,7 +26,7 @@ class Embedder:
 
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.get(f"{self.config.api_base}/api/tags")
+                resp = await client.get(f"{self.api_base}/api/tags")
                 if resp.status_code != 200:
                     self._model_available = False
                     return False
@@ -36,13 +35,13 @@ class Embedder:
                 model_names = [m["name"] for m in models]
 
                 # Model might be "nomic-embed-text" or "nomic-embed-text:latest"
-                model_base = self.config.model.split(":")[0]
+                model_base = self.embedding_model.split(":")[0]
                 self._model_available = any(m.startswith(model_base) for m in model_names)
 
                 if not self._model_available:
                     log.warning(
                         "Embedding model not found in Ollama",
-                        model=self.config.model,
+                        model=self.embedding_model,
                         available=model_names,
                     )
 
@@ -79,8 +78,8 @@ class Embedder:
         try:
             with httpx.Client(timeout=30.0) as client:
                 resp = client.post(
-                    f"{self.config.api_base}/api/embeddings",
-                    json={"model": self.config.model, "prompt": text},
+                    f"{self.api_base}/api/embeddings",
+                    json={"model": self.embedding_model, "prompt": text},
                 )
                 resp.raise_for_status()
                 return resp.json().get("embedding")

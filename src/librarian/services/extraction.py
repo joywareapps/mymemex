@@ -20,14 +20,16 @@ Document content:
 {content}
 
 Extract:
-1. Document type (tax_return, invoice, receipt, contract, insurance_policy, bank_statement, utility_bill, medical_record, other)
-2. Document date (the date this document refers to, not when it was created or scanned)
-3. Category (tax, financial, medical, insurance, legal, personal, work, utility, other)
-4. Monetary amounts with labels (e.g., total_tax, premium, invoice_total)
-5. Key entities (organizations, people, reference numbers)
+1. **title** - A short, human-readable title for this document (max 100 chars). Infer from headers, subject lines, or content.
+2. Document type (tax_return, invoice, receipt, contract, insurance_policy, bank_statement, utility_bill, medical_record, other)
+3. Document date (the date this document refers to, not when it was created or scanned)
+4. Category (tax, financial, medical, insurance, legal, personal, work, utility, other)
+5. Monetary amounts with labels (e.g., total_tax, premium, invoice_total)
+6. Key entities (organizations, people, reference numbers)
 
 Return JSON only:
 {{
+  "title": "Tax Return 2023 - Finanzamt Fürth",
   "document_type": "tax_return",
   "document_date": "2023-12-31",
   "category": "tax",
@@ -49,6 +51,7 @@ class ExtractionResult:
 
     def __init__(
         self,
+        title: str | None = None,
         document_type: str | None = None,
         document_date: str | None = None,
         category: str | None = None,
@@ -56,6 +59,7 @@ class ExtractionResult:
         entities: list[dict] | None = None,
         confidence: float = 1.0,
     ):
+        self.title = title
         self.document_type = document_type
         self.document_date = document_date
         self.category = category
@@ -67,6 +71,7 @@ class ExtractionResult:
     def from_dict(cls, data: dict[str, Any]) -> ExtractionResult:
         """Create from LLM response dict."""
         return cls(
+            title=data.get("title"),
             document_type=data.get("document_type"),
             document_date=data.get("document_date"),
             category=data.get("category"),
@@ -170,6 +175,8 @@ class ExtractionService:
 
                 # Update document metadata
                 updates: dict[str, Any] = {}
+                if result.title:
+                    updates["title"] = result.title[:512]
                 if result.category:
                     updates["category"] = result.category
                 if result.document_date:

@@ -25,7 +25,9 @@
       "Bash(chmod:*)",
       "Bash(curl:*)",
       "Bash(pip3 install:*)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
