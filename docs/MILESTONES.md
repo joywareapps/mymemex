@@ -508,13 +508,13 @@ M8 (Web UI)   M9 (Auto-Tag)      M11 (Multi-User)  M12 (Cloud OCR)
     │         M9.5 (Extraction)
     │              │
     ▼              │
-M13 (Chat) ◄──────┘
-    │
-    ▼
-M10 (Deployment)
+M10 (Deployment) ◄┘
     │
     ▼
 M14 (Admin Panel)
+    │
+    ▼
+M13 (Chat Interface)
 ```
 
 **Notes:**
@@ -524,8 +524,8 @@ M14 (Admin Panel)
 - M10 (Deployment) comes before multi-user for easier single-user production deployment
 - M11 (Multi-User) depends on M7 for MCP user context, but NOT on M8
 - M12 (Cloud OCR) is independent — can be built at any time after M5
-- M13 (Chat) needs M8 for embedding the chat component; benefits from M9.5
-- M14 (Admin Panel) needs M8 (UI) and M10 (backup infrastructure)
+- M14 (Admin Panel) needs M8 (UI), M7 (MCP config), and M10 (backup infrastructure)
+- M13 (Chat) needs M8 for embedding the chat component; benefits from M9.5 and M14
 
 ---
 
@@ -539,12 +539,12 @@ M14 (Admin Panel)
 | M9 Auto-Tagging | ~1 week | Week 4 (parallel with M8) |
 | M9.5 Structured Extraction | ~1.5-2 weeks | Weeks 5-6 (after M9) |
 | M10 Deployment | ~1 week | Week 7 |
-| M11 Multi-User | ~2-3 weeks | Weeks 8-10 |
+| M14 Admin Panel | ~2-3 weeks | Weeks 8-10 |
+| M11 Multi-User | ~2-3 weeks | Weeks 11-13 |
+| M13 Chat Interface | ~1-2 weeks | Weeks 14-15 |
 | M12 Cloud OCR | ~3-4 days | Any time (independent) |
-| M13 Chat Interface | ~1-2 weeks | Weeks 11-12 |
-| M14 Admin Panel | ~2-3 weeks | Weeks 13-15 |
 
-**Total estimated effort:** 14-20 weeks for M6.5-M14.
+**Total estimated effort:** 15-20 weeks for M6.5-M14.
 
 ---
 
