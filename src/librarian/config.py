@@ -56,6 +56,7 @@ class LLMConfig(BaseModel):
     provider: Literal["ollama", "openai", "anthropic", "none"] = "none"
     model: str = ""
     api_base: str = "http://localhost:11434"
+    api_key: str | None = None  # For cloud providers (OpenAI, Anthropic)
 
 
 class AIConfig(BaseModel):

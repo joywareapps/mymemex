@@ -193,17 +193,59 @@ def test_create_llm_client_ollama():
 
 
 def test_create_llm_client_openai():
-    """Test creating OpenAI client."""
+    """Test creating OpenAI client with api_key in config."""
     from librarian.intelligence.llm_client import OpenAIClient
 
-    config = LLMConfig(provider="openai", model="gpt-4o-mini")
-    client = create_llm_client(config, api_key="test-key")
+    config = LLMConfig(provider="openai", model="gpt-4o-mini", api_key="test-key")
+    client = create_llm_client(config)
     assert isinstance(client, OpenAIClient)
+    assert client.api_key == "test-key"
 
 
-def test_create_llm_client_openai_no_key():
-    """Test OpenAI client requires API key."""
+def test_create_llm_client_openai_env_key(monkeypatch):
+    """Test OpenAI client reads API key from environment."""
+    from librarian.intelligence.llm_client import OpenAIClient
+
+    monkeypatch.setenv("OPENAI_API_KEY", "env-test-key")
     config = LLMConfig(provider="openai", model="gpt-4o-mini")
+    client = create_llm_client(config)
+    assert isinstance(client, OpenAIClient)
+    assert client.api_key == "env-test-key"
+
+
+def test_create_llm_client_openai_no_key(monkeypatch):
+    """Test OpenAI client requires API key."""
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    config = LLMConfig(provider="openai", model="gpt-4o-mini")
+    with pytest.raises(ValueError, match="API key required"):
+        create_llm_client(config)
+
+
+def test_create_llm_client_anthropic():
+    """Test creating Anthropic client with api_key in config."""
+    from librarian.intelligence.llm_client import AnthropicClient
+
+    config = LLMConfig(provider="anthropic", model="claude-haiku-4-5-20251001", api_key="test-key")
+    client = create_llm_client(config)
+    assert isinstance(client, AnthropicClient)
+    assert client.api_key == "test-key"
+
+
+def test_create_llm_client_anthropic_env_key(monkeypatch):
+    """Test Anthropic client reads API key from environment."""
+    from librarian.intelligence.llm_client import AnthropicClient
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "ant-env-key")
+    config = LLMConfig(provider="anthropic", model="claude-haiku-4-5-20251001")
+    client = create_llm_client(config)
+    assert isinstance(client, AnthropicClient)
+    assert client.api_key == "ant-env-key"
+
+
+def test_create_llm_client_anthropic_no_key(monkeypatch):
+    """Test Anthropic client requires API key."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    config = LLMConfig(provider="anthropic", model="claude-haiku-4-5-20251001")
     with pytest.raises(ValueError, match="API key required"):
         create_llm_client(config)
 
