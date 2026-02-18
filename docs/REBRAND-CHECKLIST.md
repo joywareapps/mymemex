@@ -24,31 +24,33 @@
 ## 🔴 Critical - Do Soon
 
 ### 1. GitHub Repository Rename
-- [ ] Rename repo: `librarian` → `mymemex`
+- [x] Rename repo: `librarian` → `mymemex`
   - Go to: https://github.com/joywareapps/librarian/settings
   - Change repository name to `mymemex`
   - GitHub auto-redirects old URL for 30 days
-- [ ] Update local git remote:
+- [x] Update local git remote:
   ```bash
   cd ~/code/librarian
   git remote set-url origin https://github.com/joywareapps/mymemex.git
   ```
-- [ ] Rename local folder:
+- [x] Rename local folder:
   ```bash
   mv ~/code/librarian ~/code/mymemex
   ```
 
 ### 2. Update pyproject.toml
-- [ ] Change name: `name = "mymemex"`
-- [ ] Update description
-- [ ] Update URLs (homepage, repository, issues)
+- [x] Change name: `name = "mymemex"`
+- [x] Update description
+- [x] Update URLs (homepage, repository, issues)
 
 ### 3. Update Docker Workflow
-- [ ] `.github/workflows/docker.yml` — Update image name:
+- [x] `.github/workflows/docker.yml` — Update image name:
   ```yaml
   image: ghcr.io/joywareapps/mymemex
   ```
-- [ ] Update docker-compose.yml references
+  (Auto-resolved via `${{ github.repository }}`)
+- [x] Update docker-compose.yml references
+- [x] Update docker-compose.full.yml references
 
 ### 4. Update README.md
 - [ ] Title: "MyMemex - Your AI Document Memory"
