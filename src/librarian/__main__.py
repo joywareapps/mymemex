@@ -151,6 +151,13 @@ def serve(
     uvicorn.run(application, host=cfg.server.host, port=cfg.server.port, log_level="info")
 
 
+# --- Backup command group ---
+
+from .cli.backup import app as backup_app
+
+app.add_typer(backup_app, name="backup")
+
+
 # --- MCP command group ---
 
 mcp_app = typer.Typer(help="MCP server commands")

@@ -18,18 +18,32 @@ services:
     env_file:
       - path: .env
         required: false
+    depends_on:
+      - ollama
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 256M
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: librarian-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
+    # GPU support (uncomment if available)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
 
 volumes:
   librarian-data:
+  ollama-models:
