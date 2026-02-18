@@ -6,20 +6,11 @@ Bugs, issues, and improvements to address.
 
 ## Priority: High
 
-- [ ] **Joyware Apps Organization Website**
-  - **Current state:** Placeholder at https://joywareapps.com/
+- [x] **Joyware Apps Organization Website**
+  - **Current state:** ✅ Deployed at https://joywareapps.com/
   - **Location:** `smb://server-tiny-1/joywareapps-htdocs/`
-  - **Purpose:** 
-    - Showcase organization and projects
-    - Link to MyMemex and future projects
-    - Contact information
-    - Professional landing page
-  - **Content to include:**
-    - About Joyware Apps
-    - Projects: MyMemex (and future ones)
-    - Contact/support links
-    - Maybe blog for updates
-  - **Tech:** Static site (Astro?) or simple HTML/CSS
+  - **Repo:** `~/code/joyware-website` (separate repo)
+  - Completed: 2026-02-18
 
 - [x] **Database lock on concurrent uploads**
   - Fixed: Increased `busy_timeout` from 5s to 30s
