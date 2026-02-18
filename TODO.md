@@ -46,6 +46,67 @@ Bugs, issues, and improvements to address.
 
 ## Priority: Medium
 
+- [ ] **Feature: Demo version of MyMemex**
+  - **Purpose:** Let users explore without self-hosting
+  - **URL:** demo.mymemex.app or demo.mymemex.io
+  
+  **Core Implementation:**
+  - Branch: `demo` with feature flags
+  - Auto-login demo user (no auth required)
+  - Read-only mode: no uploads, no deletes, no modifications
+  - Pre-populated sample documents (see below)
+  - Periodic reset (hourly/daily) to restore clean state
+  
+  **Sample Documents (synthetic data):**
+  - 5-10 invoices (various vendors, amounts, dates)
+  - 3-5 tax documents (showing extraction capabilities)
+  - 2-3 contracts/agreements (showing search)
+  - 5-10 receipts (showing categorization)
+  - Personal notes/photos (showing multi-format)
+  
+  **UX Enhancements:**
+  - Banner: "You're exploring the demo. Get your own free instance →"
+  - Guided tour with tooltips:
+    - "Try searching: 'What did I spend on groceries?'"
+    - "See how AI extracted the tax amounts"
+    - "Filter by category: Receipts"
+  - Pre-populated search examples (clickable chips)
+  - Watermark demo documents: "SAMPLE DATA"
+  
+  **Security Considerations:**
+  - Rate limiting (prevent abuse)
+  - No MCP access (demo user can't access API)
+  - Session timeout (15-30 min)
+  - Block file downloads (view only)
+  - No real user data ever (all synthetic)
+  
+  **Call-to-Action:**
+  - Top banner with "Get Your Own" button
+  - Link to GitHub repo + Docker instructions
+  - Email signup for Mac app waitlist
+  
+  **Technical Approach:**
+  - Feature flags: `DEMO_MODE=true`, `ALLOW_UPLOADS=false`
+  - Demo user seeded in database
+  - Sample data loaded on startup if empty
+  - Cron job to reset database periodically
+  - Separate Docker image: `ghcr.io/joywareapps/mymemex:demo`
+  
+  **Hosting Options:**
+  - Cloudflare Workers (serverless, but needs DB)
+  - Railway/Fly.io (easiest for Docker + persistent DB)
+  - Your existing server-tiny-1
+  
+  **Metrics to Track:**
+  - Demo page views
+  - Search queries performed
+  - Conversion to GitHub stars / email signups
+  
+  **Future Enhancements:**
+  - Multiple demo personas (personal finance, small business, researcher)
+  - Interactive onboarding quiz → personalized demo data
+  - Export demo settings to user's own instance
+
 - [ ] **Feature: Delete document**
   - API endpoint: `DELETE /api/v1/documents/{id}`
   - MCP tool: `delete_document`
