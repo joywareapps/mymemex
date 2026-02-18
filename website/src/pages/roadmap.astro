@@ -29,21 +29,21 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
           </div>
           <div>
             <h2 class="text-2xl font-bold">Current Status</h2>
-            <p class="text-slate-400">M1-M9.5 Complete — Ready for Deployment!</p>
+            <p class="text-slate-400">M1-M10 Complete — Production Ready!</p>
           </div>
         </div>
         <div class="grid md:grid-cols-3 gap-4 mb-4">
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Phase</div>
-            <div class="text-lg font-semibold text-emerald-400">M1-M9.5 Complete</div>
+            <div class="text-lg font-semibold text-emerald-400">M1-M10 Complete</div>
           </div>
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Next Milestone</div>
-            <div class="text-lg font-semibold">M10: Deployment</div>
+            <div class="text-lg font-semibold">M11: Admin Panel</div>
           </div>
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Tests</div>
-            <div class="text-lg font-semibold text-emerald-400">139 passing</div>
+            <div class="text-lg font-semibold text-emerald-400">141 passing</div>
           </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
@@ -51,10 +51,10 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
             <span class="text-slate-400">MCP Tools:</span> <span class="font-semibold text-emerald-400">13 tools</span>
           </div>
           <div class="bg-slate-900/30 rounded-lg p-3">
-            <span class="text-slate-400">Deployment:</span> <span class="font-semibold">Docker ready</span>
+            <span class="text-slate-400">Docker:</span> <span class="font-semibold text-emerald-400">ghcr.io ready</span>
           </div>
           <div class="bg-slate-900/30 rounded-lg p-3">
-            <span class="text-slate-400">AI Features:</span> <span class="font-semibold">Classification + Extraction</span>
+            <span class="text-slate-400">AI:</span> <span class="font-semibold">Ollama + Cloud LLM</span>
           </div>
           <div class="bg-slate-900/30 rounded-lg p-3">
             <span class="text-slate-400">GitHub:</span> <span class="font-semibold">joywareapps/librarian</span>
@@ -123,44 +123,27 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
       <h2 class="text-2xl font-bold mt-16 mb-8 text-cyan-400">Upcoming Milestones</h2>
 
       <div class="space-y-6">
-        <!-- M10 -->
+        <!-- M11 -->
         <div class="border border-cyan-500/30 rounded-xl p-6 bg-gradient-to-r from-cyan-500/5 to-transparent">
           <div class="flex items-center gap-4 mb-4">
             <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-cyan-400 font-bold">M10</span>
+              <span class="text-cyan-400 font-bold">M11</span>
             </div>
             <div>
-              <h3 class="text-xl font-semibold">Deployment & Distribution <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs font-semibold">IN PROGRESS</span></h3>
-              <p class="text-slate-400">Pre-built Docker images, cloud LLM support, backup infrastructure</p>
+              <h3 class="text-xl font-semibold">Admin Panel & File Management <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs font-semibold">NEXT UP</span></h3>
+              <p class="text-slate-400">Web-based configuration, MCP access tokens, file organization policies</p>
             </div>
           </div>
           <div class="ml-14">
             <ul class="space-y-2 text-slate-400">
-              <li>• GitHub Actions → GHCR (ghcr.io/joywareapps/librarian)</li>
-              <li>• Cloud LLM support (OpenAI, Anthropic) for users without Ollama</li>
-              <li>• API keys via environment variables</li>
-              <li>• Backup CLI: librarian backup create/restore/list</li>
+              <li>• Configure watch folders through UI</li>
+              <li>• Generate/revoke MCP access tokens</li>
+              <li>• Schedule backups with retention policies</li>
+              <li>• Post-ingestion file policies (rename, move, archive)</li>
             </ul>
             <div class="mt-4">
-              <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm font-medium">1-2 weeks</span>
+              <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm font-medium">2-3 weeks</span>
             </div>
-          </div>
-        </div>
-
-        <!-- M11 -->
-        <div class="border border-slate-800 rounded-xl p-6">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center">
-              <span class="text-slate-400 font-bold">M11</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">Admin Panel & File Management</h3>
-              <p class="text-slate-400">Web-based configuration, MCP access tokens, file organization policies</p>
-            </div>
-          </div>
-          <div class="ml-14 text-slate-400">
-            <p>Configure watch folders, backup schedules, MCP tokens, and post-ingestion file policies (rename, move, archive) through the Web UI.</p>
-            <p class="mt-2 text-sm"><span class="text-cyan-400">Effort:</span> ~2-3 weeks</p>
           </div>
         </div>
 
@@ -235,6 +218,10 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
         <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
           <span class="text-emerald-400 font-bold">M9.5</span>
           <span class="text-slate-300 ml-2">Structured Extraction</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M10</span>
+          <span class="text-slate-300 ml-2">Deployment & Distribution</span>
         </div>
       </div>
     </div>

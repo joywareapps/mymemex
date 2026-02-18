@@ -1,17 +1,16 @@
 # Librarian - Project Status
 
 **Last Updated:** 2026-02-18
-**Phase:** M1-M9.5 Complete | Ready for Deployment
+**Phase:** M1-M10 Complete | Production Ready
 
 ## Current State
 
-- M1-M9.5 complete (139 tests passing)
-- MCP Server with 13 tools (search, extraction, aggregation)
+- M1-M10 complete (141 tests passing)
+- Pre-built Docker images (GHCR)
+- Cloud LLM support (OpenAI, Anthropic)
+- MCP Server with 13 tools
+- Backup CLI for database + vectors
 - Web UI for document browsing, search, tags, upload
-- Semantic search with Ollama embeddings + ChromaDB
-- OCR via Tesseract for scanned PDFs
-- Auto-tagging and structured extraction via LLM
-- Concurrent upload handling with semaphore
 
 ## Completed Milestones
 
@@ -29,15 +28,16 @@
 | **M8** | Web UI (document browser, search, tags, upload) | ✅ |
 | **M9** | Auto-Tagging via LLM | ✅ |
 | **M9.5** | Structured Extraction & Aggregation | ✅ |
+| **M10** | Deployment & Distribution | ✅ |
 
-## In Progress
+## M10 Features
 
-### M10: Deployment & Distribution
-- [ ] Pre-built Docker images (GHCR)
-- [ ] Cloud LLM support (OpenAI, Anthropic)
-- [ ] API key configuration via environment
-- [ ] Backup CLI commands
-- [ ] User documentation
+- **Pre-built Docker images** — `ghcr.io/joywareapps/librarian:latest`
+- **Cloud LLM support** — OpenAI, Anthropic (for users without Ollama)
+- **API key configuration** — Environment variables (`.env` file)
+- **Backup CLI** — `librarian backup create/list/restore`
+- **docker-compose.full.yml** — Full stack with Ollama
+- **Installation docs** — `docs/INSTALLATION.md`
 
 ## Upcoming Milestones
 
@@ -47,6 +47,15 @@
 | **M12** | Multi-User Support |
 | **M13** | Chat Interface |
 | **M14** | Cloud OCR Fallback |
+
+## Deployment Options
+
+| Method | Command |
+|--------|---------|
+| Docker (standalone) | `docker pull ghcr.io/joywareapps/librarian:latest` |
+| Docker Compose | `docker-compose up -d` |
+| Full Stack | `docker-compose -f docker-compose.full.yml up -d` |
+| pip | `pip install librarian[ocr,ai,mcp]` |
 
 ## MCP Tools Available
 
@@ -71,9 +80,9 @@ None currently.
 
 ## Notes
 
-- Target hardware: Synology NAS or any Docker host
-- Privacy-first: local processing by default
-- Cloud LLM optional (OpenAI/Anthropic)
-- 139 tests passing (unit + integration)
+- 141 tests passing (unit + integration)
+- Cloud LLM optional (OpenAI/Anthropic via env vars)
+- Local-first: Ollama works offline
 - See [TODO.md](TODO.md) for known issues
 - See [docs/MILESTONES.md](docs/MILESTONES.md) for full roadmap
+- See [docs/INSTALLATION.md](docs/INSTALLATION.md) for setup guide
