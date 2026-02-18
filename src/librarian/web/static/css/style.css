@@ -43,16 +43,16 @@
 }
 
 /* Status badges */
-.badge-processed  { background-color: #d1fae5; color: #065f46; }
+.badge-processed, .badge-ready  { background-color: #d1fae5; color: #065f46; }
 .badge-processing { background-color: #fef3c7; color: #92400e; }
 .badge-pending    { background-color: #e0e7ff; color: #3730a3; }
-.badge-error      { background-color: #fee2e2; color: #991b1b; }
+.badge-error, .badge-failed     { background-color: #fee2e2; color: #991b1b; }
 
 /* Dark mode badges */
-.dark .badge-processed  { background-color: #064e3b; color: #a7f3d0; }
+.dark .badge-processed, .dark .badge-ready  { background-color: #064e3b; color: #a7f3d0; font-weight: bold; }
 .dark .badge-processing { background-color: #78350f; color: #fde68a; }
 .dark .badge-pending    { background-color: #312e81; color: #c7d2fe; }
-.dark .badge-error      { background-color: #7f1d1d; color: #fecaca; }
+.dark .badge-error, .dark .badge-failed     { background-color: #7f1d1d; color: #fecaca; }
 
 /* Snippet highlight */
 mark {
