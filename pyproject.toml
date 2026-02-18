@@ -54,7 +54,6 @@ ocr = [
     "pytesseract>=0.3",
 ]
 ai = [
-    "litellm>=1.60",
     "chromadb>=0.6",
 ]
 mcp = [
