@@ -1,8 +1,14 @@
 [project]
-name = "librarian"
+name = "mymemex"
 version = "0.1.0"
-description = "Sovereign document intelligence platform"
+description = "Your AI Document Memory - Self-hosted document intelligence with semantic search"
 requires-python = ">=3.10"
+
+[project.urls]
+Homepage = "https://mymemex.io"
+Repository = "https://github.com/joywareapps/mymemex"
+Issues = "https://github.com/joywareapps/mymemex/issues"
+Documentation = "https://github.com/joywareapps/mymemex#readme"
 
 dependencies = [
     # Core

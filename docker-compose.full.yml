@@ -1,18 +1,18 @@
 version: "3.8"
 
 services:
-  librarian:
-    image: ghcr.io/joywareapps/librarian:latest
+  mymemex:
+    image: ghcr.io/joywareapps/mymemex:latest
     build: .
-    container_name: librarian
+    container_name: mymemex
     ports:
       - "8000:8000"
     volumes:
       - ./config:/app/config:ro
-      - librarian-data:/var/lib/librarian
+      - mymemex-data:/var/lib/mymemex
       - ${DOCUMENTS_PATH:-~/Documents}:/mnt/documents:ro
     environment:
-      - LIBRARIAN_CONFIG=/app/config/config.yaml
+      - MYMEMEX_CONFIG=/app/config/config.yaml
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     env_file:
@@ -29,7 +29,7 @@ services:
 
   ollama:
     image: ollama/ollama:latest
-    container_name: librarian-ollama
+    container_name: mymemex-ollama
     ports:
       - "11434:11434"
     volumes:
@@ -45,5 +45,5 @@ services:
     #           capabilities: [gpu]
 
 volumes:
-  librarian-data:
+  mymemex-data:
   ollama-models:
