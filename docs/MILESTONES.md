@@ -355,12 +355,15 @@ GROUP BY df.currency;
 
 ### M14: Admin Panel & File Management
 
-**Goal:** Web-based administration interface for configuration, backup, and file management policies.
+**Goal:** Web-based administration interface for configuration, backup, file management policies, and MCP access control.
 
 | Feature | Description | Effort |
 |---------|-------------|--------|
 | Settings editor | Edit config.yaml through Web UI | Medium |
 | Watch folder management | Add/remove watched directories | Low |
+| **MCP configuration** | Enable/disable MCP, configure access | Medium |
+| **MCP access tokens** | Generate/revoke API tokens for MCP clients | Low |
+| **Network access control** | IP whitelist or token auth for MCP | Medium |
 | Backup configuration | Schedule backups, retention policy, destination | Medium |
 | Backup execution | Manual backup trigger, backup history | Low |
 | Post-ingestion policies | Define what happens to files after processing | Medium |
@@ -369,7 +372,81 @@ GROUP BY df.currency;
 
 **Estimated effort:** 2-3 weeks
 
-**Dependencies:** M8 (Web UI), M10 (Deployment for backup infrastructure).
+**Dependencies:** M7 (MCP Server), M8 (Web UI), M10 (Deployment for backup infrastructure).
+
+**MCP Access Control:**
+
+MCP needs to be accessible from external clients (OpenClaw, Claude Desktop on other machines) while remaining secure.
+
+| Option | Description | Use Case |
+|--------|-------------|----------|
+| **Token auth** | Bearer token in MCP requests | Simplest, works across networks |
+| **IP whitelist** | Allow only specific IPs/hostnames | Local network only |
+| **Both** | Token required, IP optional | Maximum flexibility |
+
+**Recommended: Token-based auth**
+
+```yaml
+mcp:
+  enabled: true
+  transport: http  # stdio (local) or http (network)
+  http:
+    host: 0.0.0.0  # Bind to all interfaces (Docker)
+    port: 8001
+  auth:
+    mode: token  # none, token, ip_whitelist, both
+    tokens:
+      - name: "OpenClaw on clawtop"
+        token: "librarian_xxxxxxxx"  # Auto-generated
+        created: "2026-02-18"
+      - name: "Claude Desktop on laptop"
+        token: "librarian_yyyyyyyy"
+        created: "2026-02-19"
+    ip_whitelist:
+      - "192.168.178.0/24"  # Local network
+```
+
+**Docker Networking Considerations:**
+
+For MCP access from outside Docker:
+1. **Host network mode** — Simplest, container shares host network
+2. **Port mapping** — Expose MCP port in docker-compose.yml
+3. **Bridge network** — More isolated, requires IP management
+
+**Recommended docker-compose.yml update:**
+
+```yaml
+services:
+  librarian:
+    image: ghcr.io/joywareapps/librarian:latest
+    ports:
+      - "8000:8000"   # REST API + Web UI
+      - "8001:8001"   # MCP HTTP (if enabled)
+    environment:
+      - MCP_ENABLED=true
+      - MCP_HTTP_PORT=8001
+      - MCP_AUTH_TOKEN=${MCP_TOKEN}  # From .env
+```
+
+**Token Generation UI:**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  MCP Access Tokens                                      │
+├─────────────────────────────────────────────────────────┤
+│  [+ Generate New Token]                                 │
+│                                                         │
+│  Name: OpenClaw on clawtop                              │
+│  Token: librarian_a1b2c3d4e5f6...  [Copy] [Revoke]     │
+│  Created: 2026-02-18                                    │
+│  Last used: 2026-02-18 09:45                           │
+│                                                         │
+│  Name: Claude Desktop on laptop                         │
+│  Token: librarian_x9y8z7w6...  [Copy] [Revoke]         │
+│  Created: 2026-02-17                                    │
+│  Last used: Never                                       │
+└─────────────────────────────────────────────────────────┘
+```
 
 **Post-Ingestion File Policies:**
 
