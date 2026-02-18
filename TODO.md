@@ -32,22 +32,28 @@ Bugs, issues, and improvements to address.
   - On startup: Find documents in "processing" without active task
   - Reset to "pending" and re-queue for processing
   - Test: `test_find_stuck_processing()` verifies behavior
-  - Currently silently uses defaults with empty watch directories
-  - Should warn user: "No config file found. Using defaults. Run `librarian init` to configure."
-  - Applies to: `serve` and `mcp serve` commands
+
+- [ ] **MCP: HTTP/SSE transport for OpenClaw integration**
+  - Current: MCP only supports stdio (Claude Desktop)
+  - Goal: Allow OpenClaw to query librarian via MCP (aggregate_amounts, get_extracted_fields, etc.)
+  - Options:
+    - Add HTTP/SSE transport to librarian MCP server
+    - OR configure mcporter to expose librarian MCP via HTTP
+  - Required for: Tax queries, document aggregation, extracted field access
+  - Depends on: Security hardening (localhost-only, auth)
 
 ---
 
 ## Priority: Medium
 
-- [x] **Feature: Delete document**
+- [ ] **Feature: Delete document**
   - API endpoint: `DELETE /api/v1/documents/{id}`
   - MCP tool: `delete_document`
   - Web UI: Delete button with confirmation
   - Should delete: document record, chunks, FTS entries, extracted fields
   - Keep file on disk (or add option to delete file too)
 
-- [x] **Feature: Reprocess document**
+- [ ] **Feature: Reprocess document**
   - Re-run ingestion + classification + extraction pipeline
   - Useful when new features added (e.g., title extraction)
   - API endpoint: `POST /api/v1/documents/{id}/reprocess`
@@ -55,7 +61,7 @@ Bugs, issues, and improvements to address.
   - Web UI: "Reprocess" button in document detail
   - Already exists in IngestService.reprocess() — needs API/MCP/UI exposure
 
-- [x] **Web UI: Show extracted title in document grid**
+- [ ] **Web UI: Show extracted title in document grid**
   - Display `doc.title` (extracted from content) instead of `original_filename`
   - Fall back to filename if no title extracted
   - Applies to: document list, search results, detail view
@@ -80,7 +86,7 @@ Bugs, issues, and improvements to address.
 
 These tasks are good candidates for Gemini CLI delegation (large context, simple implementation):
 
-- [x] **Web UI: Dark mode**
+- [ ] **Web UI: Dark mode**
   - Tailwind dark: variant support
   - Toggle in settings
   - Run: `gemini "Add dark mode to the Web UI using Tailwind dark: variants"`
