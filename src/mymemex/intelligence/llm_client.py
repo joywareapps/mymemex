@@ -43,7 +43,7 @@ class OllamaClient(LLMClient):
 
     def __init__(self, config: LLMConfig):
         self.config = config
-        self.base_url = config.api_base
+        self.base_url = config.api_base.rstrip("/")
         self.model = config.model
         self._client = httpx.AsyncClient(timeout=60.0)
 

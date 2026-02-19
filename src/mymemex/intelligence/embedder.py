@@ -15,7 +15,7 @@ class Embedder:
     """Generate embeddings via Ollama HTTP API."""
 
     def __init__(self, api_base: str, embedding_model: str):
-        self.api_base = api_base
+        self.api_base = api_base.rstrip("/")
         self.embedding_model = embedding_model
         self._model_available: Optional[bool] = None
 
