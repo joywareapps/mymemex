@@ -73,7 +73,7 @@ class DocumentClassifier:
         llm_config = self.config.llm
         if self.classification_config.model:
             # Create a copy with the specific model override
-            llm_config = llm_config.model_copy(update={"model": self.classification_config.model})
+            llm_config = llm_config.model_copy(update={"provider": llm_config.provider, "model": self.classification_config.model})
         return create_llm_client(llm_config)
 
     async def classify(

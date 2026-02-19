@@ -50,8 +50,13 @@ class OCRConfig(BaseModel):
     confidence_threshold: float = 0.7
 
 
-class LLMConfig(BaseModel):
+class LLMConfig(BaseSettings):
     """LLM configuration (for M6+)."""
+
+    model_config = SettingsConfigDict(
+        env_prefix="MYMEMEX_LLM__",
+        extra="ignore",
+    )
 
     provider: Literal["ollama", "openai", "anthropic", "none"] = "none"
     model: str = ""
@@ -59,8 +64,13 @@ class LLMConfig(BaseModel):
     api_key: str | None = None  # For cloud providers (OpenAI, Anthropic)
 
 
-class AIConfig(BaseModel):
+class AIConfig(BaseSettings):
     """AI feature configuration (M6+)."""
+
+    model_config = SettingsConfigDict(
+        env_prefix="MYMEMEX_AI__",
+        extra="ignore",
+    )
 
     embedding_model: str = "nomic-embed-text"
     embedding_dimension: int = 768
