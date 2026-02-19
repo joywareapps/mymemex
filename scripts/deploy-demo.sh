@@ -4,6 +4,9 @@
 
 set -e
 
+# Ensure snap binaries are in path
+export PATH=$PATH:/snap/bin
+
 echo "🚀 Starting MyMemex Demo deployment..."
 
 # 1. Stop and remove existing container
