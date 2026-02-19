@@ -346,6 +346,7 @@ async def task_worker(
     config: AppConfig,
     events: EventManager | None = None,
     worker_id: int = 0,
+    exit_when_empty: bool = False,
 ) -> None:
     """Background worker that processes tasks from the queue."""
     log.info("Task worker started", worker_id=worker_id)
@@ -357,6 +358,9 @@ async def task_worker(
 
                 tasks = await queue.dequeue(limit=1)
                 if not tasks:
+                    if exit_when_empty:
+                        log.info("Queue empty, worker exiting", worker_id=worker_id)
+                        break
                     await asyncio.sleep(1)
                     continue
 

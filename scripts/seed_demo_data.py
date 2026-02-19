@@ -214,7 +214,17 @@ async def seed_demo():
         print(f"  Ingesting {pdf_path.name}...")
         await handle_new_file(str(pdf_path.absolute()), config, events)
         
-    print("✅ Demo data seeded successfully.")
+    print("⚙️ Processing background tasks (this may take a while)...")
+    from mymemex.processing.pipeline import task_worker
+    # Run the worker until the queue is empty
+    try:
+        await asyncio.wait_for(task_worker(config, events=events, exit_when_empty=True), timeout=600)
+    except asyncio.TimeoutError:
+        print("🕒 Task processing timed out (600s), proceeding...")
+    except Exception as e:
+        print(f"❌ Task processing failed: {e}")
+
+    print("✅ Demo data seeded and processed successfully.")
 
 if __name__ == "__main__":
     asyncio.run(seed_demo())
