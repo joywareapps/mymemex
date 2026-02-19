@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50">
+<html lang="en" class="min-h-screen bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,7 +22,7 @@
     <script src="/ui/static/js/htmx.min.js"></script>
     <link rel="stylesheet" href="/ui/static/css/style.css">
 </head>
-<body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-200" x-data="{
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200" x-data="{
     toast: null,
     darkMode: localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
     adminOpen: false,
