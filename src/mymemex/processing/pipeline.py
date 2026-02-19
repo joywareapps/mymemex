@@ -62,11 +62,12 @@ def get_mime_type(path: Path) -> str:
 
 
 async def handle_new_file(
-    path: Path,
+    path: Path | str,
     config: AppConfig,
     events: EventManager | None = None,
 ) -> None:
     """Handle a new or modified file: deduplicate and queue for ingestion."""
+    path = Path(path)
     async with get_session() as session:
         repo = DocumentRepository(session)
         queue = TaskQueue(session)

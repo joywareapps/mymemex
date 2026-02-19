@@ -27,7 +27,7 @@ class DemoPDF(FPDF):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(128, 128, 128)
-        self.cell(0, 10, "SAMPLE DATA - MYMEMEX DEMO - For demonstration purposes only", 0, 0, "C")
+        self.cell(0, 10, "SAMPLE DATA - MYMEMEX DEMO - For demonstration purposes only", new_x="RIGHT", new_y="TOP", align="C")
 
 def create_invoice(output_path: Path):
     pdf = DemoPDF()
@@ -40,42 +40,42 @@ def create_invoice(output_path: Path):
     currency = random.choice(["USD", "EUR", "GBP"])
     
     pdf.set_font("helvetica", "B", 16)
-    pdf.cell(0, 10, vendor, 0, 1)
+    pdf.cell(0, 10, vendor, new_x="LMARGIN", new_y="NEXT")
     
     pdf.set_font("helvetica", "", 10)
-    pdf.cell(0, 5, fake.street_address(), 0, 1)
-    pdf.cell(0, 5, f"{fake.city()}, {fake.postcode()}", 0, 1)
-    pdf.cell(0, 5, fake.country(), 0, 1)
+    pdf.cell(0, 5, fake.street_address(), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, f"{fake.city()}, {fake.postcode()}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, fake.country(), new_x="LMARGIN", new_y="NEXT")
     pdf.ln(10)
     
     pdf.set_font("helvetica", "B", 12)
-    pdf.cell(0, 10, f"INVOICE {invoice_no}", 0, 1)
+    pdf.cell(0, 10, f"INVOICE {invoice_no}", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("helvetica", "", 10)
-    pdf.cell(0, 10, f"Date: {date}", 0, 1)
+    pdf.cell(0, 10, f"Date: {date}", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(5)
     
     # Bill to
     pdf.set_font("helvetica", "B", 10)
-    pdf.cell(0, 5, "Bill To:", 0, 1)
+    pdf.cell(0, 5, "Bill To:", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("helvetica", "", 10)
-    pdf.cell(0, 5, fake.name(), 0, 1)
-    pdf.cell(0, 5, fake.address(), 0, 1)
+    pdf.cell(0, 5, fake.name(), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, fake.address(), new_x="LMARGIN", new_y="NEXT")
     pdf.ln(10)
     
     # Line items
     pdf.set_font("helvetica", "B", 10)
     pdf.cell(100, 8, "Description", 1)
-    pdf.cell(40, 8, "Amount", 1, 1)
+    pdf.cell(40, 8, "Amount", 1, new_x="LMARGIN", new_y="NEXT")
     
     pdf.set_font("helvetica", "", 10)
     for _ in range(random.randint(1, 5)):
         pdf.cell(100, 8, fake.catch_phrase(), 1)
-        pdf.cell(40, 8, f"{random.uniform(10.0, 500.0):.2f}", 1, 1)
+        pdf.cell(40, 8, f"{random.uniform(10.0, 500.0):.2f}", 1, new_x="LMARGIN", new_y="NEXT")
     
     pdf.ln(5)
     pdf.set_font("helvetica", "B", 12)
     pdf.cell(100, 10, "TOTAL", 0)
-    pdf.cell(40, 10, f"{currency} {amount}", 0, 1)
+    pdf.cell(40, 10, f"{currency} {amount}", new_x="LMARGIN", new_y="NEXT")
     
     pdf.output(str(output_path))
 
@@ -88,13 +88,13 @@ def create_receipt(output_path: Path):
     date = fake.date_between(start_date="-1y", end_date="today")
     
     pdf.set_font("helvetica", "B", 12)
-    pdf.cell(0, 8, vendor, 0, 1, "C")
+    pdf.cell(0, 8, vendor, 0, new_x="LMARGIN", new_y="NEXT", align="C")
     pdf.set_font("helvetica", "", 8)
-    pdf.cell(0, 4, fake.address(), 0, 1, "C")
+    pdf.cell(0, 4, fake.address(), 0, new_x="LMARGIN", new_y="NEXT", align="C")
     pdf.ln(5)
     
-    pdf.cell(0, 4, f"Date: {date}", 0, 1)
-    pdf.cell(0, 4, f"Trans: {fake.random_number(digits=8)}", 0, 1)
+    pdf.cell(0, 4, f"Date: {date}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 4, f"Trans: {fake.random_number(digits=8)}", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(3)
     
     total = 0
@@ -103,12 +103,12 @@ def create_receipt(output_path: Path):
         price = random.uniform(1.0, 50.0)
         total += price
         pdf.cell(40, 4, item, 0)
-        pdf.cell(20, 4, f"{price:.2f}", 0, 1, "R")
+        pdf.cell(20, 4, f"{price:.2f}", new_x="LMARGIN", new_y="NEXT", align="R")
     
     pdf.ln(2)
     pdf.set_font("helvetica", "B", 10)
     pdf.cell(40, 6, "TOTAL", 0)
-    pdf.cell(20, 6, f"{total:.2f}", 0, 1, "R")
+    pdf.cell(20, 6, f"{total:.2f}", new_x="LMARGIN", new_y="NEXT", align="R")
     
     pdf.output(str(output_path))
 
@@ -117,7 +117,7 @@ def create_contract(output_path: Path):
     pdf.add_page()
     
     pdf.set_font("helvetica", "B", 16)
-    pdf.cell(0, 20, "SERVICE AGREEMENT", 0, 1, "C")
+    pdf.cell(0, 20, "SERVICE AGREEMENT", new_x="LMARGIN", new_y="NEXT", align="C")
     
     party_a = fake.company()
     party_b = fake.name()
@@ -149,16 +149,16 @@ def create_tax_doc(output_path: Path):
     
     year = random.randint(2020, 2024)
     pdf.set_font("helvetica", "B", 18)
-    pdf.cell(0, 15, f"{year} TAX RETURN SUMMARY", 0, 1, "C")
+    pdf.cell(0, 15, f"{year} TAX RETURN SUMMARY", new_x="LMARGIN", new_y="NEXT", align="C")
     
     name = fake.name()
     ssn = f"XXX-XX-{fake.random_number(digits=4)}"
     
     pdf.set_font("helvetica", "", 12)
     pdf.cell(50, 10, "Taxpayer Name:", 0)
-    pdf.cell(0, 10, name, 0, 1)
+    pdf.cell(0, 10, name, new_x="LMARGIN", new_y="NEXT")
     pdf.cell(50, 10, "SSN:", 0)
-    pdf.cell(0, 10, ssn, 0, 1)
+    pdf.cell(0, 10, ssn, new_x="LMARGIN", new_y="NEXT")
     pdf.ln(10)
     
     data = [
@@ -172,7 +172,7 @@ def create_tax_doc(output_path: Path):
     
     for label, val in data:
         pdf.cell(80, 10, label, 1)
-        pdf.cell(50, 10, f"{val:,.2f}", 1, 1, "R")
+        pdf.cell(50, 10, f"{val:,.2f}", 1, new_x="LMARGIN", new_y="NEXT", align="R")
         
     pdf.output(str(output_path))
 
@@ -192,16 +192,16 @@ async def seed_demo():
     
     print("Generating synthetic PDFs...")
     # Invoices
-    for i in range(10):
+    for i in range(30):
         create_invoice(docs_dir / f"invoice_{i}.pdf")
     # Receipts
-    for i in range(5):
+    for i in range(15):
         create_receipt(docs_dir / f"receipt_{i}.pdf")
     # Contracts
-    for i in range(3):
+    for i in range(10):
         create_contract(docs_dir / f"contract_{i}.pdf")
     # Tax docs
-    for i in range(5):
+    for i in range(15):
         create_tax_doc(docs_dir / f"tax_{i}.pdf")
         
     print(f"Generated {len(list(docs_dir.glob('*.pdf')))} documents.")
