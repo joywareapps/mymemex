@@ -2,30 +2,31 @@
 
 from __future__ import annotations
 
-import json
+import tarfile
 
 from typer.testing import CliRunner
 
-from librarian.cli.backup import app
+from mymemex.cli.backup import app
 
 runner = CliRunner()
 
 
 def test_backup_create(tmp_path):
-    """Test creating a backup."""
+    """Test creating a tar.gz backup."""
     dest = tmp_path / "backups"
 
-    result = runner.invoke(app, ["create", "-d", str(dest), "-n", "test_backup"])
+    result = runner.invoke(app, ["create", "-d", str(dest), "-n", "test_backup.tar.gz"])
 
     assert result.exit_code == 0
     assert "Backup created" in result.output
 
-    backup_dir = dest / "test_backup"
-    assert backup_dir.exists()
+    backup_file = dest / "test_backup.tar.gz"
+    assert backup_file.exists()
 
-    manifest = json.loads((backup_dir / "manifest.json").read_text())
-    assert manifest["version"] == "1.0"
-    assert "created_at" in manifest
+    # Validate it's a valid tar.gz with metadata.json
+    with tarfile.open(str(backup_file), "r:gz") as tar:
+        names = tar.getnames()
+    assert any("metadata.json" in n for n in names)
 
 
 def test_backup_list_empty(tmp_path):
@@ -50,23 +51,25 @@ def test_backup_list_with_backups(tmp_path):
 
 
 def test_backup_restore_invalid(tmp_path):
-    """Test restoring from invalid backup."""
-    result = runner.invoke(app, ["restore", str(tmp_path)])
+    """Test restoring from invalid backup path."""
+    result = runner.invoke(app, ["restore", str(tmp_path / "nonexistent.tar.gz")])
 
-    assert result.exit_code == 1
-    assert "Invalid backup" in result.output
+    assert result.exit_code != 0
 
 
 def test_backup_create_and_restore(tmp_path):
-    """Test full backup and restore cycle."""
+    """Test full backup and restore cycle with tar.gz."""
     dest = tmp_path / "backups"
 
     # Create backup
     result = runner.invoke(app, ["create", "-d", str(dest), "-n", "full_test"])
     assert result.exit_code == 0
 
-    # Restore
-    backup_dir = dest / "full_test"
-    result = runner.invoke(app, ["restore", str(backup_dir)])
+    # Find the created file
+    backup_files = list(dest.glob("*.tar.gz"))
+    assert len(backup_files) == 1
+
+    # Restore (skip confirmation)
+    result = runner.invoke(app, ["restore", str(backup_files[0]), "--yes"])
     assert result.exit_code == 0
     assert "Restore complete" in result.output

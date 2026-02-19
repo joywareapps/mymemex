@@ -1,15 +1,15 @@
 #!/bin/bash
-# Update Librarian Website
+# Update MyMemex Website
 # Rebuilds Astro site and deploys to SMB share
-# Located at: librarian/website/ (part of main repo)
+# Located at: mymemex/website/ (part of main repo)
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SMB_PATH="/run/user/1000/gvfs/smb-share:server=server-tiny-1,share=librarian-htdocs/librarian.joywareapps.com"
+SMB_PATH="/run/user/1000/gvfs/smb-share:server=server-tiny-1,share=mymemex-htdocs/mymemex.joywareapps.com"
 
-echo "🔨 Building Librarian website..."
+echo "🔨 Building MyMemex website..."
 echo "   Repo: $REPO_ROOT"
 echo "   Website: $SCRIPT_DIR"
 cd "$SCRIPT_DIR"
@@ -29,7 +29,7 @@ else
     cp -r "${SCRIPT_DIR}/dist/." "$SMB_PATH/"
 fi
 
-echo "✅ Website deployed to https://librarian.joywareapps.com/"
+echo "✅ Website deployed to https://mymemex.joywareapps.com/"
 echo ""
 echo "Files deployed:"
 ls -la "$SMB_PATH" | head -10

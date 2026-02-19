@@ -28,9 +28,9 @@ from datetime import datetime
 
 import pytest
 
-from librarian.config import OCRConfig
-from librarian.processing.ocr import ocr_page, TESSERACT_AVAILABLE
-from librarian.processing.extractor import extract_text_from_pdf
+from mymemex.config import OCRConfig
+from mymemex.processing.ocr import ocr_page, TESSERACT_AVAILABLE
+from mymemex.processing.extractor import extract_text_from_pdf
 
 
 # Audit logging setup

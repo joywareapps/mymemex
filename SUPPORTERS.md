@@ -1,6 +1,6 @@
 # Support Development
 
-Librarian is free and open source, developed in my spare time. 
+MyMemex is free and open source, developed in my spare time. 
 If it saves you time or you believe in the project, consider supporting development!
 
 ## 💝 Ways to Support
@@ -92,7 +92,7 @@ evaluated and potentially implemented.
 
 ## 🏢 Commercial Use?
 
-If you're using Librarian for commercial purposes (SaaS, enterprise deployment, 
+If you're using MyMemex for commercial purposes (SaaS, enterprise deployment, 
 or need guaranteed support), consider a [Commercial License](COMMERCIAL-LICENSE.md).
 
 ---

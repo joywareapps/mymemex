@@ -16,8 +16,8 @@ import os
 import pytest
 import pytest_asyncio
 
-from librarian.config import LLMConfig
-from librarian.intelligence.embedder import Embedder
+from mymemex.config import LLMConfig
+from mymemex.intelligence.embedder import Embedder
 
 
 # Skip all tests in this module unless --run-integration is passed

@@ -12,7 +12,7 @@
 
 ### 1. Commit and Push
 ```bash
-cd ~/code/librarian
+cd ~/code/mymemex
 git add Dockerfile docker-compose.yml DEPLOYMENT.md
 git commit -m "Add Docker deployment configuration and production guide"
 git push origin main
@@ -23,8 +23,8 @@ git push origin main
 **Option A: Manual deployment**
 ```bash
 # On ThinkCentre
-git clone https://github.com/joywareapps/librarian.git
-cd librarian
+git clone https://github.com/joywareapps/mymemex.git
+cd mymemex
 cp config/config.example.yaml config/config.yaml
 nano config/config.yaml  # Add your document paths
 
@@ -65,7 +65,7 @@ volumes:
 docker-compose ps
 
 # Check logs
-docker-compose logs -f librarian
+docker-compose logs -f mymemex
 
 # Test API
 curl http://localhost:8000/health
@@ -80,7 +80,7 @@ For external access, use Nginx:
 ```nginx
 server {
     listen 80;
-    server_name librarian.joywareapps.com;
+    server_name mymemex.joywareapps.com;
 
     location / {
         proxy_pass http://localhost:8000;
@@ -97,7 +97,7 @@ server {
 sudo apt install certbot python3-certbot-nginx
 
 # Get certificate
-sudo certbot --nginx -d librarian.joywareapps.com
+sudo certbot --nginx -d mymemex.joywareapps.com
 
 # Auto-renewal
 sudo systemctl enable certbot.timer
@@ -107,13 +107,13 @@ sudo systemctl enable certbot.timer
 
 - Health endpoint: http://thinkcentre:8000/health
 - API docs: http://thinkcentre:8000/docs
-- Container stats: `docker stats librarian`
+- Container stats: `docker stats mymemex`
 
 ## 🔄 Updates
 
 To update the deployment:
 ```bash
-cd ~/code/librarian
+cd ~/code/mymemex
 git pull
 docker-compose build
 docker-compose up -d

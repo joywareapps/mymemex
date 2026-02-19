@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN useradd -m -u 1000 librarian
+RUN useradd -m -u 1000 mymemex
 
 # Set working directory
 WORKDIR /app
@@ -23,13 +23,13 @@ COPY pyproject.toml .
 RUN pip install --no-cache-dir -e ".[dev,ocr]"
 
 # Copy application code
-COPY --chown=librarian:librarian . .
+COPY --chown=mymemex:mymemex . .
 
 # Create data directory
-RUN mkdir -p /var/lib/librarian && chown librarian:librarian /var/lib/librarian
+RUN mkdir -p /var/lib/mymemex && chown mymemex:mymemex /var/lib/mymemex
 
 # Switch to non-root user
-USER librarian
+USER mymemex
 
 # Expose port
 EXPOSE 8000
@@ -39,4 +39,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Run the application
-CMD ["librarian", "serve", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["mymemex", "serve", "--host", "0.0.0.0", "--port", "8000"]

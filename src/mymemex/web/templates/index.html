@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}Documents — MyMemex{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Documents</h1>
+    <a href="/ui/upload" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors duration-200">
+        Upload
+    </a>
+</div>
+
+<!-- Filters -->
+<form method="get" action="/ui/" class="flex flex-wrap gap-3 mb-6">
+    <select name="status" class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" onchange="this.form.submit()">
+        <option value="">All statuses</option>
+        {% for s in ["pending", "processing", "processed", "failed", "waiting_llm", "waiting_ocr"] %}
+        <option value="{{ s }}" {{ "selected" if status_filter == s else "" }}>{{ s|capitalize }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="tag" class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" onchange="this.form.submit()">
+        <option value="">All tags</option>
+        {% for t in tags %}
+        <option value="{{ t.name }}" {{ "selected" if tag_filter == t.name else "" }}>{{ t.name }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="sort_by" class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200" onchange="this.form.submit()">
+        <option value="ingested_at" {{ "selected" if sort_by == "ingested_at" else "" }}>Newest</option>
+        <option value="title" {{ "selected" if sort_by == "title" else "" }}>Title</option>
+    </select>
+
+    <input type="hidden" name="sort_order" value="{{ sort_order }}">
+</form>
+
+<!-- Document Table -->
+{% if documents %}
+<div x-data="{
+    selected: [],
+    allIds: [{% for doc in documents %}{{ doc.id }},{% endfor %}],
+    get allSelected() {
+        return this.selected.length === this.allIds.length && this.allIds.length > 0;
+    },
+    toggleAll() {
+        if (this.allSelected) {
+            this.selected = [];
+        } else {
+            this.selected = [...this.allIds];
+        }
+    },
+    toggle(id) {
+        if (this.selected.includes(id)) {
+            this.selected = this.selected.filter(x => x !== id);
+        } else {
+            this.selected.push(id);
+        }
+    },
+    async reprocess(id) {
+        if (!confirm('Reprocess document?')) return;
+        await fetch('/api/v1/documents/' + id + '/reprocess', {method: 'POST'});
+        window.location.reload();
+    },
+    async deleteDoc(id) {
+        if (!confirm('Delete document?')) return;
+        await fetch('/api/v1/documents/' + id, {method: 'DELETE'});
+        window.location.reload();
+    },
+    async bulkReprocess() {
+        if (!confirm('Reprocess ' + this.selected.length + ' documents?')) return;
+        for (const id of this.selected) {
+            await fetch('/api/v1/documents/' + id + '/reprocess', {method: 'POST'});
+        }
+        window.location.reload();
+    },
+    async bulkDelete() {
+        if (!confirm('Delete ' + this.selected.length + ' documents?')) return;
+        for (const id of this.selected) {
+            await fetch('/api/v1/documents/' + id, {method: 'DELETE'});
+        }
+        window.location.reload();
+    }
+}">
+
+    <!-- Bulk Actions Toolbar -->
+    <div x-show="selected.length > 0" x-transition class="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-md flex items-center justify-between">
+        <span class="text-sm text-blue-800 dark:text-blue-200 font-medium ml-2">
+            <span x-text="selected.length"></span> selected
+        </span>
+        <div class="space-x-2">
+            <button @click="bulkReprocess()" class="px-3 py-1.5 text-xs font-medium text-blue-700 dark:text-blue-300 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-800 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/50">
+                Reprocess All
+            </button>
+            <button @click="bulkDelete()" class="px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-300 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-50 dark:hover:bg-red-900/50">
+                Delete All
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-200">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
+                <tr>
+                    <th class="px-4 py-3 text-left w-8">
+                        <input type="checkbox" @click="toggleAll()" .indeterminate="selected.length > 0 && !allSelected" :checked="allSelected"
+                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tags</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pages</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800 transition-colors duration-200">
+                {% for doc in documents %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150">
+                    <td class="px-4 py-3" @click.stop>
+                        <input type="checkbox" :checked="selected.includes({{ doc.id }})" @click="toggle({{ doc.id }})"
+                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    </td>
+                    <td class="px-4 py-3" @click="window.location='/ui/document/{{ doc.id }}'">
+                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ doc.title or doc.original_filename }}</div>
+                        {% if doc.title %}
+                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ doc.original_filename }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3" @click="window.location='/ui/document/{{ doc.id }}'">
+                        <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full badge-{{ doc.status }}">
+                            {{ doc.status }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3" @click="window.location='/ui/document/{{ doc.id }}'">
+                        {% for tag in doc.tags %}
+                        <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 mr-1">{{ tag }}</span>
+                        {% endfor %}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400" @click="window.location='/ui/document/{{ doc.id }}'">{{ doc.page_count or "—" }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400" @click="window.location='/ui/document/{{ doc.id }}'">{{ doc.ingested_at[:10] if doc.ingested_at else "—" }}</td>
+                    <td class="px-4 py-3 text-right text-sm font-medium space-x-2" @click.stop>
+                        <button @click="reprocess({{ doc.id }})" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300" title="Reprocess">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </button>
+                        <button @click="deleteDoc({{ doc.id }})" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300" title="Delete">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="flex justify-between items-center mt-4">
+    <span class="text-sm text-gray-600 dark:text-gray-400">{{ total }} document{{ "s" if total != 1 else "" }}</span>
+    <div class="flex space-x-2">
+        {% if page > 1 %}
+        <a href="?page={{ page - 1 }}&per_page={{ per_page }}&status={{ status_filter or '' }}&tag={{ tag_filter or '' }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+           class="px-3 py-1 text-sm border dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors duration-200">Previous</a>
+        {% endif %}
+        <span class="px-3 py-1 text-sm text-gray-600 dark:text-gray-400">Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}
+        <a href="?page={{ page + 1 }}&per_page={{ per_page }}&status={{ status_filter or '' }}&tag={{ tag_filter or '' }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+           class="px-3 py-1 text-sm border dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors duration-200">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty State -->
+<div class="text-center py-16">
+    <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+    </svg>
+    <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">No documents yet</h3>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by uploading a document or adding files to a watched directory.</p>
+    <a href="/ui/upload" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors duration-200">
+        Upload a document
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if check_setup %}
+<script>
+(async () => {
+    if (localStorage.getItem('setup_skipped')) return;
+    try {
+        const r = await fetch('/api/v1/admin/setup/status');
+        const d = await r.json();
+        if (d.needs_setup) {
+            window.location.href = '/ui/admin/setup';
+        }
+    } catch (e) {
+        // Ignore errors; don't block the UI
+    }
+})();
+</script>
+{% endif %}
+{% endblock %}

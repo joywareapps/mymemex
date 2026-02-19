@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from librarian.processing.chunker import TextChunk, chunk_pages, chunk_text
+from mymemex.processing.chunker import TextChunk, chunk_pages, chunk_text
 
 
 def test_chunk_short_text():

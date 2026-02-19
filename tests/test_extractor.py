@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from librarian.processing.extractor import extract_pdf_metadata, extract_text_from_pdf
+from mymemex.processing.extractor import extract_pdf_metadata, extract_text_from_pdf
 
 
 def test_extract_text_from_pdf(sample_pdf):

@@ -1,4 +1,4 @@
-# Librarian Docker Deployment
+# MyMemex Docker Deployment
 
 ## Quick Start
 
@@ -12,7 +12,7 @@ docker-compose build
 docker-compose up -d
 
 # Check logs
-docker-compose logs -f librarian
+docker-compose logs -f mymemex
 
 # Stop the service
 docker-compose down
@@ -47,7 +47,7 @@ watch:
     - "*.jpeg"
 
 database:
-  path: /var/lib/librarian/librarian.db
+  path: /var/lib/mymemex/mymemex.db
 
 ocr:
   enabled: true
@@ -88,8 +88,8 @@ docker-compose up -d
 ssh user@thinkcentre
 
 # Clone repository
-git clone https://github.com/joywareapps/librarian.git
-cd librarian
+git clone https://github.com/joywareapps/mymemex.git
+cd mymemex
 
 # Create config
 cp config/config.example.yaml config/config.yaml
@@ -107,7 +107,7 @@ docker-compose enable
 ```nginx
 server {
     listen 80;
-    server_name librarian.yourdomain.com;
+    server_name mymemex.yourdomain.com;
 
     location / {
         proxy_pass http://localhost:8000;
@@ -124,7 +124,7 @@ server {
 ```yaml
 # docker-compose.yml - add Ollama service
 services:
-  librarian:
+  mymemex:
     # ... existing config ...
     environment:
       - OLLAMA_HOST=http://ollama:11434
@@ -155,7 +155,7 @@ llm:
 
 ### View Logs
 ```bash
-docker-compose logs -f librarian
+docker-compose logs -f mymemex
 ```
 
 ### Restart Service
@@ -172,13 +172,13 @@ docker-compose up -d
 
 ### Backup Database
 ```bash
-docker-compose exec librarian sqlite3 /var/lib/librarian/librarian.db ".backup /var/lib/librarian/backup.db"
+docker-compose exec mymemex sqlite3 /var/lib/mymemex/mymemex.db ".backup /var/lib/mymemex/backup.db"
 ```
 
 ### Restore Database
 ```bash
 docker-compose down
-cp backup.db /var/lib/docker/volumes/librarian_librarian-data/_data/librarian.db
+cp backup.db /var/lib/docker/volumes/mymemex_mymemex-data/_data/mymemex.db
 docker-compose up -d
 ```
 
@@ -187,12 +187,12 @@ docker-compose up -d
 ### Check Container Status
 ```bash
 docker-compose ps
-docker-compose logs librarian
+docker-compose logs mymemex
 ```
 
 ### Access Container Shell
 ```bash
-docker-compose exec librarian /bin/bash
+docker-compose exec mymemex /bin/bash
 ```
 
 ### Test Health
@@ -202,13 +202,13 @@ curl http://localhost:8000/health
 
 ### Check Database
 ```bash
-docker-compose exec librarian sqlite3 /var/lib/librarian/librarian.db ".tables"
+docker-compose exec mymemex sqlite3 /var/lib/mymemex/mymemex.db ".tables"
 ```
 
 ## Security Considerations
 
 1. **Read-Only Mounts**: Mount document directories as read-only (`:ro`)
-2. **Non-Root User**: Container runs as `librarian` user (UID 1000)
+2. **Non-Root User**: Container runs as `mymemex` user (UID 1000)
 3. **Network Isolation**: Use Docker networks for service isolation
 4. **Reverse Proxy**: Use Nginx/Traefik with HTTPS for production
 5. **Firewall**: Restrict port 8000 to localhost if using reverse proxy

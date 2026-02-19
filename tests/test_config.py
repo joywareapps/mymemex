@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from librarian.config import AppConfig, load_config
+from mymemex.config import AppConfig, load_config
 
 
 def test_default_config():
@@ -24,11 +24,10 @@ def test_config_from_dict():
     """AppConfig should accept nested dicts."""
     cfg = AppConfig(
         debug=True,
-        watch={"directories": ["/tmp/test"], "debounce_seconds": 5.0},
+        watch={"debounce_seconds": 5.0},
         database={"path": "/tmp/test.db"},
     )
     assert cfg.debug is True
-    assert cfg.watch.directories == ["/tmp/test"]
     assert cfg.watch.debounce_seconds == 5.0
     assert cfg.database.path == Path("/tmp/test.db")
 
@@ -39,8 +38,6 @@ def test_config_from_yaml(tmp_path):
 debug: true
 log_level: DEBUG
 watch:
-  directories:
-    - /tmp/docs
   debounce_seconds: 3.0
 database:
   path: /tmp/test.db
@@ -53,7 +50,6 @@ server:
     cfg = AppConfig.from_yaml(config_file)
     assert cfg.debug is True
     assert cfg.log_level == "DEBUG"
-    assert cfg.watch.directories == ["/tmp/docs"]
     assert cfg.watch.debounce_seconds == 3.0
     assert cfg.server.port == 9000
 

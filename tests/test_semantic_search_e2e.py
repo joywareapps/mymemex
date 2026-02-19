@@ -15,9 +15,9 @@ import math
 import pytest
 import pytest_asyncio
 
-from librarian.config import LLMConfig, DatabaseConfig
-from librarian.intelligence.embedder import Embedder
-from librarian.storage.vector_store import VectorStore
+from mymemex.config import LLMConfig, DatabaseConfig
+from mymemex.intelligence.embedder import Embedder
+from mymemex.storage.vector_store import VectorStore
 
 
 pytestmark = pytest.mark.skipif(

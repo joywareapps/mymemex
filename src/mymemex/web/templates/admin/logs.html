@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Logs — Admin — MyMemex{% endblock %}
+
+{% block content %}
+<div x-data="{
+    tab: 'file-ops',
+    fileOps: [],
+    sysLogs: [],
+    fo_total: 0,
+    sl_total: 0,
+    sl_level: '',
+    sl_component: '',
+    fo_status: '',
+    async loadFileOps() {
+        let url = '/api/v1/admin/logs/file-ops?page=1&per_page=50';
+        if (this.fo_status) url += '&status=' + this.fo_status;
+        const r = await fetch(url);
+        const d = await r.json();
+        this.fileOps = d.entries;
+        this.fo_total = d.total;
+    },
+    async loadSysLogs() {
+        let url = '/api/v1/admin/logs/system?page=1&per_page=100';
+        if (this.sl_level) url += '&level=' + this.sl_level;
+        if (this.sl_component) url += '&component=' + this.sl_component;
+        const r = await fetch(url);
+        const d = await r.json();
+        this.sysLogs = d.entries;
+        this.sl_total = d.total;
+    },
+    levelClass(l) {
+        const m = {error: 'bg-red-100 text-red-800', warning: 'bg-yellow-100 text-yellow-800',
+                   info: 'bg-blue-100 text-blue-800', debug: 'bg-gray-100 text-gray-600'};
+        return m[l] || 'bg-gray-100 text-gray-600';
+    }
+}" x-init="loadFileOps(); loadSysLogs()">
+
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Logs</h1>
+
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+        <nav class="flex space-x-4">
+            <button @click="tab = 'file-ops'"
+                    :class="tab === 'file-ops' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
+                    class="pb-2 px-1 border-b-2 text-sm font-medium transition-colors">
+                File Operations
+            </button>
+            <button @click="tab = 'system'"
+                    :class="tab === 'system' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'"
+                    class="pb-2 px-1 border-b-2 text-sm font-medium transition-colors">
+                System Log
+            </button>
+        </nav>
+    </div>
+
+    <!-- File Ops Tab -->
+    <div x-show="tab === 'file-ops'">
+        <div class="flex items-center gap-3 mb-4">
+            <select x-model="fo_status" @change="loadFileOps()"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All statuses</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
+            </select>
+            <span class="text-sm text-gray-500" x-text="fo_total + ' entries'"></span>
+        </div>
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-900">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operation</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destination</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <template x-for="e in fileOps" :key="e.id">
+                        <tr>
+                            <td class="px-4 py-3 font-mono text-gray-700 dark:text-gray-300" x-text="e.operation"></td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400 truncate max-w-xs" x-text="e.source_path" :title="e.source_path"></td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400 truncate max-w-xs" x-text="e.destination_path || '—'" :title="e.destination_path"></td>
+                            <td class="px-4 py-3">
+                                <span :class="e.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                      class="px-2 py-0.5 rounded-full text-xs font-medium" x-text="e.status"></span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-500" x-text="new Date(e.created_at).toLocaleString()"></td>
+                        </tr>
+                    </template>
+                    <tr x-show="fileOps.length === 0">
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">No file operations logged.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- System Log Tab -->
+    <div x-show="tab === 'system'">
+        <div class="flex items-center gap-3 mb-4">
+            <select x-model="sl_level" @change="loadSysLogs()"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All levels</option>
+                <option value="debug">Debug</option>
+                <option value="info">Info</option>
+                <option value="warning">Warning</option>
+                <option value="error">Error</option>
+            </select>
+            <input x-model="sl_component" @input="loadSysLogs()" type="text" placeholder="Filter component…"
+                   class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <span class="text-sm text-gray-500" x-text="sl_total + ' entries'"></span>
+        </div>
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-900">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Component</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Message</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <template x-for="e in sysLogs" :key="e.id">
+                        <tr>
+                            <td class="px-4 py-3">
+                                <span :class="levelClass(e.level)"
+                                      class="px-2 py-0.5 rounded-full text-xs font-medium uppercase" x-text="e.level"></span>
+                            </td>
+                            <td class="px-4 py-3 font-mono text-gray-600 dark:text-gray-400" x-text="e.component"></td>
+                            <td class="px-4 py-3 text-gray-700 dark:text-gray-300" x-text="e.message"></td>
+                            <td class="px-4 py-3 text-gray-500" x-text="new Date(e.created_at).toLocaleString()"></td>
+                        </tr>
+                    </template>
+                    <tr x-show="sysLogs.length === 0">
+                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">No system logs.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

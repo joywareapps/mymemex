@@ -8,11 +8,11 @@ from unittest.mock import AsyncMock
 import pytest
 import pytest_asyncio
 
-from librarian.config import AppConfig, ExtractionConfig, LLMConfig
-from librarian.intelligence.llm_client import LLMClient
-from librarian.services.extraction import ExtractionResult, ExtractionService
-from librarian.storage.database import get_session, init_database
-from librarian.storage.repositories import (
+from mymemex.config import AppConfig, ExtractionConfig, LLMConfig
+from mymemex.intelligence.llm_client import LLMClient
+from mymemex.services.extraction import ExtractionResult, ExtractionService
+from mymemex.storage.database import get_session, init_database
+from mymemex.storage.repositories import (
     ChunkRepository,
     DocumentFieldRepository,
     DocumentRepository,
@@ -99,7 +99,7 @@ async def test_extract_disabled():
 @pytest_asyncio.fixture
 async def db_session_for_extraction(tmp_path):
     """Initialize test database for extraction tests."""
-    import librarian.storage.database as db_module
+    import mymemex.storage.database as db_module
 
     db_path = tmp_path / "test_extraction.db"
     await init_database(db_path)
@@ -128,7 +128,7 @@ async def sample_doc_with_chunks(db_session_for_extraction):
         mime_type="application/pdf",
         file_modified_at=1000000.0,
     )
-    await doc_repo.update_status(doc, "ready")
+    await doc_repo.update_status(doc, "processed")
 
     await chunk_repo.create(
         document_id=doc.id,

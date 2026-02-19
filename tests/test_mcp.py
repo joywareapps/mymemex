@@ -10,9 +10,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import pytest_asyncio
 
-from librarian.config import AppConfig
-from librarian.mcp.server import create_mcp_server
-from librarian.storage.database import get_session, init_database
+from mymemex.config import AppConfig
+from mymemex.mcp.server import create_mcp_server
+from mymemex.storage.database import get_session, init_database
 
 
 # --- Fixtures ---
@@ -26,7 +26,7 @@ def mcp_config(tmp_path):
     return AppConfig(
         debug=True,
         log_level="DEBUG",
-        watch={"directories": [str(watch_dir)]},
+        watch={},
         database={"path": str(tmp_path / "test.db")},
         mcp={"security": {"allowed_parent_paths": [str(tmp_path)], "max_upload_size_mb": 1}},
     )
@@ -41,7 +41,7 @@ def mcp_server(mcp_config):
 @pytest_asyncio.fixture
 async def db_ready(mcp_config):
     """Initialize database for MCP tests."""
-    import librarian.storage.database as db_module
+    import mymemex.storage.database as db_module
 
     await init_database(mcp_config.database.path)
     yield
@@ -55,7 +55,7 @@ async def db_ready(mcp_config):
 async def seeded_db(db_ready, mcp_config):
     """Seed database with test documents and chunks."""
     async with get_session() as session:
-        from librarian.storage.repositories import ChunkRepository, DocumentRepository, TagRepository
+        from mymemex.storage.repositories import ChunkRepository, DocumentRepository, TagRepository
 
         doc_repo = DocumentRepository(session)
         chunk_repo = ChunkRepository(session)
@@ -100,7 +100,7 @@ async def seeded_db(db_ready, mcp_config):
 
 def test_create_mcp_server(mcp_server):
     """MCP server should be created with correct name."""
-    assert mcp_server.name == "librarian"
+    assert mcp_server.name == "mymemex"
 
 
 # --- Tool: search_documents ---
@@ -110,7 +110,7 @@ def test_create_mcp_server(mcp_server):
 async def test_search_keyword(seeded_db, mcp_config):
     """Keyword search should return formatted results."""
     async with get_session() as session:
-        from librarian.services.search import SearchService
+        from mymemex.services.search import SearchService
 
         service = SearchService(session, mcp_config)
         results, total = await service.keyword_search("insurance")
@@ -125,7 +125,7 @@ async def test_search_keyword(seeded_db, mcp_config):
 async def test_get_document_service(seeded_db):
     """get_document service method should return full details."""
     async with get_session() as session:
-        from librarian.services.document import DocumentService
+        from mymemex.services.document import DocumentService
 
         service = DocumentService(session)
         data = await service.get_document(seeded_db)
@@ -139,8 +139,8 @@ async def test_get_document_service(seeded_db):
 @pytest.mark.asyncio
 async def test_get_document_not_found(seeded_db):
     """get_document should raise NotFoundError for invalid ID."""
-    from librarian.services import NotFoundError
-    from librarian.services.document import DocumentService
+    from mymemex.services import NotFoundError
+    from mymemex.services.document import DocumentService
 
     async with get_session() as session:
         service = DocumentService(session)
@@ -155,7 +155,7 @@ async def test_get_document_not_found(seeded_db):
 async def test_get_document_text_all_pages(seeded_db):
     """get_document_text should return all pages when no range specified."""
     async with get_session() as session:
-        from librarian.services.document import DocumentService
+        from mymemex.services.document import DocumentService
 
         service = DocumentService(session)
         data = await service.get_document_text(seeded_db)
@@ -173,7 +173,7 @@ async def test_get_document_text_all_pages(seeded_db):
 async def test_get_document_text_page_range(seeded_db):
     """get_document_text should filter by page range."""
     async with get_session() as session:
-        from librarian.services.document import DocumentService
+        from mymemex.services.document import DocumentService
 
         service = DocumentService(session)
         data = await service.get_document_text(seeded_db, page_start=2, page_end=2)
@@ -186,8 +186,8 @@ async def test_get_document_text_page_range(seeded_db):
 @pytest.mark.asyncio
 async def test_get_document_text_not_found(seeded_db):
     """get_document_text should raise NotFoundError for invalid ID."""
-    from librarian.services import NotFoundError
-    from librarian.services.document import DocumentService
+    from mymemex.services import NotFoundError
+    from mymemex.services.document import DocumentService
 
     async with get_session() as session:
         service = DocumentService(session)
@@ -202,7 +202,7 @@ async def test_get_document_text_not_found(seeded_db):
 async def test_list_documents(seeded_db):
     """list_documents should return paginated results."""
     async with get_session() as session:
-        from librarian.services.document import DocumentService
+        from mymemex.services.document import DocumentService
 
         service = DocumentService(session)
         items, total = await service.list_documents(page=1, per_page=50)
@@ -219,7 +219,7 @@ async def test_list_documents(seeded_db):
 async def test_add_tag_to_document(seeded_db):
     """add_tag_to_document should add a new tag."""
     async with get_session() as session:
-        from librarian.services.tag import TagService
+        from mymemex.services.tag import TagService
 
         service = TagService(session)
         result = await service.add_tag_to_document(seeded_db, "financial")
@@ -233,7 +233,7 @@ async def test_add_tag_to_document(seeded_db):
 async def test_add_existing_tag(seeded_db):
     """add_tag_to_document with existing tag should report is_new=False."""
     async with get_session() as session:
-        from librarian.services.tag import TagService
+        from mymemex.services.tag import TagService
 
         service = TagService(session)
         result = await service.add_tag_to_document(seeded_db, "insurance")
@@ -245,7 +245,7 @@ async def test_add_existing_tag(seeded_db):
 async def test_remove_tag_from_document(seeded_db):
     """remove_tag_from_document should remove tag."""
     async with get_session() as session:
-        from librarian.services.tag import TagService
+        from mymemex.services.tag import TagService
 
         service = TagService(session)
         result = await service.remove_tag_from_document(seeded_db, "policy")
@@ -257,8 +257,8 @@ async def test_remove_tag_from_document(seeded_db):
 @pytest.mark.asyncio
 async def test_remove_nonexistent_tag(seeded_db):
     """remove_tag_from_document should raise NotFoundError for missing tag."""
-    from librarian.services import NotFoundError
-    from librarian.services.tag import TagService
+    from mymemex.services import NotFoundError
+    from mymemex.services.tag import TagService
 
     async with get_session() as session:
         service = TagService(session)
@@ -269,8 +269,8 @@ async def test_remove_nonexistent_tag(seeded_db):
 @pytest.mark.asyncio
 async def test_add_tag_invalid_document(seeded_db):
     """add_tag_to_document should raise NotFoundError for invalid doc ID."""
-    from librarian.services import NotFoundError
-    from librarian.services.tag import TagService
+    from mymemex.services import NotFoundError
+    from mymemex.services.tag import TagService
 
     async with get_session() as session:
         service = TagService(session)
@@ -289,11 +289,11 @@ async def test_upload_from_path(seeded_db, mcp_config, tmp_path):
     test_file.write_bytes(b"%PDF-1.4 test content")
 
     async with get_session() as session:
-        from librarian.services.ingest import IngestService
+        from mymemex.services.ingest import IngestService
 
         service = IngestService(session, mcp_config)
 
-        with patch("librarian.services.ingest.handle_new_file", new_callable=AsyncMock):
+        with patch("mymemex.services.ingest.handle_new_file", new_callable=AsyncMock):
             result = await service.upload_from_path(
                 str(test_file), "uploaded.pdf", allowed_paths=[str(tmp_path)]
             )
@@ -307,8 +307,8 @@ async def test_upload_from_path(seeded_db, mcp_config, tmp_path):
 @pytest.mark.asyncio
 async def test_upload_from_path_rejected(seeded_db, mcp_config, tmp_path):
     """upload_from_path should reject paths outside allowed boundaries."""
-    from librarian.services import ServiceError
-    from librarian.services.ingest import IngestService
+    from mymemex.services import ServiceError
+    from mymemex.services.ingest import IngestService
 
     test_file = tmp_path / "secret.pdf"
     test_file.write_bytes(b"%PDF-1.4 secret")
@@ -328,10 +328,10 @@ async def test_upload_base64(seeded_db, mcp_config):
     b64 = base64.b64encode(content).decode()
 
     async with get_session() as session:
-        from librarian.services.ingest import IngestService
+        from mymemex.services.ingest import IngestService
 
         service = IngestService(session, mcp_config)
-        with patch("librarian.services.ingest.handle_new_file", new_callable=AsyncMock):
+        with patch("mymemex.services.ingest.handle_new_file", new_callable=AsyncMock):
             result = await service.upload(content, "b64test.pdf")
 
         assert result["path"].endswith("b64test.pdf")
@@ -345,7 +345,7 @@ async def test_upload_base64(seeded_db, mcp_config):
 async def test_get_library_stats(seeded_db, mcp_config):
     """get_library_stats should return aggregate statistics."""
     async with get_session() as session:
-        from librarian.services.stats import StatsService
+        from mymemex.services.stats import StatsService
 
         service = StatsService(session, mcp_config)
         stats = await service.get_library_stats()
@@ -365,7 +365,7 @@ async def test_tags_resource(seeded_db):
     import json
 
     async with get_session() as session:
-        from librarian.services.tag import TagService
+        from mymemex.services.tag import TagService
 
         service = TagService(session)
         tags = await service.list_tags()
@@ -380,7 +380,7 @@ async def test_tags_resource(seeded_db):
 async def test_stats_resource(seeded_db, mcp_config):
     """Stats resource should return library stats."""
     async with get_session() as session:
-        from librarian.services.stats import StatsService
+        from mymemex.services.stats import StatsService
 
         service = StatsService(session, mcp_config)
         stats = await service.get_library_stats()
@@ -394,7 +394,7 @@ async def test_stats_resource(seeded_db, mcp_config):
 @pytest.mark.asyncio
 async def test_search_and_summarize_prompt():
     """search_and_summarize prompt should return formatted message."""
-    from librarian.mcp.prompts import register
+    from mymemex.mcp.prompts import register
     from mcp.server.fastmcp import FastMCP
 
     mcp = FastMCP("test")
@@ -409,7 +409,7 @@ async def test_search_and_summarize_prompt():
 @pytest.mark.asyncio
 async def test_compare_documents_prompt():
     """compare_documents prompt should include document IDs."""
-    from librarian.mcp.prompts import register
+    from mymemex.mcp.prompts import register
     from mcp.server.fastmcp import FastMCP
 
     mcp = FastMCP("test")
@@ -425,7 +425,7 @@ async def test_compare_documents_prompt():
 
 def test_format_keyword_results():
     """Keyword results formatting should produce readable output."""
-    from librarian.mcp.tools import _format_keyword_results
+    from mymemex.mcp.tools import _format_keyword_results
 
     results = [
         {
@@ -448,7 +448,7 @@ def test_format_keyword_results():
 
 def test_format_document():
     """Document formatting should include metadata and chunks."""
-    from librarian.mcp.tools import _format_document
+    from mymemex.mcp.tools import _format_document
 
     data = {
         "id": 1,
@@ -477,7 +477,7 @@ def test_format_document():
 
 def test_format_stats():
     """Stats formatting should produce readable output."""
-    from librarian.mcp.tools import _format_stats
+    from mymemex.mcp.tools import _format_stats
 
     stats = {
         "doc_stats": {"total": 42, "by_status": {"processed": 38, "pending": 2, "error": 2}},

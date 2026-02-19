@@ -1,4 +1,4 @@
-# Librarian Configuration
+# MyMemex Configuration
 # Copy to config.yaml and customize
 
 debug: false
@@ -26,7 +26,7 @@ watch:
   max_file_size_mb: 100
 
 database:
-  path: ~/.local/share/librarian/librarian.db
+  path: ~/.local/share/mymemex/mymemex.db
 
 server:
   host: 0.0.0.0

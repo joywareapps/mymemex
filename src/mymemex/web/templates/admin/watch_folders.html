@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Watch Folders — Admin — MyMemex{% endblock %}
+
+{% block content %}
+<div x-data="{
+    folders: [],
+    showModal: false,
+    editFolder: null,
+    form: {path: '', patterns: '', is_active: true, file_policy: 'keep_original', archive_path: '', rename_template: ''},
+    loading: false,
+    policies: ['keep_original', 'rename_template', 'move_to_archive', 'copy_organized', 'delete_original'],
+    async load() {
+        const r = await fetch('/api/v1/admin/watch-folders');
+        const d = await r.json();
+        this.folders = d.folders;
+    },
+    openAdd() {
+        this.editFolder = null;
+        this.form = {path: '', patterns: '', is_active: true, file_policy: 'keep_original', archive_path: '', rename_template: ''};
+        this.showModal = true;
+    },
+    openEdit(f) {
+        this.editFolder = f;
+        this.form = {
+            path: f.path,
+            patterns: f.patterns.join(', '),
+            is_active: f.is_active,
+            file_policy: f.file_policy,
+            archive_path: f.archive_path || '',
+            rename_template: f.rename_template || ''
+        };
+        this.showModal = true;
+    },
+    async save() {
+        this.loading = true;
+        const patterns = this.form.patterns.split(',').map(p => p.trim()).filter(Boolean);
+        const body = {
+            path: this.form.path,
+            patterns,
+            is_active: this.form.is_active,
+            file_policy: this.form.file_policy,
+            archive_path: this.form.archive_path || null,
+            rename_template: this.form.rename_template || null
+        };
+        let r;
+        if (this.editFolder) {
+            r = await fetch('/api/v1/admin/watch-folders/' + this.editFolder.id, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+        } else {
+            r = await fetch('/api/v1/admin/watch-folders', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+        }
+        this.loading = false;
+        if (r.ok) {
+            this.showModal = false;
+            await this.load();
+        } else {
+            const d = await r.json();
+            alert(d.detail || 'Error saving folder');
+        }
+    },
+    async toggle(f) {
+        await fetch('/api/v1/admin/watch-folders/' + f.id, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({is_active: !f.is_active})
+        });
+        await this.load();
+    },
+    async del(f) {
+        if (!confirm('Remove watch folder ' + f.path + '?')) return;
+        await fetch('/api/v1/admin/watch-folders/' + f.id, {method: 'DELETE'});
+        await this.load();
+    }
+}" x-init="load()">
+
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Watch Folders</h1>
+        <button @click="openAdd()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm transition-colors">
+            + Add Folder
+        </button>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-900">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Path</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Policy</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <template x-for="f in folders" :key="f.id">
+                    <tr>
+                        <td class="px-6 py-4 text-sm font-mono text-gray-900 dark:text-white" x-text="f.path"></td>
+                        <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400" x-text="f.file_policy"></td>
+                        <td class="px-6 py-4">
+                            <span :class="f.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'"
+                                  class="px-2 py-1 rounded-full text-xs font-medium"
+                                  x-text="f.is_active ? 'Active' : 'Paused'"></span>
+                        </td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <button @click="toggle(f)" class="text-yellow-600 hover:underline text-sm"
+                                    x-text="f.is_active ? 'Pause' : 'Resume'"></button>
+                            <button @click="openEdit(f)" class="text-blue-600 hover:underline text-sm">Edit</button>
+                            <button @click="del(f)" class="text-red-600 hover:underline text-sm">Remove</button>
+                        </td>
+                    </tr>
+                </template>
+                <tr x-show="folders.length === 0">
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">No watch folders configured.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal -->
+    <div x-show="showModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg shadow-xl">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4"
+                x-text="editFolder ? 'Edit Watch Folder' : 'Add Watch Folder'"></h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Path</label>
+                    <input x-model="form.path" type="text" :disabled="!!editFolder"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Patterns (comma-separated, blank = use defaults)</label>
+                    <input x-model="form.patterns" type="text" placeholder="*.pdf, *.png"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Policy</label>
+                    <select x-model="form.file_policy"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <template x-for="p in policies" :key="p">
+                            <option :value="p" x-text="p"></option>
+                        </template>
+                    </select>
+                </div>
+                <div x-show="form.file_policy === 'move_to_archive' || form.file_policy === 'copy_organized'">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Archive Path</label>
+                    <input x-model="form.archive_path" type="text"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div x-show="form.file_policy === 'rename_template'">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rename Template</label>
+                    <input x-model="form.rename_template" type="text" placeholder="{date}-{title}{ext}"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center gap-2">
+                    <input x-model="form.is_active" type="checkbox" id="is_active" class="rounded">
+                    <label for="is_active" class="text-sm text-gray-700 dark:text-gray-300">Active (start watching immediately)</label>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button @click="save()" :disabled="!form.path || loading"
+                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                    <span x-show="!loading">Save</span>
+                    <span x-show="loading">Saving…</span>
+                </button>
+                <button @click="showModal = false"
+                        class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

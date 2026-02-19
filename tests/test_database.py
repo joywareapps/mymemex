@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from librarian.storage.models import Chunk, Document, Tag, Task
-from librarian.storage.repositories import ChunkRepository, DocumentRepository, TagRepository
+from mymemex.storage.models import Chunk, Document, Tag, Task
+from mymemex.storage.repositories import ChunkRepository, DocumentRepository, TagRepository
 
 
 @pytest.mark.asyncio
@@ -243,7 +243,7 @@ async def test_find_stuck_processing(db_session):
         mime_type="application/pdf",
         file_modified_at=1700000000.0,
     )
-    await repo.update_status(ready, "ready")
+    await repo.update_status(ready, "processed")
 
     results = await repo.find_stuck_processing()
     result_ids = [d.id for d in results]

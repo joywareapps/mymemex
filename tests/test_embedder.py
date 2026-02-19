@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 import pytest_asyncio
 
-from librarian.intelligence.embedder import Embedder
+from mymemex.intelligence.embedder import Embedder
 
 
 @pytest.fixture

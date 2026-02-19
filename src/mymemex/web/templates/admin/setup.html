@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Setup — MyMemex{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-12">
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-8" x-data="{
+        name: '',
+        aliases: '',
+        loading: false,
+        error: '',
+        async submit() {
+            this.loading = true;
+            this.error = '';
+            const aliasList = this.aliases.split(',').map(a => a.trim()).filter(Boolean);
+            const resp = await fetch('/api/v1/admin/users', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: this.name, aliases: aliasList})
+            });
+            this.loading = false;
+            if (resp.ok) {
+                window.location.href = '/ui/';
+            } else {
+                const data = await resp.json();
+                this.error = data.detail || 'Error creating user';
+            }
+        },
+        skip() {
+            localStorage.setItem('setup_skipped', '1');
+            window.location.href = '/ui/';
+        }
+    }">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome to MyMemex</h1>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+            Create your user profile to help the AI recognize you in documents.
+            You can add more users later in Admin → Users.
+        </p>
+
+        <div x-show="error" class="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm" x-text="error"></div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Name</label>
+                <input x-model="name" type="text" placeholder="e.g. Jane Smith"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Aliases <span class="font-normal text-gray-500">(comma-separated, optional)</span>
+                </label>
+                <input x-model="aliases" type="text" placeholder="e.g. Jane, J. Smith"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+            <button @click="submit()" :disabled="!name || loading"
+                    class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                <span x-show="!loading">Create Profile</span>
+                <span x-show="loading">Creating…</span>
+            </button>
+            <button @click="skip()"
+                    class="px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                Skip
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Check if setup needed on load
+(async () => {
+    if (localStorage.getItem('setup_skipped')) return;
+    // Already on setup page, nothing to do
+})();
+</script>
+{% endblock %}

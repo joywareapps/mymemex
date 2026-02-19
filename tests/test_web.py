@@ -7,9 +7,9 @@ import pytest_asyncio
 
 from fastapi.testclient import TestClient
 
-from librarian.app import create_app
-from librarian.config import AppConfig
-from librarian.storage.database import get_session, init_database
+from mymemex.app import create_app
+from mymemex.config import AppConfig
+from mymemex.storage.database import get_session, init_database
 
 
 # --- Fixtures ---
@@ -23,7 +23,7 @@ def web_config(tmp_path):
     return AppConfig(
         debug=True,
         log_level="DEBUG",
-        watch={"directories": [str(watch_dir)]},
+        watch={},
         database={"path": str(tmp_path / "test.db")},
         server={"host": "127.0.0.1", "port": 0},
     )
@@ -32,7 +32,7 @@ def web_config(tmp_path):
 @pytest_asyncio.fixture
 async def web_db(web_config):
     """Initialize database for web tests."""
-    import librarian.storage.database as db_module
+    import mymemex.storage.database as db_module
 
     await init_database(web_config.database.path)
     yield
@@ -46,7 +46,7 @@ async def web_db(web_config):
 async def seeded_web_db(web_db):
     """Seed database with test data for web tests."""
     async with get_session() as session:
-        from librarian.storage.repositories import (
+        from mymemex.storage.repositories import (
             ChunkRepository,
             DocumentRepository,
             TagRepository,

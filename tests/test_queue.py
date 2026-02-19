@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from librarian.core.queue import TaskQueue, TaskStatus, TaskType
+from mymemex.core.queue import TaskQueue, TaskStatus, TaskType
 
 
 @pytest.mark.asyncio

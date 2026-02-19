@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "mymemex": {
+      "command": "mymemex",
+      "args": ["mcp", "serve"],
+      "env": {
+        "MYMEMEX_CONFIG": "~/.config/mymemex/config.yaml"
+      }
+    }
+  }
+}

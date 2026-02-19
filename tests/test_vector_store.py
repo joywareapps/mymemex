@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from librarian.config import DatabaseConfig
-from librarian.storage.vector_store import CHROMADB_AVAILABLE, VectorStore
+from mymemex.config import DatabaseConfig
+from mymemex.storage.vector_store import CHROMADB_AVAILABLE, VectorStore
 
 
 @pytest.fixture

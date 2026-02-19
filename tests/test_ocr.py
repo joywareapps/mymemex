@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-from librarian.config import OCRConfig
-from librarian.processing.ocr import ocr_page, TESSERACT_AVAILABLE
+from mymemex.config import OCRConfig
+from mymemex.processing.ocr import ocr_page, TESSERACT_AVAILABLE
 
 
 @pytest.mark.asyncio
@@ -23,7 +23,7 @@ async def test_ocr_disabled():
 async def test_ocr_unavailable():
     """OCR should return empty string when tesseract is not installed."""
     config = OCRConfig(enabled=True)
-    with patch("librarian.processing.ocr.TESSERACT_AVAILABLE", False):
+    with patch("mymemex.processing.ocr.TESSERACT_AVAILABLE", False):
         text = await ocr_page(Path("/dummy.pdf"), 0, config)
     assert text == ""
 
@@ -51,7 +51,7 @@ async def test_ocr_page_extracts_text(sample_pdf_scanned):
 
 def test_scanned_pdf_has_no_native_text(sample_pdf_scanned):
     """Verify the scanned fixture produces a page that needs OCR."""
-    from librarian.processing.extractor import extract_text_from_pdf
+    from mymemex.processing.extractor import extract_text_from_pdf
 
     pages = list(extract_text_from_pdf(sample_pdf_scanned))
     assert len(pages) == 1

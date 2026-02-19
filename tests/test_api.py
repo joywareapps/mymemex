@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from librarian.app import create_app
-from librarian.config import AppConfig
+from mymemex.app import create_app
+from mymemex.config import AppConfig
 
 
 @pytest.fixture
@@ -33,4 +33,4 @@ def test_docs_endpoint(client):
     resp = client.get("/openapi.json")
     assert resp.status_code == 200
     data = resp.json()
-    assert data["info"]["title"] == "Librarian"
+    assert data["info"]["title"] == "MyMemex"

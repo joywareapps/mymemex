@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Users — Admin — MyMemex{% endblock %}
+
+{% block content %}
+<div x-data="{
+    users: [],
+    showModal: false,
+    editUser: null,
+    form: {name: '', aliases: ''},
+    loading: false,
+    async load() {
+        const r = await fetch('/api/v1/admin/users');
+        const d = await r.json();
+        this.users = d.users;
+    },
+    openAdd() {
+        this.editUser = null;
+        this.form = {name: '', aliases: ''};
+        this.showModal = true;
+    },
+    openEdit(u) {
+        this.editUser = u;
+        this.form = {name: u.name, aliases: u.aliases.join(', ')};
+        this.showModal = true;
+    },
+    async save() {
+        this.loading = true;
+        const aliases = this.form.aliases.split(',').map(a => a.trim()).filter(Boolean);
+        const body = {name: this.form.name, aliases};
+        let r;
+        if (this.editUser) {
+            r = await fetch('/api/v1/admin/users/' + this.editUser.id, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+        } else {
+            r = await fetch('/api/v1/admin/users', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+        }
+        this.loading = false;
+        if (r.ok) {
+            this.showModal = false;
+            await this.load();
+        }
+    },
+    async del(u) {
+        if (!confirm('Delete user ' + u.name + '?')) return;
+        await fetch('/api/v1/admin/users/' + u.id, {method: 'DELETE'});
+        await this.load();
+    }
+}" x-init="load()">
+
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Users</h1>
+        <button @click="openAdd()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm transition-colors">
+            + Add User
+        </button>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-900">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aliases</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                    <th class="px-6 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <template x-for="u in users" :key="u.id">
+                    <tr>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white" x-text="u.name"></td>
+                        <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400" x-text="u.aliases.join(', ') || '—'"></td>
+                        <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400" x-text="new Date(u.created_at).toLocaleDateString()"></td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <button @click="openEdit(u)" class="text-blue-600 hover:underline text-sm">Edit</button>
+                            <button @click="del(u)" class="text-red-600 hover:underline text-sm">Delete</button>
+                        </td>
+                    </tr>
+                </template>
+                <tr x-show="users.length === 0">
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">No users yet.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal -->
+    <div x-show="showModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4" x-text="editUser ? 'Edit User' : 'Add User'"></h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+                    <input x-model="form.name" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Aliases (comma-separated)</label>
+                    <input x-model="form.aliases" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button @click="save()" :disabled="!form.name || loading"
+                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                    <span x-show="!loading">Save</span>
+                    <span x-show="loading">Saving…</span>
+                </button>
+                <button @click="showModal = false"
+                        class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

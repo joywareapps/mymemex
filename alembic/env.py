@@ -9,7 +9,7 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from librarian.storage.models import Base
+from mymemex.storage.models import Base
 
 # Alembic Config object
 config = context.config

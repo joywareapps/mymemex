@@ -27,7 +27,7 @@ wrangler login
 ### 3. Create KV Namespace (optional but recommended)
 
 ```bash
-cd ~/code/librarian/workers
+cd ~/code/mymemex/workers
 wrangler kv:namespace create SUBSCRIBERS
 ```
 
@@ -98,7 +98,7 @@ After deploying the worker:
    ```
 3. Rebuild and deploy website:
    ```bash
-   cd ~/code/librarian/website
+   cd ~/code/mymemex/website
    ./update-website-mymemex.sh
    ```
 

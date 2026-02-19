@@ -1,6 +1,6 @@
 # Commercial Licensing
 
-Librarian is open source under AGPL v3, which is great for personal use, 
+MyMemex is open source under AGPL v3, which is great for personal use, 
 self-hosting, and open-source contributions. However, AGPL has requirements 
 that may not suit all commercial use cases.
 
@@ -11,8 +11,8 @@ that may not suit all commercial use cases.
 | Personal/home use | ✅ Yes | Not needed |
 | Self-hosted for your business | ✅ Yes | Not needed |
 | Contributing to open source | ✅ Yes | Not needed |
-| SaaS product using Librarian | ❌ No | **Required** |
-| Proprietary product embedding Librarian | ❌ No | **Required** |
+| SaaS product using MyMemex | ❌ No | **Required** |
+| Proprietary product embedding MyMemex | ❌ No | **Required** |
 | Distributing modified closed-source version | ❌ No | **Required** |
 | Want guaranteed support/SLA | ❌ No | **Recommended** |
 

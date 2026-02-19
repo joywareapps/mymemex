@@ -1,6 +1,6 @@
-# Update Librarian Website - M1-M6 Complete + MCP-First Architecture
+# Update MyMemex Website - M1-M6 Complete + MCP-First Architecture
 
-Update the Librarian website (librarian.joywareapps.com) to reflect the current project status: **M1-M6 COMPLETE** with **MCP-first conversational interface** coming in M7.
+Update the MyMemex website (mymemex.joywareapps.com) to reflect the current project status: **M1-M6 COMPLETE** with **MCP-first conversational interface** coming in M7.
 
 ## Current Website State
 
@@ -48,7 +48,7 @@ The website currently shows:
 
 ### Key Architecture Decision: MCP-First
 
-Instead of building a custom chat UI, Librarian will expose its capabilities via **Model Context Protocol (MCP)**:
+Instead of building a custom chat UI, MyMemex will expose its capabilities via **Model Context Protocol (MCP)**:
 - Works with Claude Desktop, OpenClaw, any MCP client
 - 8 tools: `search_documents`, `get_document`, `get_document_text`, `list_documents`, `add_tag`, `remove_tag`, `upload_document`, `get_library_stats`
 - Two transports: stdio (Claude Desktop) + HTTP/SSE (OpenClaw)
@@ -105,7 +105,7 @@ This means users can **talk to their documents** through their existing AI assis
 - Tests: 83 (68 pass + 15 skip)
 - Code: ~35 modules
 - Deployment: Docker ready
-- GitHub: joywareapps/librarian
+- GitHub: joywareapps/mymemex
 
 **Add M5 and M6 as completed milestones:**
 
@@ -286,7 +286,7 @@ Add a section explaining the MCP-first approach:
 
     <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8 mb-8">
       <p class="text-lg text-slate-300 mb-6">
-        Instead of building a custom chat UI, Librarian exposes its capabilities via the
+        Instead of building a custom chat UI, MyMemex exposes its capabilities via the
         <strong class="text-violet-400">Model Context Protocol (MCP)</strong>. This means you can
         talk to your documents through your existing AI assistants.
       </p>

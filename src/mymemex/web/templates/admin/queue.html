@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Queue — Admin — MyMemex{% endblock %}
+
+{% block content %}
+<div x-data="{
+    tasks: [],
+    total: 0,
+    statusFilter: '',
+    page: 1,
+    perPage: 50,
+    loading: false,
+    async load() {
+        this.loading = true;
+        let url = '/api/v1/admin/queue?page=' + this.page + '&per_page=' + this.perPage;
+        if (this.statusFilter) url += '&status=' + this.statusFilter;
+        const r = await fetch(url);
+        const d = await r.json();
+        this.tasks = d.tasks;
+        this.total = d.total;
+        this.loading = false;
+    },
+    async cancel(id) {
+        if (!confirm('Cancel task ' + id + '?')) return;
+        const r = await fetch('/api/v1/admin/queue/' + id + '/cancel', {method: 'POST'});
+        if (r.ok) await this.load();
+        else { const d = await r.json(); alert(d.detail); }
+    },
+    async retry(id) {
+        const r = await fetch('/api/v1/admin/queue/' + id + '/retry', {method: 'POST'});
+        if (r.ok) await this.load();
+        else { const d = await r.json(); alert(d.detail); }
+    },
+    statusClass(s) {
+        const m = {pending: 'bg-yellow-100 text-yellow-800', running: 'bg-blue-100 text-blue-800',
+                   completed: 'bg-green-100 text-green-800', failed: 'bg-red-100 text-red-800',
+                   cancelled: 'bg-gray-100 text-gray-600'};
+        return m[s] || 'bg-gray-100 text-gray-600';
+    }
+}" x-init="load()">
+
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Task Queue</h1>
+        <div class="flex items-center gap-3">
+            <select x-model="statusFilter" @change="page=1; load()"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="running">Running</option>
+                <option value="completed">Completed</option>
+                <option value="failed">Failed</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+            <button @click="load()" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
+                Refresh
+            </button>
+        </div>
+    </div>
+
+    <div class="mb-3 text-sm text-gray-500">Showing <span x-text="tasks.length"></span> of <span x-text="total"></span> tasks</div>
+
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-900">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Doc ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attempts</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                    <th class="px-4 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <template x-for="t in tasks" :key="t.id">
+                    <tr>
+                        <td class="px-4 py-3 text-sm text-gray-500" x-text="t.id"></td>
+                        <td class="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white" x-text="t.task_type"></td>
+                        <td class="px-4 py-3">
+                            <span :class="statusClass(t.status)"
+                                  class="px-2 py-0.5 rounded-full text-xs font-medium"
+                                  x-text="t.status"></span>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-500" x-text="t.document_id || '—'"></td>
+                        <td class="px-4 py-3 text-sm text-gray-500" x-text="t.attempt_count + '/' + t.max_attempts"></td>
+                        <td class="px-4 py-3 text-sm text-gray-500" x-text="new Date(t.created_at).toLocaleString()"></td>
+                        <td class="px-4 py-3 text-right space-x-2">
+                            <button x-show="['pending','running'].includes(t.status)"
+                                    @click="cancel(t.id)" class="text-red-600 hover:underline text-xs">Cancel</button>
+                            <button x-show="['failed','cancelled'].includes(t.status)"
+                                    @click="retry(t.id)" class="text-blue-600 hover:underline text-xs">Retry</button>
+                        </td>
+                    </tr>
+                </template>
+                <tr x-show="tasks.length === 0 && !loading">
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">No tasks found.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

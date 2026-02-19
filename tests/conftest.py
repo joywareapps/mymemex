@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 import pytest_asyncio
 
-from librarian.config import AppConfig
-from librarian.storage.database import init_database, get_session, _engine, _session_factory
+from mymemex.config import AppConfig
+from mymemex.storage.database import init_database, get_session, _engine, _session_factory
 
 
 @pytest.fixture(scope="session")
@@ -33,7 +33,7 @@ def test_config(tmp_dir):
     return AppConfig(
         debug=True,
         log_level="DEBUG",
-        watch={"directories": [str(tmp_dir / "watch")]},
+        watch={},
         database={"path": str(tmp_dir / "test.db")},
         server={"host": "127.0.0.1", "port": 0},
     )
@@ -42,7 +42,7 @@ def test_config(tmp_dir):
 @pytest_asyncio.fixture
 async def db_session(test_config):
     """Initialize test database and provide a session."""
-    import librarian.storage.database as db_module
+    import mymemex.storage.database as db_module
 
     await init_database(test_config.database.path)
     async with get_session() as session:

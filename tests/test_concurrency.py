@@ -3,9 +3,9 @@ import pytest
 import shutil
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from librarian.processing.pipeline import run_ingest_pipeline, _get_ingest_semaphore
-from librarian.storage.repositories import DocumentRepository
-from librarian.config import AppConfig
+from mymemex.processing.pipeline import run_ingest_pipeline, _get_ingest_semaphore
+from mymemex.storage.repositories import DocumentRepository
+from mymemex.config import AppConfig
 
 @pytest.mark.asyncio
 async def test_ingest_semaphore_limits_concurrency(test_config, db_session, sample_pdf):
@@ -32,7 +32,7 @@ async def test_ingest_semaphore_limits_concurrency(test_config, db_session, samp
     test_config.ingestion.max_concurrent = 2
     
     # Reset module-level semaphore for test
-    import librarian.processing.pipeline as pipeline
+    import mymemex.processing.pipeline as pipeline
     pipeline._ingest_semaphore = None
 
     active_count = 0
@@ -57,8 +57,8 @@ async def test_ingest_semaphore_limits_concurrency(test_config, db_session, samp
         await self.session.commit()
 
     with (
-        patch("librarian.storage.repositories.DocumentRepository.update", autospec=True, side_effect=mocked_update),
-        patch("librarian.processing.pipeline.extract_text_from_pdf", return_value=[])
+        patch("mymemex.storage.repositories.DocumentRepository.update", autospec=True, side_effect=mocked_update),
+        patch("mymemex.processing.pipeline.extract_text_from_pdf", return_value=[])
     ):
         
         # Run 3 ingestions concurrently
@@ -80,7 +80,7 @@ async def test_ingest_semaphore_limits_concurrency(test_config, db_session, samp
     # Verify all were processed
     for doc in docs:
         await db_session.refresh(doc)
-        assert doc.status == "ready"
+        assert doc.status == "processed"
 
 @pytest.mark.asyncio
 async def test_single_ingest_works_unchanged(test_config, db_session, sample_pdf):
@@ -98,7 +98,7 @@ async def test_single_ingest_works_unchanged(test_config, db_session, sample_pdf
     await db_session.commit()
 
     # Reset module-level semaphore
-    import librarian.processing.pipeline as pipeline
+    import mymemex.processing.pipeline as pipeline
     pipeline._ingest_semaphore = None
 
     # Run ingestion
@@ -106,5 +106,5 @@ async def test_single_ingest_works_unchanged(test_config, db_session, sample_pdf
 
     # Verify document is ready
     await db_session.refresh(doc)
-    assert doc.status == "ready"
+    assert doc.status == "processed"
     assert doc.page_count is not None

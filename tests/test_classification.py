@@ -8,15 +8,15 @@ from unittest.mock import AsyncMock
 import pytest
 import pytest_asyncio
 
-from librarian.config import AppConfig, ClassificationConfig, LLMConfig
-from librarian.intelligence.classifier import (
+from mymemex.config import AppConfig, ClassificationConfig, LLMConfig
+from mymemex.intelligence.classifier import (
     ClassificationResult,
     DocumentClassifier,
 )
-from librarian.intelligence.llm_client import LLMClient, create_llm_client
-from librarian.services.classification import ClassificationService
-from librarian.storage.database import get_session, init_database
-from librarian.storage.repositories import (
+from mymemex.intelligence.llm_client import LLMClient, create_llm_client
+from mymemex.services.classification import ClassificationService
+from mymemex.storage.database import get_session, init_database
+from mymemex.storage.repositories import (
     ChunkRepository,
     DocumentRepository,
     TagRepository,
@@ -185,7 +185,7 @@ async def test_classify_llm_error():
 
 def test_create_llm_client_ollama():
     """Test creating Ollama client."""
-    from librarian.intelligence.llm_client import OllamaClient
+    from mymemex.intelligence.llm_client import OllamaClient
 
     config = LLMConfig(provider="ollama", model="llama2")
     client = create_llm_client(config)
@@ -194,7 +194,7 @@ def test_create_llm_client_ollama():
 
 def test_create_llm_client_openai():
     """Test creating OpenAI client with api_key in config."""
-    from librarian.intelligence.llm_client import OpenAIClient
+    from mymemex.intelligence.llm_client import OpenAIClient
 
     config = LLMConfig(provider="openai", model="gpt-4o-mini", api_key="test-key")
     client = create_llm_client(config)
@@ -204,7 +204,7 @@ def test_create_llm_client_openai():
 
 def test_create_llm_client_openai_env_key(monkeypatch):
     """Test OpenAI client reads API key from environment."""
-    from librarian.intelligence.llm_client import OpenAIClient
+    from mymemex.intelligence.llm_client import OpenAIClient
 
     monkeypatch.setenv("OPENAI_API_KEY", "env-test-key")
     config = LLMConfig(provider="openai", model="gpt-4o-mini")
@@ -223,7 +223,7 @@ def test_create_llm_client_openai_no_key(monkeypatch):
 
 def test_create_llm_client_anthropic():
     """Test creating Anthropic client with api_key in config."""
-    from librarian.intelligence.llm_client import AnthropicClient
+    from mymemex.intelligence.llm_client import AnthropicClient
 
     config = LLMConfig(provider="anthropic", model="claude-haiku-4-5-20251001", api_key="test-key")
     client = create_llm_client(config)
@@ -233,7 +233,7 @@ def test_create_llm_client_anthropic():
 
 def test_create_llm_client_anthropic_env_key(monkeypatch):
     """Test Anthropic client reads API key from environment."""
-    from librarian.intelligence.llm_client import AnthropicClient
+    from mymemex.intelligence.llm_client import AnthropicClient
 
     monkeypatch.setenv("ANTHROPIC_API_KEY", "ant-env-key")
     config = LLMConfig(provider="anthropic", model="claude-haiku-4-5-20251001")
@@ -264,7 +264,7 @@ def test_create_llm_client_unknown():
 @pytest_asyncio.fixture
 async def db_session_for_classification(tmp_path):
     """Initialize test database for classification tests."""
-    import librarian.storage.database as db_module
+    import mymemex.storage.database as db_module
 
     db_path = tmp_path / "test_classify.db"
     await init_database(db_path)
@@ -295,7 +295,7 @@ async def test_classify_document_applies_tags(db_session_for_classification):
         mime_type="application/pdf",
         file_modified_at=1000000.0,
     )
-    await doc_repo.update_status(doc, "ready")
+    await doc_repo.update_status(doc, "processed")
 
     # Create chunks
     await chunk_repo.create(

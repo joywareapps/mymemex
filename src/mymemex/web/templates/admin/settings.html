@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Settings — Admin — MyMemex{% endblock %}
+
+{% block content %}
+<div x-data="{
+    tab: 'server',
+    config: {},
+    saving: false,
+    saved: false,
+    restartNeeded: false,
+    async load() {
+        const r = await fetch('/api/v1/admin/config');
+        this.config = await r.json();
+    },
+    async save() {
+        this.saving = true;
+        this.saved = false;
+        const r = await fetch('/api/v1/admin/config', {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(this.config)
+        });
+        this.saving = false;
+        if (r.ok) {
+            this.saved = true;
+            this.restartNeeded = true;
+            setTimeout(() => this.saved = false, 3000);
+        }
+    },
+    tabs: [
+        {id: 'server', label: 'Server'},
+        {id: 'llm', label: 'LLM'},
+        {id: 'ocr', label: 'OCR'},
+        {id: 'ai', label: 'AI'},
+        {id: 'backup', label: 'Backup'},
+        {id: 'mcp', label: 'MCP'},
+    ]
+}" x-init="load()">
+
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+        <div class="flex items-center gap-3">
+            <span x-show="restartNeeded" class="text-yellow-600 text-sm font-medium">⚠ Restart required</span>
+            <span x-show="saved" class="text-green-600 text-sm">Saved!</span>
+            <button @click="save()" :disabled="saving"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm transition-colors">
+                <span x-show="!saving">Save</span>
+                <span x-show="saving">Saving…</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+        <nav class="flex space-x-4">
+            <template x-for="t in tabs" :key="t.id">
+                <button @click="tab = t.id"
+                        :class="tab === t.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                        class="pb-2 px-1 border-b-2 text-sm font-medium transition-colors"
+                        x-text="t.label"></button>
+            </template>
+        </nav>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+
+        <!-- Server -->
+        <div x-show="tab === 'server'" class="space-y-4">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Server</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Host</label>
+                    <input x-model="config.server.host" type="text"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Port</label>
+                    <input x-model.number="config.server.port" type="number"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Log Level</label>
+                <select x-model="config.log_level"
+                        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option>DEBUG</option><option>INFO</option><option>WARNING</option><option>ERROR</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- LLM -->
+        <div x-show="tab === 'llm'" class="space-y-4">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">LLM</h2>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Provider</label>
+                <select x-model="config.llm.provider"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="none">None</option>
+                    <option value="ollama">Ollama</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Anthropic</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Model</label>
+                <input x-model="config.llm.model" type="text" placeholder="e.g. llama3, gpt-4o"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Base URL</label>
+                <input x-model="config.llm.api_base" type="text"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
+                <input x-model="config.llm.api_key" type="password" placeholder="Leave blank to keep existing"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- OCR -->
+        <div x-show="tab === 'ocr'" class="space-y-4">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">OCR</h2>
+            <div class="flex items-center gap-2">
+                <input x-model="config.ocr.enabled" type="checkbox" id="ocr_enabled" class="rounded">
+                <label for="ocr_enabled" class="text-sm text-gray-700 dark:text-gray-300">Enable OCR</label>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Language</label>
+                <input x-model="config.ocr.language" type="text" placeholder="eng"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- AI -->
+        <div x-show="tab === 'ai'" class="space-y-4">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">AI / Embeddings</h2>
+            <div class="flex items-center gap-2">
+                <input x-model="config.ai.semantic_search_enabled" type="checkbox" id="sem_search" class="rounded">
+                <label for="sem_search" class="text-sm text-gray-700 dark:text-gray-300">Enable Semantic Search</label>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Embedding Model</label>
+                <input x-model="config.ai.embedding_model" type="text"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- Backup -->
+        <div x-show="tab === 'backup'" class="space-y-4">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Backup</h2>
+            <div class="flex items-center gap-2">
+                <input x-model="config.backup.enabled" type="checkbox" id="backup_enabled" class="rounded">
+                <label for="backup_enabled" class="text-sm text-gray-700 dark:text-gray-300">Enable Scheduled Backup</label>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Destination Directory</label>
+                <input x-model="config.backup.destination" type="text" placeholder="/backups"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Schedule (cron)</label>
+                <input x-model="config.backup.schedule" type="text" placeholder="0 3 * * *"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Retention (days)</label>
+                <input x-model.number="config.backup.retention_days" type="number"
+                       class="w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- MCP -->
+        <div x-show="tab === 'mcp'" class="space-y-4">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">MCP</h2>
+            <div class="flex items-center gap-2">
+                <input x-model="config.mcp.enabled" type="checkbox" id="mcp_enabled" class="rounded">
+                <label for="mcp_enabled" class="text-sm text-gray-700 dark:text-gray-300">Enable MCP Server</label>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Transport</label>
+                <select x-model="config.mcp.transport"
+                        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="stdio">stdio</option>
+                    <option value="http">http</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

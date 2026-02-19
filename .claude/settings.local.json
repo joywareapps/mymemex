@@ -16,8 +16,8 @@
       "Bash(npx astro build:*)",
       "Bash(pip show:*)",
       "WebFetch(domain:github.com)",
-      "Bash(/home/gorano/code/librarian/venv/bin/pip show:*)",
-      "Bash(/home/gorano/code/librarian/venv/bin/python:*)",
+      "Bash(/home/gorano/code/mymemex/venv/bin/pip show:*)",
+      "Bash(/home/gorano/code/mymemex/venv/bin/python:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:pypi.org)",
       "WebSearch",
@@ -27,7 +27,10 @@
       "Bash(pip3 install:*)",
       "Bash(npm run build)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(~/.local/bin/uv run pytest:*)",
+      "Bash(grep:*)"
     ]
   }
 }

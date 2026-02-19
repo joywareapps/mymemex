@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from librarian.processing.hasher import FileHash, canonical_hash, hash_file, quick_fingerprint
+from mymemex.processing.hasher import FileHash, canonical_hash, hash_file, quick_fingerprint
 
 
 def test_quick_fingerprint(tmp_path):
