@@ -206,7 +206,7 @@ async def seed_demo():
     
     print("Generating synthetic PDFs...")
     # Invoices
-    for i in range(30):
+    for i in range(15):
         create_invoice(docs_dir / f"invoice_{i}.pdf")
     # Receipts
     for i in range(15):
@@ -215,7 +215,7 @@ async def seed_demo():
     for i in range(10):
         create_contract(docs_dir / f"contract_{i}.pdf")
     # Tax docs
-    for i in range(15):
+    for i in range(8):
         create_tax_doc(docs_dir / f"tax_{i}.pdf")
         
     print(f"Generated {len(list(docs_dir.glob('*.pdf')))} documents.")
