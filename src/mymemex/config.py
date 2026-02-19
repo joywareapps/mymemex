@@ -198,6 +198,36 @@ class AppConfig(BaseSettings):
     ingestion: IngestionConfig = Field(default_factory=IngestionConfig)
     backup: BackupConfig = Field(default_factory=BackupConfig)
 
+    @model_validator(mode="before")
+    @classmethod
+    def env_overrides(cls, data: dict) -> dict:
+        """Manually apply environment variable overrides for nested sections."""
+        # Pydantic Settings sometimes struggles with nested models + env_prefix.
+        # We'll explicitly check for common overrides.
+        
+        if os.environ.get("MYMEMEX_LLM__PROVIDER"):
+            llm = data.get("llm", {})
+            llm["provider"] = os.environ.get("MYMEMEX_LLM__PROVIDER")
+            if os.environ.get("MYMEMEX_LLM__MODEL"):
+                llm["model"] = os.environ.get("MYMEMEX_LLM__MODEL")
+            if os.environ.get("MYMEMEX_LLM__API_BASE"):
+                llm["api_base"] = os.environ.get("MYMEMEX_LLM__API_BASE")
+            if os.environ.get("MYMEMEX_LLM__API_KEY"):
+                llm["api_key"] = os.environ.get("MYMEMEX_LLM__API_KEY")
+            data["llm"] = llm
+
+        if os.environ.get("MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED"):
+            ai = data.get("ai", {})
+            val = os.environ.get("MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED").lower()
+            ai["semantic_search_enabled"] = val in ("true", "1", "yes")
+            if os.environ.get("MYMEMEX_AI__EMBEDDING_MODEL"):
+                ai["embedding_model"] = os.environ.get("MYMEMEX_AI__EMBEDDING_MODEL")
+            if os.environ.get("MYMEMEX_AI__EMBEDDING_DIMENSION"):
+                ai["embedding_dimension"] = int(os.environ.get("MYMEMEX_AI__EMBEDDING_DIMENSION"))
+            data["ai"] = ai
+
+        return data
+
     @classmethod
     def from_yaml(cls, path: Path) -> AppConfig:
         """Load configuration from YAML file."""
