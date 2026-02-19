@@ -15,6 +15,9 @@ docker rm mymemex 2>/dev/null || true
 echo "📥 Fetching latest code from demo-version branch..."
 git fetch origin
 git checkout demo-version
+# Reset local changes (like chmod +x mode changes) to allow clean pull
+# Note: .env and data/ are gitignored, so they won't be affected by --hard reset
+git reset --hard origin/demo-version
 git pull origin demo-version
 chmod +x scripts/deploy-demo.sh
 
