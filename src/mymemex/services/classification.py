@@ -57,6 +57,7 @@ class ClassificationService:
             # Classify
             result = await self.classifier.classify(content, user_context=user_context)
             if not result:
+                log.warning("Classification returned no result", document_id=document_id)
                 return None
 
             # Auto-add person tags based on known users
