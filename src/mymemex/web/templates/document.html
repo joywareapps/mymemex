@@ -18,12 +18,19 @@
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ doc.original_filename }}</p>
             {% endif %}
         </div>
-        {% if not demo_mode %}
-        <button @click="showDeleteConfirm = true"
-                class="px-3 py-1.5 text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200">
-            Delete
-        </button>
-        {% endif %}
+        <div class="flex gap-2">
+            <a href="/api/v1/documents/{{ doc.id }}/download" 
+               class="px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-800 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-200 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Download
+            </a>
+            {% if not demo_mode %}
+            <button @click="showDeleteConfirm = true"
+                    class="px-3 py-1.5 text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200">
+                Delete
+            </button>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -135,7 +142,7 @@
                 {% endif %}
                 <span class="text-xs text-gray-400 dark:text-gray-500">{{ chunk.char_count }} chars</span>
             </div>
-            <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap line-clamp-2">{{ chunk.text }}</p>
+            <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ chunk.text }}</p>
         </div>
         {% endfor %}
     </div>

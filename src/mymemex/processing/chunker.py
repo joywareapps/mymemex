@@ -19,8 +19,8 @@ class TextChunk:
 def chunk_text(
     text: str,
     page_number: int | None = None,
-    max_chars: int = 1500,
-    overlap_chars: int = 200,
+    max_chars: int = 800,
+    overlap_chars: int = 100,
 ) -> list[TextChunk]:
     """
     Split text into overlapping chunks.
@@ -64,8 +64,8 @@ def chunk_text(
 
 def chunk_pages(
     pages: list[tuple[int, str]],
-    max_chars: int = 1500,
-    overlap_chars: int = 200,
+    max_chars: int = 800,
+    overlap_chars: int = 100,
 ) -> list[TextChunk]:
     """Chunk text from multiple pages, maintaining global chunk indices."""
     all_chunks: list[TextChunk] = []

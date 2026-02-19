@@ -10,6 +10,9 @@ from ..services.document import DocumentService
 from ..services.ingest import IngestService
 from ..storage.database import get_session
 
+from fastapi.responses import FileResponse
+import os
+
 router = APIRouter()
 
 
@@ -126,6 +129,29 @@ async def get_document(document_id: int):
             **{k: v for k, v in data.items() if k != "chunks"},
             chunks=[ChunkInfo(**c) for c in data["chunks"]],
         )
+
+
+@router.get("/{document_id}/download")
+async def download_document(document_id: int):
+    """Download the original document file."""
+    async with get_session() as session:
+        service = DocumentService(session)
+        try:
+            doc_data = await service.get_document(document_id)
+            # Find the primary or first available path
+            path = doc_data["original_path"]
+            filename = doc_data["original_filename"]
+            
+            if not os.path.exists(path):
+                raise HTTPException(status_code=404, detail="File not found on disk")
+                
+            return FileResponse(
+                path, 
+                filename=filename,
+                media_type=doc_data["mime_type"]
+            )
+        except NotFoundError:
+            raise HTTPException(status_code=404, detail="Document not found")
 
 
 @router.patch("/{document_id}")
