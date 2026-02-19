@@ -197,7 +197,9 @@ class AppConfig(BaseSettings):
         with open(path) as f:
             data = yaml.safe_load(f) or {}
 
-        return cls.model_validate(data)
+        # Use constructor instead of model_validate so BaseSettings 
+        # applies env var overrides on top of the provided dict
+        return cls(**data)
 
 
 def load_config(config_path: Path | None = None) -> AppConfig:
