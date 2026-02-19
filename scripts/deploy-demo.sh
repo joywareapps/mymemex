@@ -42,15 +42,22 @@ echo "🌱 Seeding demo documents..."
 ENV_FILE_ARG=""
 if [ -f ".env" ]; then
     ENV_FILE_ARG="--env-file .env"
+    # Export variables so they can be passed via -e
+    export $(grep -v '^#' .env | xargs)
 fi
 
 # We run a one-off container to generate the DB and documents
+# We explicitly pass LLM and AI vars because BaseSettings might not find .env inside /app
 docker run --rm \
   --user root \
   $ENV_FILE_ARG \
   -v "$(pwd)/config:/app/config:ro" \
   -v "$(pwd)/data:/var/lib/mymemex" \
   -e MYMEMEX_DATABASE__PATH=/var/lib/mymemex/mymemex.db \
+  -e MYMEMEX_LLM__PROVIDER=$MYMEMEX_LLM__PROVIDER \
+  -e MYMEMEX_LLM__API_BASE=$MYMEMEX_LLM__API_BASE \
+  -e MYMEMEX_LLM__MODEL=$MYMEMEX_LLM__MODEL \
+  -e MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=$MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED \
   mymemex:demo \
   python3 scripts/seed_demo_data.py
 
