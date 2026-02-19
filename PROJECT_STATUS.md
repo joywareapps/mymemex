@@ -1,16 +1,17 @@
 # MyMemex - Project Status
 
-**Last Updated:** 2026-02-18
-**Phase:** M1-M10 Complete | Production Ready
+**Last Updated:** 2026-02-19
+**Phase:** M1-M11 Complete | Production Ready
 
 ## Current State
 
-- M1-M10 complete (141 tests passing)
+- M1-M11 complete (141 tests passing)
 - Pre-built Docker images (GHCR)
 - Cloud LLM support (OpenAI, Anthropic)
 - MCP Server with 13 tools
 - Backup CLI for database + vectors
 - Web UI for document browsing, search, tags, upload
+- Admin Panel with full configuration management
 
 ## Completed Milestones
 
@@ -29,6 +30,19 @@
 | **M9** | Auto-Tagging via LLM | ✅ |
 | **M9.5** | Structured Extraction & Aggregation | ✅ |
 | **M10** | Deployment & Distribution | ✅ |
+| **M11** | Admin Panel, File Management & User Context | ✅ |
+
+## M11 Features
+
+- **Admin Panel** — Settings editor with restart warnings, watch folder management
+- **MCP Configuration** — HTTP transport, access tokens, IP whitelist
+- **Backup Management** — Scheduled backups, retention policy, restore from UI
+- **Post-Ingestion File Policies** — Rename/move/copy/delete after processing
+- **User Profiles** — Family members with display name + aliases for LLM context
+- **Task Queue UI** — Real-time queue management with cancel/retry
+- **Activity & System Logs** — File operations log, system log with filters
+- **First-Run Wizard** — Setup prompt when no users exist
+- **Same-Origin Admin CORS** — Admin endpoints protected
 
 ## M10 Features
 
@@ -43,26 +57,16 @@
 
 | Milestone | Description |
 |-----------|-------------|
-| **M11** | Admin Panel, File Management & User Context |
-| **M12** | Multi-User Support (Ownership, Privacy, Visibility) |
+| **M12** | Multi-User Support (Ownership, Privacy, Visibility, Auth) |
 | **M13** | Chat Interface |
 | **M14** | Cloud OCR Fallback |
 
-### M11 Features
-
-- **Admin Panel** — Settings editor, watch folder management
-- **MCP Configuration** — Enable/disable, HTTP transport, access tokens
-- **Backup** — Scheduled backups, retention, restore
-- **File Policies** — Post-ingestion rename/move/copy rules
-- **User Profiles** — Family members with display name + aliases
-- **LLM Context** — User names passed to classification for person tagging
-
-### M12 Features (Deferred from M11)
+### M12 Features
 
 - Document ownership (who uploaded)
 - Per-folder user association
 - Shared/private visibility flags
-- Login authentication flow
+- Login authentication flow (username/password)
 
 ## Deployment Options
 
@@ -99,6 +103,8 @@ None currently.
 - 141 tests passing (unit + integration)
 - Cloud LLM optional (OpenAI/Anthropic via env vars)
 - Local-first: Ollama works offline
+- Watch folders now stored in database (not config.yaml)
+- Users stored in database for LLM context (no auth yet)
 - See [TODO.md](TODO.md) for known issues
 - See [docs/MILESTONES.md](docs/MILESTONES.md) for full roadmap
 - See [docs/INSTALLATION.md](docs/INSTALLATION.md) for setup guide
