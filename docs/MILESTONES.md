@@ -1,4 +1,4 @@
-# Librarian: Milestones & Roadmap
+# MyMemex: Milestones & Roadmap
 
 **Last Updated:** 2026-02-17
 
@@ -48,7 +48,7 @@
 
 **Dependencies:** M6 (current codebase must be stable)
 
-**Technical approach:** Create `src/librarian/services/` package with one service class per domain. Each service encapsulates the business logic currently in API handlers (e.g., `routers/documents.py`) and pipeline code. API handlers become thin wrappers that validate input, call a service method, and format the response. Repositories remain as the data-access layer beneath services.
+**Technical approach:** Create `src/mymemex/services/` package with one service class per domain. Each service encapsulates the business logic currently in API handlers (e.g., `routers/documents.py`) and pipeline code. API handlers become thin wrappers that validate input, call a service method, and format the response. Repositories remain as the data-access layer beneath services.
 
 **Architecture:**
 ```
@@ -58,7 +58,7 @@ MCP tool handlers ──┘
 ```
 
 **Success criteria:**
-- All business logic lives in `src/librarian/services/`
+- All business logic lives in `src/mymemex/services/`
 - REST API handlers contain no business logic (validation + delegation only)
 - Existing tests continue to pass
 - Service layer is independently testable
@@ -70,7 +70,7 @@ MCP tool handlers ──┘
 
 ### M7: MCP Server
 
-**Goal:** Expose Librarian's capabilities via the Model Context Protocol, making the library accessible from Claude Desktop, OpenClaw, and any MCP-compatible client.
+**Goal:** Expose MyMemex's capabilities via the Model Context Protocol, making the library accessible from Claude Desktop, OpenClaw, and any MCP-compatible client.
 
 **Priority:** HIGH — Primary conversational interface. MCP provides immediate access without building a custom chat UI.
 
@@ -100,7 +100,7 @@ MCP tool handlers ──┘
 - Both stdio and SSE transports work
 - All MCP tools return structured, typed responses
 - Security: path boundaries enforced, upload limits respected, rate limiting active
-- Librarian still works without MCP (optional add-on)
+- MyMemex still works without MCP (optional add-on)
 
 **Spec:** See [MCP-SPEC.md](MCP-SPEC.md) for full tool/resource definitions.
 
@@ -164,7 +164,7 @@ MCP tool handlers ──┘
 
 **Goal:** Extract structured data (amounts, dates, entities) from documents using LLM inference and enable aggregation queries across the library (e.g., "How much tax did I pay from 2015-2025?").
 
-**Priority:** HIGH — Unlocks the core value proposition of a document intelligence platform. Without structured extraction, Librarian is a search engine; with it, Librarian becomes an analytical tool.
+**Priority:** HIGH — Unlocks the core value proposition of a document intelligence platform. Without structured extraction, MyMemex is a search engine; with it, MyMemex becomes an analytical tool.
 
 | Feature | Description | Effort |
 |---------|-------------|--------|
@@ -211,19 +211,19 @@ GROUP BY df.currency;
 **New files:**
 | File | Purpose |
 |------|---------|
-| `src/librarian/intelligence/extractor.py` | LLM-based metadata extraction |
-| `src/librarian/intelligence/llm_client.py` | Abstract LLM client (Ollama, OpenAI, Anthropic) |
-| `src/librarian/services/extraction.py` | Extraction + aggregation service |
-| `src/librarian/storage/repositories.py` | Add `DocumentFieldRepository` |
+| `src/mymemex/intelligence/extractor.py` | LLM-based metadata extraction |
+| `src/mymemex/intelligence/llm_client.py` | Abstract LLM client (Ollama, OpenAI, Anthropic) |
+| `src/mymemex/services/extraction.py` | Extraction + aggregation service |
+| `src/mymemex/storage/repositories.py` | Add `DocumentFieldRepository` |
 
 **Modified files:**
 | File | Change |
 |------|--------|
-| `src/librarian/storage/models.py` | Add `DocumentField` model, `document_date` column on `Document` |
-| `src/librarian/core/queue.py` | Add `TaskType.EXTRACT_METADATA` |
-| `src/librarian/processing/pipeline.py` | Enqueue extraction task after ingestion completes |
-| `src/librarian/mcp/tools.py` | Add aggregation tools |
-| `src/librarian/config.py` | Add extraction config (enabled flag, prompt template path) |
+| `src/mymemex/storage/models.py` | Add `DocumentField` model, `document_date` column on `Document` |
+| `src/mymemex/core/queue.py` | Add `TaskType.EXTRACT_METADATA` |
+| `src/mymemex/processing/pipeline.py` | Enqueue extraction task after ingestion completes |
+| `src/mymemex/mcp/tools.py` | Add aggregation tools |
+| `src/mymemex/config.py` | Add extraction config (enabled flag, prompt template path) |
 
 **Success criteria:**
 - Documents are auto-classified with a `category` on ingest (when LLM is configured)
@@ -247,12 +247,12 @@ GROUP BY df.currency;
 |---------|-------------|--------|
 | Pre-built Docker image | Automatic publishing to GHCR | Low |
 | GitHub Actions workflow | Build on tags, multi-arch (amd64/arm64) | Low |
-| docker-compose.full.yml | Full stack (Librarian + Ollama) | Low |
+| docker-compose.full.yml | Full stack (MyMemex + Ollama) | Low |
 | docker-compose.yml | Standalone with external Ollama | Low |
 | **Cloud LLM support** | OpenAI/Anthropic for users without Ollama | Medium |
 | **API key configuration** | Environment variable based secrets | Low |
 | Systemd service | Linux daemon with auto-restart | Low |
-| Backup CLI | `librarian backup` command | Medium |
+| Backup CLI | `mymemex backup` command | Medium |
 | Backup scheduling | Cron-compatible, configurable retention | Low |
 | User documentation | Installation guide, configuration reference | Medium |
 | Health checks | Docker health, monitoring guidance | Low |
@@ -262,14 +262,14 @@ GROUP BY df.currency;
 **Dependencies:** All core features should be stable. Docker/compose files already exist as stubs.
 
 **Technical approach:**
-- GitHub Actions builds and pushes to `ghcr.io/joywareapps/librarian` on version tags
+- GitHub Actions builds and pushes to `ghcr.io/joywareapps/mymemex` on version tags
 - Multi-stage Docker build for ~400MB image size
 - Two compose files: standalone (external Ollama) and full stack (with Ollama)
 - Backup CLI creates timestamped archive of database + vectors + config
 
 **Cloud LLM Configuration:**
 
-For users without local GPU/Ollama, Librarian supports cloud providers via API keys.
+For users without local GPU/Ollama, MyMemex supports cloud providers via API keys.
 
 ```yaml
 # config.yaml
@@ -288,8 +288,8 @@ ANTHROPIC_API_KEY=sk-ant-xxx
 ```yaml
 # docker-compose.yml
 services:
-  librarian:
-    image: ghcr.io/joywareapps/librarian:latest
+  mymemex:
+    image: ghcr.io/joywareapps/mymemex:latest
     env_file:
       - .env  # Contains API keys
     # OR inline:
@@ -319,8 +319,8 @@ class LLMConfig(BaseModel):
 | Anthropic | `provider: anthropic`, `model: claude-3-haiku`, `ANTHROPIC_API_KEY` env |
 
 **Success criteria:**
-- `docker pull ghcr.io/joywareapps/librarian:latest` works
-- `docker compose up` starts a working Librarian instance
+- `docker pull ghcr.io/joywareapps/mymemex:latest` works
+- `docker compose up` starts a working MyMemex instance
 - Users can configure OpenAI/Anthropic without local Ollama
 - API keys are read from environment variables (not logged)
 - Backup/restore works for both SQLite and ChromaDB data
@@ -331,7 +331,7 @@ class LLMConfig(BaseModel):
 
 ### M12: Multi-User Support
 
-**Goal:** Shared library with per-user ownership tracking. A family or small team shares one Librarian instance.
+**Goal:** Shared library with per-user ownership tracking. A family or small team shares one MyMemex instance.
 
 | Feature | Description | Effort |
 |---------|-------------|--------|
@@ -408,9 +408,9 @@ class LLMConfig(BaseModel):
 
 ---
 
-### M11: Admin Panel & File Management
+### M11: Admin Panel, File Management & User Context
 
-**Goal:** Web-based administration interface for configuration, backup, file management policies, and MCP access control.
+**Goal:** Web-based administration interface for configuration, backup, file management policies, MCP access control, and user profiles for LLM classification context.
 
 | Feature | Description | Effort |
 |---------|-------------|--------|
@@ -424,10 +424,15 @@ class LLMConfig(BaseModel):
 | Post-ingestion policies | Define what happens to files after processing | Medium |
 | File organization | Rename/move/copy based on classification | Medium |
 | Storage stats | Disk usage, document count by location | Low |
+| **User profiles** | Family members with display name + aliases | Low |
+| **LLM context** | Pass user names/aliases to classification prompts | Low |
+| **Person auto-tagging** | Tag documents with `person:{name}` when matched | Low |
 
 **Estimated effort:** 2-3 weeks
 
 **Dependencies:** M7 (MCP Server), M8 (Web UI), M10 (Deployment for backup infrastructure).
+
+**Spec:** See [M11-SPEC.md](M11-SPEC.md) for full implementation details.
 
 **MCP Access Control:**
 
@@ -452,10 +457,10 @@ mcp:
     mode: token  # none, token, ip_whitelist, both
     tokens:
       - name: "OpenClaw on clawtop"
-        token: "librarian_xxxxxxxx"  # Auto-generated
+        token: "mymemex_xxxxxxxx"  # Auto-generated
         created: "2026-02-18"
       - name: "Claude Desktop on laptop"
-        token: "librarian_yyyyyyyy"
+        token: "mymemex_yyyyyyyy"
         created: "2026-02-19"
     ip_whitelist:
       - "192.168.178.0/24"  # Local network
@@ -472,8 +477,8 @@ For MCP access from outside Docker:
 
 ```yaml
 services:
-  librarian:
-    image: ghcr.io/joywareapps/librarian:latest
+  mymemex:
+    image: ghcr.io/joywareapps/mymemex:latest
     ports:
       - "8000:8000"   # REST API + Web UI
       - "8001:8001"   # MCP HTTP (if enabled)
@@ -492,12 +497,12 @@ services:
 │  [+ Generate New Token]                                 │
 │                                                         │
 │  Name: OpenClaw on clawtop                              │
-│  Token: librarian_a1b2c3d4e5f6...  [Copy] [Revoke]     │
+│  Token: mymemex_a1b2c3d4e5f6...  [Copy] [Revoke]     │
 │  Created: 2026-02-18                                    │
 │  Last used: 2026-02-18 09:45                           │
 │                                                         │
 │  Name: Claude Desktop on laptop                         │
-│  Token: librarian_x9y8z7w6...  [Copy] [Revoke]         │
+│  Token: mymemex_x9y8z7w6...  [Copy] [Revoke]         │
 │  Created: 2026-02-17                                    │
 │  Last used: Never                                       │
 └─────────────────────────────────────────────────────────┘
@@ -528,7 +533,7 @@ backup:
   enabled: true
   schedule: "0 3 * * *"  # Cron: 3 AM daily
   retention_days: 30
-  destination: /mnt/backup/librarian
+  destination: /mnt/backup/mymemex
   include:
     - database
     - vectors
@@ -633,19 +638,19 @@ M13 (Chat Interface)
 
 ```bash
 # Install
-cd ~/code/librarian
+cd ~/code/mymemex
 pip install -e ".[dev,ocr,ai]"
 
 # Configure
-librarian init
-nano ~/.config/librarian/config.yaml
+mymemex init
+nano ~/.config/mymemex/config.yaml
 
 # Run
-librarian serve
+mymemex serve
 
 # Search via API
 curl "http://localhost:8000/api/v1/search/hybrid?q=insurance"
 
 # Search via MCP (after M7)
-# Connect Claude Desktop or OpenClaw to librarian's MCP server
+# Connect Claude Desktop or OpenClaw to mymemex's MCP server
 ```

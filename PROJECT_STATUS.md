@@ -1,4 +1,4 @@
-# Librarian - Project Status
+# MyMemex - Project Status
 
 **Last Updated:** 2026-02-18
 **Phase:** M1-M10 Complete | Production Ready
@@ -24,7 +24,7 @@
 | **M6** | Vector embeddings + semantic search (Ollama + ChromaDB) | ✅ |
 | **M6.5** | Service layer extraction | ✅ |
 | **M7** | MCP Server (13 tools, 2 resources, 2 prompts) | ✅ |
-| **M7.5** | OpenClaw skill for Librarian | ✅ |
+| **M7.5** | OpenClaw skill for MyMemex | ✅ |
 | **M8** | Web UI (document browser, search, tags, upload) | ✅ |
 | **M9** | Auto-Tagging via LLM | ✅ |
 | **M9.5** | Structured Extraction & Aggregation | ✅ |
@@ -32,10 +32,10 @@
 
 ## M10 Features
 
-- **Pre-built Docker images** — `ghcr.io/joywareapps/librarian:latest`
+- **Pre-built Docker images** — `ghcr.io/joywareapps/mymemex:latest`
 - **Cloud LLM support** — OpenAI, Anthropic (for users without Ollama)
 - **API key configuration** — Environment variables (`.env` file)
-- **Backup CLI** — `librarian backup create/list/restore`
+- **Backup CLI** — `mymemex backup create/list/restore`
 - **docker-compose.full.yml** — Full stack with Ollama
 - **Installation docs** — `docs/INSTALLATION.md`
 
@@ -43,19 +43,35 @@
 
 | Milestone | Description |
 |-----------|-------------|
-| **M11** | Admin Panel & File Management |
-| **M12** | Multi-User Support |
+| **M11** | Admin Panel, File Management & User Context |
+| **M12** | Multi-User Support (Ownership, Privacy, Visibility) |
 | **M13** | Chat Interface |
 | **M14** | Cloud OCR Fallback |
+
+### M11 Features
+
+- **Admin Panel** — Settings editor, watch folder management
+- **MCP Configuration** — Enable/disable, HTTP transport, access tokens
+- **Backup** — Scheduled backups, retention, restore
+- **File Policies** — Post-ingestion rename/move/copy rules
+- **User Profiles** — Family members with display name + aliases
+- **LLM Context** — User names passed to classification for person tagging
+
+### M12 Features (Deferred from M11)
+
+- Document ownership (who uploaded)
+- Per-folder user association
+- Shared/private visibility flags
+- Login authentication flow
 
 ## Deployment Options
 
 | Method | Command |
 |--------|---------|
-| Docker (standalone) | `docker pull ghcr.io/joywareapps/librarian:latest` |
+| Docker (standalone) | `docker pull ghcr.io/joywareapps/mymemex:latest` |
 | Docker Compose | `docker-compose up -d` |
 | Full Stack | `docker-compose -f docker-compose.full.yml up -d` |
-| pip | `pip install librarian[ocr,ai,mcp]` |
+| pip | `pip install mymemex[ocr,ai,mcp]` |
 
 ## MCP Tools Available
 
