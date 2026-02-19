@@ -4,9 +4,11 @@
 {% block content %}
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Documents</h1>
+    {% if not demo_mode %}
     <a href="/ui/upload" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors duration-200">
         Upload
     </a>
+    {% endif %}
 </div>
 
 <!-- Filters -->
@@ -82,6 +84,7 @@
 }">
 
     <!-- Bulk Actions Toolbar -->
+    {% if not demo_mode %}
     <div x-show="selected.length > 0" x-transition class="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-md flex items-center justify-between">
         <span class="text-sm text-blue-800 dark:text-blue-200 font-medium ml-2">
             <span x-text="selected.length"></span> selected
@@ -95,6 +98,7 @@
             </button>
         </div>
     </div>
+    {% endif %}
 
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-200">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">

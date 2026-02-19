@@ -19,23 +19,22 @@ class DemoModeMiddleware(BaseHTTPMiddleware):
         # Blocked API endpoints
         blocked_prefixes = [
             "/api/v1/documents/upload",
-            "/api/v1/documents/", # PATCH/DELETE on documents
-            "/api/v1/tags/",      # DELETE on tags
+            "/api/v1/documents", # PATCH/DELETE on documents, POST upload
+            "/api/v1/tags",      # POST/DELETE on tags
             "/api/v1/admin/config",
             "/api/v1/admin/watch-folders",
-            "/api/v1/admin/backup/",
+            "/api/v1/admin/backup",
             "/api/v1/admin/mcp/tokens",
             "/api/v1/admin/users",
-            "/api/v1/admin/queue/",
+            "/api/v1/admin/queue",
         ]
         
-        # Exact matches for document detail patch/delete
-        # (covered by /api/v1/documents/ prefix but being explicit)
+        # We need to be careful: GET /api/v1/documents should be allowed.
+        # This function only says if the path IS one of the potential write targets.
+        # The caller (dispatch) checks the METHOD.
         
         for prefix in blocked_prefixes:
-            if path.startswith(prefix):
-                # Special cases: GET operations on these prefixes should be allowed
-                # This middleware only checks method in dispatch
+            if path == prefix or path.startswith(prefix + "/"):
                 return True
         return False
 

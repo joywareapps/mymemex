@@ -18,12 +18,14 @@ RUN useradd -m -u 1000 mymemex
 # Set working directory
 WORKDIR /app
 
-# Install Python dependencies
-COPY pyproject.toml .
-RUN pip install --no-cache-dir -e ".[dev,ocr]"
+# Install system dependencies
+# (Already done above)
 
-# Copy application code
+# Copy everything first
 COPY --chown=mymemex:mymemex . .
+
+# Install package and dependencies
+RUN pip install --no-cache-dir ".[dev,ocr]"
 
 # Create data directory
 RUN mkdir -p /var/lib/mymemex && chown mymemex:mymemex /var/lib/mymemex
