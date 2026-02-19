@@ -70,28 +70,18 @@ Bugs, issues, and improvements to address.
     - Future: user auth tables, sessions, etc.
   - **Blocker:** Schema must be stable before writing migrations
 
-- [ ] **Feature: Demo version of MyMemex**
-  - **Purpose:** Let users explore without self-hosting
-  - **URL:** demo.mymemex.app or demo.mymemex.io
+- [x] **Feature: Demo version of MyMemex** ✅ DEPLOYED
+  - **Live at:** https://mymemex.app/ui/
+  - **Implementation:** `DEMO_MODE=true` environment variable
+  - **Done:**
+    - Demo middleware blocks write operations
+    - Upload button hidden, demo banner shown
+    - Read-only admin panel
+    - Deployed to mymemex.app
   
-  **Core Implementation:**
-  - Branch: `demo` with feature flags
-  - Auto-login demo user (no auth required)
-  - Read-only mode: no uploads, no deletes, no modifications
-  - Pre-populated sample documents (see below)
-  - Periodic reset (hourly/daily) to restore clean state
-  
-  **Sample Documents (synthetic data):**
-  - 5-10 invoices (various vendors, amounts, dates)
-  - 3-5 tax documents (showing extraction capabilities)
-  - 2-3 contracts/agreements (showing search)
-  - 5-10 receipts (showing categorization)
-  - Personal notes/photos (showing multi-format)
-  
-  **UX Enhancements:**
-  - Banner: "You're exploring the demo. Get your own free instance →"
-  - Guided tour with tooltips:
-    - "Try searching: 'What did I spend on groceries?'"
+  **Remaining:**
+  - [ ] Seed synthetic documents for demo data
+  - [ ] Set up periodic demo reset (cron job)
     - "See how AI extracted the tax amounts"
     - "Filter by category: Receipts"
   - Pre-populated search examples (clickable chips)
