@@ -351,6 +351,10 @@ async def task_worker(
     """Background worker that processes tasks from the queue."""
     log.info("Task worker started", worker_id=worker_id)
 
+    # If we are in "drain" mode, wait a tiny bit for any pending commits
+    if exit_when_empty:
+        await asyncio.sleep(0.5)
+
     while True:
         try:
             async with get_session() as session:

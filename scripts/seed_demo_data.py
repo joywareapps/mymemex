@@ -210,9 +210,12 @@ async def seed_demo():
     events = EventManager()
     
     # We'll use the ingest pipeline directly
+    # Ensure each one is committed
     for pdf_path in docs_dir.glob("*.pdf"):
         print(f"  Ingesting {pdf_path.name}...")
         await handle_new_file(str(pdf_path.absolute()), config, events)
+        # Force a tiny sleep to allow SQLite to settle if needed
+        await asyncio.sleep(0.1)
         
     print("⚙️ Processing background tasks (this may take a while)...")
     from mymemex.processing.pipeline import task_worker
