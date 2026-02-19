@@ -215,10 +215,13 @@ async def seed_demo():
         print(f"  Ingesting {pdf_path.name}...")
         await handle_new_file(str(pdf_path.absolute()), config, events)
         
+    # Wait for SQLite to flush all commits
+    await asyncio.sleep(1.0)
+
     async with get_session() as session:
-        from sqlalchemy import select, func
-        from mymemex.storage.models import Task
-        count = await session.scalar(select(func.count(Task.id)).where(Task.status == "pending"))
+        from sqlalchemy import text
+        result = await session.execute(text("SELECT COUNT(*) FROM tasks WHERE status = 'pending'"))
+        count = result.scalar()
         print(f"📊 Enqueued {count} pending tasks.")
 
     print("⚙️ Processing background tasks (this may take a while)...")

@@ -107,6 +107,7 @@ async def handle_new_file(
 
         # New document
         mime_type = get_mime_type(path)
+        log.info("Creating new document", path=str(path), hash=file_hash.content_hash[:8])
         try:
             doc = await repo.create(
                 content_hash=file_hash.content_hash,
@@ -120,6 +121,7 @@ async def handle_new_file(
         except IntegrityError:
             # Race condition: another coroutine inserted the same hash concurrently
             # (e.g. watcher + upload both processing the same file)
+            log.warning("IntegrityError during document creation (duplicate race)", path=str(path))
             await session.rollback()
             existing = await repo.find_by_content_hash(file_hash.content_hash)
             if existing:
@@ -127,6 +129,7 @@ async def handle_new_file(
                 await repo.add_file_path(existing.id, str(path))
             return
 
+        log.info("Enqueuing INGEST task", doc_id=doc.id, path=str(path))
         await queue.enqueue(
             task_type=TaskType.INGEST,
             payload={"document_id": doc.id, "path": str(path)},
