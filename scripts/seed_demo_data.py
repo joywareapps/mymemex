@@ -184,6 +184,18 @@ async def seed_demo():
     
     await init_database(config.database.path)
     
+    # Wipe existing data for a clean demo state
+    async with get_session() as session:
+        from sqlalchemy import text
+        print("🧹 Wiping existing demo data...")
+        await session.execute(text("DELETE FROM document_tags"))
+        await session.execute(text("DELETE FROM chunks"))
+        await session.execute(text("DELETE FROM file_paths"))
+        await session.execute(text("DELETE FROM document_fields"))
+        await session.execute(text("DELETE FROM documents"))
+        await session.execute(text("DELETE FROM tasks"))
+        await session.commit()
+
     # Use the data volume path for documents so they persist and are accessible
     docs_dir = Path("/var/lib/mymemex/demo_docs")
     if docs_dir.exists():
@@ -235,7 +247,9 @@ async def seed_demo():
         print(f"❌ Task processing failed: {e}")
 
     async with get_session() as session:
-        count = await session.scalar(select(func.count(Task.id)).where(Task.status == "pending"))
+        from sqlalchemy import text
+        result = await session.execute(text("SELECT COUNT(*) FROM tasks WHERE status = 'pending'"))
+        count = result.scalar()
         if count > 0:
             print(f"⚠️ Warning: {count} tasks still pending after processing.")
         else:

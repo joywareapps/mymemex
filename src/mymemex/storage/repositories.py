@@ -88,7 +88,6 @@ class DocumentRepository:
             path=original_path,
             is_primary=True,
         )
-        self.session.add(doc)
         await self.session.flush()
 
         fp.document_id = doc.id

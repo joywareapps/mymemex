@@ -118,10 +118,9 @@ async def handle_new_file(
                 mime_type=mime_type,
                 file_modified_at=path.stat().st_mtime,
             )
-        except IntegrityError:
-            # Race condition: another coroutine inserted the same hash concurrently
-            # (e.g. watcher + upload both processing the same file)
-            log.warning("IntegrityError during document creation (duplicate race)", path=str(path))
+        except IntegrityError as ie:
+            # Race condition or path conflict
+            log.warning("IntegrityError during document creation", path=str(path), error=str(ie))
             await session.rollback()
             existing = await repo.find_by_content_hash(file_hash.content_hash)
             if existing:
