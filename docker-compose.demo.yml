@@ -7,7 +7,13 @@ services:
     environment:
       - DEMO_MODE=true
       - MYMEMEX_DATABASE__PATH=/app/data/demo.db
-      - MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=false
+      - MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=${MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED:-false}
+      - MYMEMEX_LLM__PROVIDER=${MYMEMEX_LLM__PROVIDER:-none}
+      - MYMEMEX_LLM__API_BASE=${MYMEMEX_LLM__API_BASE:-http://localhost:11434}
+      - MYMEMEX_LLM__MODEL=${MYMEMEX_LLM__MODEL:-}
+    env_file:
+      - path: .env
+        required: false
     volumes:
       - demo_data:/app/data
     restart: unless-stopped

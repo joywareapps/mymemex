@@ -33,9 +33,15 @@ docker build -t mymemex:demo .
 
 # 5. Seed demo data
 echo "🌱 Seeding demo documents..."
+ENV_FILE_ARG=""
+if [ -f ".env" ]; then
+    ENV_FILE_ARG="--env-file .env"
+fi
+
 # We run a one-off container to generate the DB and documents
 docker run --rm \
   --user root \
+  $ENV_FILE_ARG \
   -v "$(pwd)/config:/app/config:ro" \
   -v "$(pwd)/data:/var/lib/mymemex" \
   -e MYMEMEX_DATABASE__PATH=/var/lib/mymemex/mymemex.db \
@@ -49,6 +55,7 @@ docker run -d \
   --name mymemex \
   -p 8001:8000 \
   --user root \
+  $ENV_FILE_ARG \
   -e DEMO_MODE=true \
   -v "$(pwd)/config:/app/config:ro" \
   -v "$(pwd)/data:/var/lib/mymemex" \
