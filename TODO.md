@@ -50,6 +50,15 @@ Bugs, issues, and improvements to address.
 
 ---
 
+## Documentation
+
+- [ ] **Keep SPECIFICATION.md updated**
+  - When adding new features, update `docs/SPECIFICATION.md`
+  - Keep version and "Last Updated" current
+  - Ensures new developers/AIs can understand the full system
+
+---
+
 ## Priority: Medium
 
 - [ ] **Alembic Migrations for Production**
