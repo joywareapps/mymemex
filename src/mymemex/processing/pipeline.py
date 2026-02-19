@@ -366,7 +366,13 @@ async def task_worker(
                 try:
                     await _process_task(task, payload, config, queue, events)
                 except Exception as e:
-                    log.exception("Task processing error", task_id=task.id)
+                    log.error(
+                        "Task failed with exception",
+                        task_id=task.id,
+                        type=task.task_type,
+                        error=str(e),
+                        exc_info=True
+                    )
                     await queue.fail(task, str(e))
 
         except asyncio.CancelledError:

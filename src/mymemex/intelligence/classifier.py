@@ -124,8 +124,8 @@ class DocumentClassifier:
             return result
 
         except Exception as e:
-            log.error("Classification failed", error=str(e))
-            return None
+            log.error("Classification failed", error=str(e), exc_info=True)
+            raise
 
     def filter_tags_by_confidence(
         self,
