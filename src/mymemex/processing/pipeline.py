@@ -353,8 +353,9 @@ async def task_worker(
 
     # If we are in "drain" mode, wait a tiny bit for any pending commits
     if exit_when_empty:
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(1.0)
 
+    empty_checks = 0
     while True:
         try:
             async with get_session() as session:
@@ -363,10 +364,19 @@ async def task_worker(
                 tasks = await queue.dequeue(limit=1)
                 if not tasks:
                     if exit_when_empty:
+                        # Re-check a few times with delay to ensure no new tasks 
+                        # were added by the tasks we just finished
+                        if empty_checks < 3:
+                            empty_checks += 1
+                            await asyncio.sleep(1.0)
+                            continue
                         log.info("Queue empty, worker exiting", worker_id=worker_id)
                         break
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(1.0)
                     continue
+                
+                # Reset check counter when we find work
+                empty_checks = 0
 
                 task = tasks[0]
                 payload = json.loads(task.payload) if isinstance(task.payload, str) else task.payload
