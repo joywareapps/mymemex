@@ -16,6 +16,7 @@ echo "📥 Fetching latest code from demo-version branch..."
 git fetch origin
 git checkout demo-version
 git pull origin demo-version
+chmod +x scripts/deploy-demo.sh
 
 # 3. Ensure config exists
 if [ ! -f "config/config.yaml" ]; then
@@ -42,18 +43,18 @@ docker run --rm \
   python3 scripts/seed_demo_data.py
 
 # 6. Start container in demo mode
-echo "🚢 Starting container in demo mode..."
+echo "🚢 Starting container in demo mode on port 8001..."
 # Using --user root to handle permissions on the data volume
-docker run -d 
-  --name mymemex 
-  -p 8000:8000 
-  --user root 
-  -e DEMO_MODE=true 
-  -v "$(pwd)/config:/app/config:ro" 
-  -v "$(pwd)/data:/var/lib/mymemex" 
-  --restart unless-stopped 
+docker run -d \
+  --name mymemex \
+  -p 8001:8000 \
+  --user root \
+  -e DEMO_MODE=true \
+  -v "$(pwd)/config:/app/config:ro" \
+  -v "$(pwd)/data:/var/lib/mymemex" \
+  --restart unless-stopped \
   mymemex:demo
 
 echo "✅ Deployment complete!"
-echo "📍 Access at: http://localhost:8000/ui/"
+echo "📍 Access at: http://localhost:8001/ui/"
 echo "📄 Logs: docker logs -f mymemex"
