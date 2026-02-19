@@ -97,7 +97,7 @@ class DocumentClassifier:
             return None
 
         if not self.config.llm.provider or self.config.llm.provider == "none":
-            log.debug("No LLM provider configured")
+            log.info("No LLM provider configured, skipping classification")
             return None
 
         try:

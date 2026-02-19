@@ -188,6 +188,16 @@ class AnthropicClient(LLMClient):
             raise ValueError(f"Invalid JSON from Anthropic: {e}")
 
 
+class NoneClient(LLMClient):
+    """Client that does nothing (for 'none' provider)."""
+
+    async def generate(self, prompt: str, system: str | None = None, json_mode: bool = False) -> str:
+        return ""
+
+    async def generate_json(self, prompt: str, system: str | None = None) -> dict[str, Any]:
+        return {}
+
+
 def create_llm_client(config: LLMConfig) -> LLMClient:
     """Create LLM client based on config. Reads API keys from config or environment."""
     if config.provider == "ollama":
@@ -202,5 +212,7 @@ def create_llm_client(config: LLMConfig) -> LLMClient:
         if not api_key:
             raise ValueError("Anthropic API key required (set llm.api_key or ANTHROPIC_API_KEY env var)")
         return AnthropicClient(config, api_key)
+    elif config.provider == "none" or not config.provider:
+        return NoneClient()
     else:
         raise ValueError(f"Unknown LLM provider: {config.provider}")
