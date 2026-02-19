@@ -52,6 +52,9 @@ dmypy.json
 *.db
 *.sqlite
 *.sqlite3
+*.db-*
+*.sqlite-*
+
 
 # ChromaDB
 chromadb/
@@ -81,3 +84,8 @@ temp/
 
 # Alembic (keep versions)
 alembic/versions/*.pyc
+
+# Demo artifacts
+demo_docs/
+data/demo_seed.db
+data/demo.db
