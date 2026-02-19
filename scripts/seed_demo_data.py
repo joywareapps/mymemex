@@ -181,6 +181,8 @@ async def seed_demo():
     
     config = load_config()
     print(f"Using database: {config.database.path}")
+    print(f"LLM Provider: {config.llm.provider}")
+    print(f"LLM API Base: {config.llm.api_base}")
     
     await init_database(config.database.path)
     
