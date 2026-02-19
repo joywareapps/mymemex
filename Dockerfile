@@ -25,7 +25,7 @@ WORKDIR /app
 COPY --chown=mymemex:mymemex . .
 
 # Install package and dependencies
-RUN pip install --no-cache-dir ".[dev,ocr]"
+RUN pip install --no-cache-dir ".[dev,ocr,demo]"
 
 # Create data directory
 RUN mkdir -p /var/lib/mymemex && chown mymemex:mymemex /var/lib/mymemex

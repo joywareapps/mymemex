@@ -180,15 +180,15 @@ async def seed_demo():
     print("🌱 Seeding demo data...")
     
     config = load_config()
-    # Ensure we use a specific demo DB if needed, but here we assume the env/config is set
     print(f"Using database: {config.database.path}")
     
     await init_database(config.database.path)
     
-    docs_dir = Path("demo_docs")
+    # Use the data volume path for documents so they persist and are accessible
+    docs_dir = Path("/var/lib/mymemex/demo_docs")
     if docs_dir.exists():
         shutil.rmtree(docs_dir)
-    docs_dir.mkdir()
+    docs_dir.mkdir(parents=True, exist_ok=True)
     
     print("Generating synthetic PDFs...")
     # Invoices
