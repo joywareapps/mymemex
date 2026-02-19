@@ -1,6 +1,6 @@
-# Packaging Librarian as a macOS Apple Silicon App
+# Packaging MyMemex as a macOS Apple Silicon App
 
-Analysis of obstacles, licensing, and architecture for distributing Librarian as a native macOS `.app` with local inference on Apple Silicon.
+Analysis of obstacles, licensing, and architecture for distributing MyMemex as a native macOS `.app` with local inference on Apple Silicon.
 
 ---
 
@@ -114,7 +114,7 @@ Yes. The app ships with **no models**. On first launch, a setup wizard lets the 
 - An **embedding model** (small, ~50-100MB)
 - A **classification/extraction LLM** (3B-7B, ~2-4GB quantized)
 
-Models download from HuggingFace into `~/Library/Application Support/Librarian/models/` using the `huggingface_hub` Python library (Apache-2.0).
+Models download from HuggingFace into `~/Library/Application Support/MyMemex/models/` using the `huggingface_hub` Python library (Apache-2.0).
 
 ### Model Format
 
@@ -152,10 +152,10 @@ Models download from HuggingFace into `~/Library/Application Support/Librarian/m
 ### App Bundle
 
 ```
-Librarian.app/
+MyMemex.app/
   Contents/
     MacOS/
-      librarian          # PyInstaller/py2app bundle
+      mymemex          # PyInstaller/py2app bundle
     Resources/
       tesseract          # Pre-built arm64 binary
       tessdata/          # Language models (eng, deu)
@@ -167,8 +167,8 @@ Librarian.app/
 ### User Data
 
 ```
-~/Library/Application Support/Librarian/
-  librarian.db           # SQLite database
+~/Library/Application Support/MyMemex/
+  mymemex.db           # SQLite database
   chromadb/              # Vector store
   models/                # Downloaded from HuggingFace
     nomic-embed-text.gguf
@@ -181,7 +181,7 @@ Librarian.app/
 
 ### First Launch
 
-1. User drags `Librarian.app` to `/Applications`, double-clicks
+1. User drags `MyMemex.app` to `/Applications`, double-clicks
 2. **Setup wizard** (3 screens):
    - "Choose your documents folder" — native macOS folder picker, defaults to `~/Documents`
    - "Choose AI model" — list of recommended models with size/speed tradeoffs, "Download" button. Option to skip (AI features disabled, search still works)
@@ -194,7 +194,7 @@ Librarian.app/
 - Clicking menu bar icon opens `http://localhost:8000/ui/` in default browser
 - Drop PDFs onto the Dock icon or menu bar icon to ingest
 - **macOS notifications** when documents finish processing ("Invoice from Finanzamt classified and indexed")
-- Documents folder is watched automatically — drop a PDF there, it appears in Librarian
+- Documents folder is watched automatically — drop a PDF there, it appears in MyMemex
 
 ### What It Is NOT
 
@@ -220,12 +220,12 @@ It's not a fully native AppKit/SwiftUI app — the UI is still the web UI in a b
 
 | Feature | Effort | Notes |
 |---|---|---|
-| Global hotkey (`Cmd+Shift+L`) | 1 day | Open Librarian search from anywhere |
+| Global hotkey (`Cmd+Shift+L`) | 1 day | Open MyMemex search from anywhere |
 | Spotlight integration | ~1 week | Register as Spotlight importer, document content appears in system search |
-| Quick Look plugin | 2-3 days | Press Space on a PDF in Finder to preview Librarian metadata |
-| Share Extension | 2-3 days | "Send to Librarian" in the macOS share sheet |
+| Quick Look plugin | 2-3 days | Press Space on a PDF in Finder to preview MyMemex metadata |
+| Share Extension | 2-3 days | "Send to MyMemex" in the macOS share sheet |
 | Auto-start on login | 0.5 days | LaunchAgent plist |
-| File provider extension | ~2 weeks | Librarian documents as a virtual folder in Finder |
+| File provider extension | ~2 weeks | MyMemex documents as a virtual folder in Finder |
 
 ### Skip (not worth the effort)
 
@@ -303,4 +303,4 @@ Before packaging as a commercial macOS app:
 3. **Add local inference backend** — new `MLXClient` or `LlamaCppClient` in `intelligence/llm_client.py`
 4. **Add model manager** — download/select models from HuggingFace
 5. **Add macOS app shell** — Tauri or Swift wrapper around the existing web UI
-6. **macOS-specific paths** — use `~/Library/Application Support/Librarian/` instead of `~/.local/share/librarian/`
+6. **macOS-specific paths** — use `~/Library/Application Support/MyMemex/` instead of `~/.local/share/mymemex/`

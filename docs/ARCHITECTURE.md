@@ -218,7 +218,7 @@ Implement **MCP-first** approach as the primary conversational interface.
 
 ```python
 # MCP server integrated into main process
-# Uses service layer (src/librarian/services/) — no duplicate logic
+# Uses service layer (src/mymemex/services/) — no duplicate logic
 # Two transport modes:
 # - stdio: Local integration (Claude Desktop)
 # - HTTP/SSE: Remote access (OpenClaw, web apps)
@@ -273,9 +273,9 @@ All three interfaces (REST, CLI, MCP) use the same service layer, ensuring consi
 ### Context
 
 The current codebase (M1-M6) has business logic scattered across:
-- **API route handlers** (`src/librarian/routers/`) — validation, database queries, response formatting mixed together
-- **Pipeline stages** (`src/librarian/pipeline/`) — ingestion logic tightly coupled to the pipeline runner
-- **Repositories** (`src/librarian/repositories/`) — some business logic leaked into data-access code
+- **API route handlers** (`src/mymemex/routers/`) — validation, database queries, response formatting mixed together
+- **Pipeline stages** (`src/mymemex/pipeline/`) — ingestion logic tightly coupled to the pipeline runner
+- **Repositories** (`src/mymemex/repositories/`) — some business logic leaked into data-access code
 
 M7 (MCP Server) will need to call the same business logic as the REST API. Without a service layer, we would either:
 1. Duplicate logic between REST handlers and MCP tool handlers (maintenance nightmare)
@@ -283,7 +283,7 @@ M7 (MCP Server) will need to call the same business logic as the REST API. Witho
 
 ### Decision
 
-Extract a **service layer** (`src/librarian/services/`) as an explicit architectural boundary between interface handlers (REST, MCP, CLI) and data access (repositories, ChromaDB client).
+Extract a **service layer** (`src/mymemex/services/`) as an explicit architectural boundary between interface handlers (REST, MCP, CLI) and data access (repositories, ChromaDB client).
 
 ### Architecture
 
@@ -361,7 +361,7 @@ async def search_documents(query: str, mode: str = "hybrid", limit: int = 10):
 
 ### Migration Strategy
 
-1. Create `src/librarian/services/__init__.py`
+1. Create `src/mymemex/services/__init__.py`
 2. Extract `SearchService` first (most complex, most value)
 3. Extract `DocumentService` and `TagService`
 4. Extract `IngestService` and `StatsService`
@@ -394,7 +394,7 @@ Implement **defense-in-depth** security for MCP operations:
 
 ### Rationale
 
-- Librarian manages sensitive personal documents — security must be baked in, not bolted on
+- MyMemex manages sensitive personal documents — security must be baked in, not bolted on
 - Path boundary validation prevents the most dangerous attack vector (filesystem access)
 - Localhost binding eliminates network attack surface by default
 - Rate limiting prevents abuse of the HTTP transport
@@ -431,7 +431,7 @@ mcp:
 
 ### Context
 
-Users need to query aggregated data across documents — e.g., "How much tax did I pay from 2015-2025?" or "What's my total insurance premium across all policies?" Librarian currently extracts text and enables keyword/semantic search, but cannot:
+Users need to query aggregated data across documents — e.g., "How much tax did I pay from 2015-2025?" or "What's my total insurance premium across all policies?" MyMemex currently extracts text and enables keyword/semantic search, but cannot:
 
 1. Identify document types (tax return, invoice, receipt)
 2. Extract structured entities (amounts, dates, organizations)

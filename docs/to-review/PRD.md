@@ -1,15 +1,15 @@
-# Project Librarian: Product Requirements Document (PRD)
+# Project MyMemex: Product Requirements Document (PRD)
 
 **Version:** 1.1
 **Status:** M1-M8 Complete | Production Ready
-**Codename:** Librarian
+**Codename:** MyMemex
 **Last Updated:** 2026-02-17
 
 ---
 
 ## 1. Executive Summary
 
-Librarian is a sovereign document intelligence platform designed to transform unstructured personal archives (PDFs, scans, images) into a searchable, agentic database. Unlike cloud-first solutions, Librarian prioritizes privacy by allowing users to toggle between cloud-based high-fidelity models and local, air-gapped LLMs/OCR engines.
+MyMemex is a sovereign document intelligence platform designed to transform unstructured personal archives (PDFs, scans, images) into a searchable, agentic database. Unlike cloud-first solutions, MyMemex prioritizes privacy by allowing users to toggle between cloud-based high-fidelity models and local, air-gapped LLMs/OCR engines.
 
 **Current State:**
 - ✅ Core platform complete (M1-M8)
@@ -116,10 +116,10 @@ FastAPI endpoints at `http://localhost:8000/api/v1/`:
 ### 3.4 CLI
 
 Command-line interface:
-- `librarian init` — Initialize configuration
-- `librarian serve` — Start API server
-- `librarian config` — Manage configuration
-- `librarian mcp serve` — Start MCP server
+- `mymemex init` — Initialize configuration
+- `mymemex serve` — Start API server
+- `mymemex config` — Manage configuration
+- `mymemex mcp serve` — Start MCP server
 
 ---
 
@@ -233,7 +233,7 @@ Command-line interface:
 | **M6** | Vector embeddings + semantic search (Ollama + ChromaDB) | ✅ Complete | 2026-02 |
 | **M6.5** | Service layer extraction | ✅ Complete | 2026-02-17 |
 | **M7** | MCP Server (8 tools, 2 resources, 2 prompts) | ✅ Complete | 2026-02-17 |
-| **M7.5** | OpenClaw skill for Librarian | ✅ Complete | 2026-02-17 |
+| **M7.5** | OpenClaw skill for MyMemex | ✅ Complete | 2026-02-17 |
 | **M8** | Web UI (document browser, search, tags, upload) | ✅ Complete | 2026-02-17 |
 | **M9** | Auto-tagging with LLM | 🔜 Planned | - |
 | **M9.5** | Structured extraction & aggregation | 📋 Planned | - |
@@ -280,8 +280,8 @@ See [TODO.md](../TODO.md) for current issues and improvements:
 pip install -e ".[dev,ocr,ai]"
 
 # Initialize
-librarian init
-nano ~/.config/librarian/config.yaml
+mymemex init
+nano ~/.config/mymemex/config.yaml
 
 # Configure Ollama endpoint
 llm:
@@ -290,7 +290,7 @@ llm:
   api_base: http://localhost:11434
 
 # Start
-librarian serve
+mymemex serve
 
 # Access
 open http://localhost:8000/ui/

@@ -1,4 +1,4 @@
-# Librarian Multi-User Specification
+# MyMemex Multi-User Specification
 
 **Version:** 1.1
 **Last Updated:** 2026-02-17
@@ -8,8 +8,8 @@
 
 ## Overview
 
-Librarian M10 adds multi-user support, enabling a shared library where family members or small teams can:
-- Share a single Librarian instance
+MyMemex M10 adds multi-user support, enabling a shared library where family members or small teams can:
+- Share a single MyMemex instance
 - Track document ownership (who uploaded what)
 - Query "my documents" vs "all documents"
 
@@ -144,8 +144,8 @@ multi_user:
 ### From Single-User to Multi-User
 
 1. Run migration: `alembic upgrade +1` (creates users table, adds `uploaded_by_user_id` column)
-2. Create default user: `librarian users create --default "Goran"`
-3. Assign existing docs: `librarian users assign-all --user 1`
+2. Create default user: `mymemex users create --default "Goran"`
+3. Assign existing docs: `mymemex users assign-all --user 1`
 4. Enable in config: `multi_user.enabled: true`
 
 ### Backward Compatibility

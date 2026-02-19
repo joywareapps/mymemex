@@ -1,6 +1,6 @@
 # Discord Server Setup Guide
 
-Librarian Community Discord: [discord.gg/YOUR_INVITE_CODE](https://discord.gg/YOUR_INVITE_CODE)
+MyMemex Community Discord: [discord.gg/YOUR_INVITE_CODE](https://discord.gg/YOUR_INVITE_CODE)
 
 ## Channel Structure
 
@@ -78,15 +78,15 @@ Librarian Community Discord: [discord.gg/YOUR_INVITE_CODE](https://discord.gg/YO
 ## Welcome Message Template
 
 ```
-👋 Welcome to the Librarian Community!
+👋 Welcome to the MyMemex Community!
 
-Librarian is an open-source document management system with 
+MyMemex is an open-source document management system with 
 AI-powered search and extraction.
 
 📌 Quick Links:
-• Website: https://librarian.joywareapps.com
-• GitHub: https://github.com/joywareapps/librarian
-• Docs: https://librarian.joywareapps.com/docs
+• Website: https://mymemex.joywareapps.com
+• GitHub: https://github.com/joywareapps/mymemex
+• Docs: https://mymemex.joywareapps.com/docs
 
 🎯 Need Help?
 • #installation-help — Setup issues

@@ -1,4 +1,4 @@
-# Monetization Strategy Analysis for Librarian
+# Monetization Strategy Analysis for MyMemex
 
 **Date:** 2026-02-15
 **Status:** Research & Analysis
@@ -10,7 +10,7 @@
 **Primary Goal:** User adoption and privacy sovereignty
 **Secondary Goal:** Sustainable revenue
 
-The privacy-first nature of Librarian creates unique monetization opportunities that align user and business interests.
+The privacy-first nature of MyMemex creates unique monetization opportunities that align user and business interests.
 
 ---
 
@@ -161,14 +161,14 @@ The privacy-first nature of Librarian creates unique monetization opportunities 
 - MIT license
 
 ### Tier 2: Pro ($15/month or $149/year)
-- Librarian Cloud (managed hosting)
+- MyMemex Cloud (managed hosting)
 - 10,000 documents included
 - Automatic updates
 - Email support
 - Early access to new features
 
 ### Tier 3: Business ($49/month or $499/year)
-- Librarian Cloud
+- MyMemex Cloud
 - 50,000 documents
 - Multi-user (up to 5)
 - API access
@@ -254,7 +254,7 @@ These features align perfectly with privacy-conscious users and are worth paying
 | DEVONthink | $99 one-time | Mac only, no cloud |
 | Evernote | $15/month | Privacy controversies |
 
-**Librarian's Edge:** Privacy-first + semantic search + self-host option
+**MyMemex's Edge:** Privacy-first + semantic search + self-host option
 
 ---
 
