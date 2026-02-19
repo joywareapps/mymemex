@@ -37,6 +37,17 @@
     }
 }" @click.outside="adminOpen = false">
 
+{% if demo_mode %}
+<div class="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 text-center">
+  <span class="text-amber-600 dark:text-amber-400 text-sm font-medium">
+    ⚠️ Demo mode — You're exploring a read-only instance.
+    <a href="https://github.com/joywareapps/mymemex" class="underline hover:text-amber-700 dark:hover:text-amber-300 ml-1">
+      Get your own instance →
+    </a>
+  </span>
+</div>
+{% endif %}
+
 <!-- Navigation -->
 <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,7 +57,9 @@
                 <div class="hidden sm:flex space-x-4 items-center">
                     <a href="/ui/" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">Documents</a>
                     <a href="/ui/tags" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">Tags</a>
+                    {% if not demo_mode %}
                     <a href="/ui/upload" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">Upload</a>
+                    {% endif %}
                     <!-- Admin dropdown -->
                     <div class="relative" x-data>
                         <button @click="adminOpen = !adminOpen"
@@ -58,11 +71,15 @@
                         </button>
                         <div x-show="adminOpen" x-transition
                              class="absolute left-0 mt-1 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50">
+                            {% if not demo_mode %}
                             <a href="/ui/admin/settings" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Settings</a>
                             <a href="/ui/admin/watch-folders" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Watch Folders</a>
                             <a href="/ui/admin/backup" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Backup</a>
                             <a href="/ui/admin/mcp" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">MCP</a>
                             <a href="/ui/admin/users" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Users</a>
+                            {% else %}
+                            <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700">Demo (Read-only)</div>
+                            {% endif %}
                             <a href="/ui/admin/queue" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Queue</a>
                             <a href="/ui/admin/logs" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Logs</a>
                         </div>

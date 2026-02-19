@@ -13,8 +13,11 @@ from ..services.search import SearchService
 from ..services.tag import TagService
 from ..storage.database import get_session
 
+import os
+
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+templates.env.globals["demo_mode"] = os.environ.get("DEMO_MODE") == "true"
 
 
 @router.get("/")
@@ -137,6 +140,8 @@ async def tag_browser(request: Request):
 @router.get("/upload")
 async def upload_page(request: Request):
     """Upload interface page."""
+    if os.environ.get("DEMO_MODE") == "true":
+        raise HTTPException(status_code=403, detail="Uploads are disabled in demo mode")
     return templates.TemplateResponse(request, "upload.html")
 
 

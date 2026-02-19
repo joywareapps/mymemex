@@ -28,6 +28,10 @@ async def lifespan(server: FastMCP[MyMemexContext]):
 
 def create_mcp_server(config: AppConfig | None = None) -> FastMCP[MyMemexContext]:
     """Create and configure the MCP server."""
+    import os
+    if os.environ.get("DEMO_MODE") == "true":
+        raise RuntimeError("MCP server is disabled in demo mode")
+
     if config is None:
         config = load_config()
 

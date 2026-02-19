@@ -42,7 +42,10 @@
         <div class="flex items-center gap-3">
             <span x-show="restartNeeded" class="text-yellow-600 text-sm font-medium">⚠ Restart required</span>
             <span x-show="saved" class="text-green-600 text-sm">Saved!</span>
-            <button @click="save()" :disabled="saving"
+            {% if demo_mode %}
+            <span class="text-amber-600 text-sm font-medium">Demo mode: Read-only</span>
+            {% endif %}
+            <button @click="save()" :disabled="saving || {{ 'true' if demo_mode else 'false' }}"
                     class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm transition-colors">
                 <span x-show="!saving">Save</span>
                 <span x-show="saving">Saving…</span>

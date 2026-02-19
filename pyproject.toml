@@ -66,6 +66,10 @@ ai = [
 mcp = [
     "mcp>=1.26",
 ]
+demo = [
+    "faker>=33.0",
+    "fpdf2>=2.8",
+]
 
 [project.scripts]
 mymemex = "mymemex.__main__:main"

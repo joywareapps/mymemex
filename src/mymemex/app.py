@@ -156,6 +156,10 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     # Same-origin restriction for admin endpoints
     app.add_middleware(SameOriginAdminMiddleware)
 
+    # Demo mode restriction
+    from .middleware.demo_mode import DemoModeMiddleware
+    app.add_middleware(DemoModeMiddleware)
+
     # Include API router
     from .api.router import api_router
 

@@ -1,0 +1,16 @@
+services:
+  mymemex-demo:
+    image: ghcr.io/joywareapps/mymemex:demo
+    container_name: mymemex-demo
+    ports:
+      - "8000:8000"
+    environment:
+      - DEMO_MODE=true
+      - MYMEMEX_DATABASE__PATH=/app/data/demo.db
+      - MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=false
+    volumes:
+      - demo_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  demo_data:
