@@ -70,11 +70,10 @@ class DocumentClassifier:
 
     def _create_client(self) -> LLMClient:
         """Create LLM client from config."""
-        llm_config = LLMConfig(
-            provider=self.config.llm.provider,
-            model=self.classification_config.model or self.config.llm.model,
-            api_base=self.config.llm.api_base,
-        )
+        llm_config = self.config.llm
+        if self.classification_config.model:
+            # Create a copy with the specific model override
+            llm_config = llm_config.model_copy(update={"model": self.classification_config.model})
         return create_llm_client(llm_config)
 
     async def classify(

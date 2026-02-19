@@ -200,6 +200,7 @@ class NoneClient(LLMClient):
 
 def create_llm_client(config: LLMConfig) -> LLMClient:
     """Create LLM client based on config. Reads API keys from config or environment."""
+    log.debug("Creating LLM client", provider=config.provider, model=config.model, base=config.api_base)
     if config.provider == "ollama":
         return OllamaClient(config)
     elif config.provider == "openai":
