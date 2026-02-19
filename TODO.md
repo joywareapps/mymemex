@@ -70,7 +70,7 @@ Bugs, issues, and improvements to address.
     - Future: user auth tables, sessions, etc.
   - **Blocker:** Schema must be stable before writing migrations
 
-- [x] **Feature: Demo version of MyMemex** ✅ DEPLOYED
+- [x] **Feature: Demo version of MyMemex** ✅ COMPLETE
   - **Live at:** https://mymemex.app/ui/
   - **Implementation:** `DEMO_MODE=true` environment variable
   - **Done:**
@@ -78,9 +78,9 @@ Bugs, issues, and improvements to address.
     - Upload button hidden, demo banner shown
     - Read-only admin panel
     - Deployed to mymemex.app
+    - Synthetic documents seeded (invoices, receipts, tax docs, etc.)
   
   **Remaining:**
-  - [ ] Seed synthetic documents for demo data
   - [ ] Set up periodic demo reset (cron job)
     - "See how AI extracted the tax amounts"
     - "Filter by category: Receipts"
