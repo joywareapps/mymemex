@@ -52,6 +52,15 @@ Bugs, issues, and improvements to address.
 
 ## Priority: Medium
 
+- [ ] **Alembic Migrations for Production**
+  - **Current state:** No migrations; fresh DB on each reset during development
+  - **When:** Add alongside or after user management/auth milestone
+  - **Scope:**
+    - M11 tables: `users`, `watch_directories`, `mcp_tokens`, `backups`, `file_operations_log`, `system_log`
+    - M11 columns: `documents.current_path`, `documents.file_policy_applied`
+    - Future: user auth tables, sessions, etc.
+  - **Blocker:** Schema must be stable before writing migrations
+
 - [ ] **Feature: Demo version of MyMemex**
   - **Purpose:** Let users explore without self-hosting
   - **URL:** demo.mymemex.app or demo.mymemex.io

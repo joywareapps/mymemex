@@ -774,6 +774,19 @@ each insert batch. `file_operations_log` is not trimmed (it is an audit trail).
 No existing installations — all changes go directly into ORM models and are created via
 `Base.metadata.create_all()` on first run. No Alembic migrations are required at this stage.
 
+### 10.0 Alembic Migrations
+
+**Current approach:** No migrations during M11 development. All new tables and columns are created via `Base.metadata.create_all()` on startup. This allows rapid iteration with fresh database resets.
+
+**TODO (before production release):** Add Alembic migrations for:
+- M11 tables: `users`, `watch_directories`, `mcp_tokens`, `backups`, `file_operations_log`, `system_log`
+- M11 columns: `documents.current_path`, `documents.file_policy_applied`
+- Future user management tables (auth, sessions, etc.)
+
+Migrations should be added alongside or after the user management/auth milestone, once the schema is stable for production users.
+
+---
+
 ### 10.1 New Tables
 
 **users**
