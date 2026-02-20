@@ -9,10 +9,22 @@ from typing import Any
 
 import httpx
 import structlog
+import asyncio
 
 from ..config import LLMConfig
 
 log = structlog.get_logger()
+
+# Global semaphore for LLM concurrency control
+_llm_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_llm_semaphore(max_concurrent: int) -> asyncio.Semaphore:
+    """Get or create global LLM semaphore."""
+    global _llm_semaphore
+    if _llm_semaphore is None:
+        _llm_semaphore = asyncio.Semaphore(max_concurrent)
+    return _llm_semaphore
 
 
 class LLMClient(ABC):
@@ -36,6 +48,24 @@ class LLMClient(ABC):
     ) -> dict[str, Any]:
         """Generate JSON completion."""
         ...
+
+
+class ConcurrencyLimitedClient(LLMClient):
+    """Wrapper that limits concurrent calls to an LLM client."""
+
+    def __init__(self, inner: LLMClient, max_concurrent: int):
+        self.inner = inner
+        self.max_concurrent = max_concurrent
+
+    async def generate(self, prompt: str, system: str | None = None, json_mode: bool = False) -> str:
+        sem = _get_llm_semaphore(self.max_concurrent)
+        async with sem:
+            return await self.inner.generate(prompt, system, json_mode)
+
+    async def generate_json(self, prompt: str, system: str | None = None) -> dict[str, Any]:
+        sem = _get_llm_semaphore(self.max_concurrent)
+        async with sem:
+            return await self.inner.generate_json(prompt, system)
 
 
 class OllamaClient(LLMClient):
@@ -201,19 +231,24 @@ class NoneClient(LLMClient):
 def create_llm_client(config: LLMConfig) -> LLMClient:
     """Create LLM client based on config. Reads API keys from config or environment."""
     log.debug("Creating LLM client", provider=config.provider, model=config.model, base=config.api_base)
+    
+    client: LLMClient
     if config.provider == "ollama":
-        return OllamaClient(config)
+        client = OllamaClient(config)
     elif config.provider == "openai":
         api_key = config.api_key or os.environ.get("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OpenAI API key required (set llm.api_key or OPENAI_API_KEY env var)")
-        return OpenAIClient(config, api_key)
+        client = OpenAIClient(config, api_key)
     elif config.provider == "anthropic":
         api_key = config.api_key or os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("Anthropic API key required (set llm.api_key or ANTHROPIC_API_KEY env var)")
-        return AnthropicClient(config, api_key)
+        client = AnthropicClient(config, api_key)
     elif config.provider == "none" or not config.provider:
-        return NoneClient()
+        client = NoneClient()
     else:
         raise ValueError(f"Unknown LLM provider: {config.provider}")
+
+    # Wrap with concurrency limit
+    return ConcurrencyLimitedClient(client, config.max_concurrent)

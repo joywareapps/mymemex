@@ -62,6 +62,7 @@ class LLMConfig(BaseSettings):
     model: str = ""
     api_base: str = "http://localhost:11434"
     api_key: str | None = None  # For cloud providers (OpenAI, Anthropic)
+    max_concurrent: int = 2
 
 
 class AIConfig(BaseSettings):
@@ -214,6 +215,8 @@ class AppConfig(BaseSettings):
                 llm["api_base"] = os.environ.get("MYMEMEX_LLM__API_BASE")
             if os.environ.get("MYMEMEX_LLM__API_KEY"):
                 llm["api_key"] = os.environ.get("MYMEMEX_LLM__API_KEY")
+            if os.environ.get("MYMEMEX_LLM__MAX_CONCURRENT"):
+                llm["max_concurrent"] = int(os.environ.get("MYMEMEX_LLM__MAX_CONCURRENT"))
             data["llm"] = llm
 
         if os.environ.get("MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED"):
