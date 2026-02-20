@@ -181,15 +181,13 @@ async def seed_demo():
     
     config = load_config()
     print(f"Using database: {config.database.path}")
-    print(f"LLM Provider: {config.llm.provider}")
-    print(f"LLM API Base: {config.llm.api_base}")
     
     await init_database(config.database.path)
     
     # Wipe existing data for a clean demo state
     async with get_session() as session:
         from sqlalchemy import text
-        print("🧹 Wiping existing demo data...")
+        print("🧹 Wiping existing database records...")
         await session.execute(text("DELETE FROM document_tags"))
         await session.execute(text("DELETE FROM chunks"))
         await session.execute(text("DELETE FROM file_paths"))
@@ -200,62 +198,49 @@ async def seed_demo():
 
     # Use the data volume path for documents so they persist and are accessible
     docs_dir = Path("/var/lib/mymemex/demo_docs")
-    if docs_dir.exists():
-        shutil.rmtree(docs_dir)
-    docs_dir.mkdir(parents=True, exist_ok=True)
     
-    print("Generating synthetic PDFs...")
-    # Invoices
-    for i in range(15):
-        create_invoice(docs_dir / f"invoice_{i}.pdf")
-    # Receipts
-    for i in range(15):
-        create_receipt(docs_dir / f"receipt_{i}.pdf")
-    # Contracts
-    for i in range(10):
-        create_contract(docs_dir / f"contract_{i}.pdf")
-    # Tax docs
-    for i in range(8):
-        create_tax_doc(docs_dir / f"tax_{i}.pdf")
+    if docs_dir.exists() and any(docs_dir.glob("*.pdf")):
+        print(f"📁 Documents already exist in {docs_dir}, skipping generation.")
+    else:
+        print(f"📂 Creating demo documents in {docs_dir}...")
+        if docs_dir.exists():
+            shutil.rmtree(docs_dir)
+        docs_dir.mkdir(parents=True, exist_ok=True)
         
-    print(f"Generated {len(list(docs_dir.glob('*.pdf')))} documents.")
+        print("Generating synthetic PDFs...")
+        # Invoices
+        for i in range(15):
+            create_invoice(docs_dir / f"invoice_{i}.pdf")
+        # Receipts
+        for i in range(15):
+            create_receipt(docs_dir / f"receipt_{i}.pdf")
+        # Contracts
+        for i in range(10):
+            create_contract(docs_dir / f"contract_{i}.pdf")
+        # Tax docs
+        for i in range(8):
+            create_tax_doc(docs_dir / f"tax_{i}.pdf")
+            
+        print(f"Generated {len(list(docs_dir.glob('*.pdf')))} documents.")
     
     print("Ingesting documents into database...")
     events = EventManager()
     
     # We'll use the ingest pipeline directly
-    # Ensure each one is committed
     for pdf_path in docs_dir.glob("*.pdf"):
-        print(f"  Ingesting {pdf_path.name}...")
+        print(f"  Enqueuing {pdf_path.name}...")
         await handle_new_file(str(pdf_path.absolute()), config, events)
         
-    # Wait for SQLite to flush all commits
+    # Wait a bit for SQLite to settle
     await asyncio.sleep(1.0)
 
     async with get_session() as session:
         from sqlalchemy import text
         result = await session.execute(text("SELECT COUNT(*) FROM tasks WHERE status = 'pending'"))
         count = result.scalar()
-        print(f"📊 Enqueued {count} pending tasks.")
+        print(f"📊 Enqueued {count} pending tasks for the app to process.")
 
-    print("⚙️ Processing background tasks (this may take a while)...")
-    from mymemex.processing.pipeline import task_worker
-    # Run the worker until the queue is empty
-    try:
-        await asyncio.wait_for(task_worker(config, events=events, exit_when_empty=True), timeout=900)
-    except asyncio.TimeoutError:
-        print("🕒 Task processing timed out (900s), proceeding...")
-    except Exception as e:
-        print(f"❌ Task processing failed: {e}")
-
-    async with get_session() as session:
-        from sqlalchemy import text
-        result = await session.execute(text("SELECT COUNT(*) FROM tasks WHERE status = 'pending'"))
-        count = result.scalar()
-        if count > 0:
-            print(f"⚠️ Warning: {count} tasks still pending after processing.")
-        else:
-            print("✨ All tasks processed successfully.")
+    print("✅ Demo seeding complete. Documents will be processed by the app on startup.")
 
 if __name__ == "__main__":
     asyncio.run(seed_demo())
