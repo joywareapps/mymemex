@@ -89,3 +89,7 @@ alembic/versions/*.pyc
 demo_docs/
 data/demo_seed.db
 data/demo.db
+
+# Private/Internal
+internal/
+.claude/
