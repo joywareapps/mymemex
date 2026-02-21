@@ -13,7 +13,7 @@ routes = [
 
 # KV namespace for storing subscribers (optional but recommended)
 # Create with: wrangler kv:namespace create SUBSCRIBERS
-# Then uncomment and add the binding:
+# Then add the resulting ID here:
 [[kv_namespaces]]
 binding = "SUBSCRIBERS"
 id = "YOUR_KV_NAMESPACE_ID"
