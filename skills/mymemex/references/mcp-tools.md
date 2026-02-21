@@ -20,11 +20,6 @@ Search the document library using keyword, semantic, or hybrid search.
 - `semantic` -- Vector similarity search using embeddings. Requires Ollama with nomic-embed-text.
 - `hybrid` -- Combines keyword + semantic using Reciprocal Rank Fusion. Falls back to keyword-only when semantic is unavailable.
 
-**Example:**
-```
-search_documents(query="insurance policy", mode="semantic", limit=5)
-```
-
 ---
 
 ## get_document
@@ -39,8 +34,6 @@ Retrieve full document metadata and content chunks.
 ```
 
 **Returns:** Document metadata (title, filename, path, size, page count, status, tags) and up to 10 content chunks.
-
-**Error:** `[DOCUMENT_NOT_FOUND]` if document ID is invalid.
 
 ---
 
@@ -57,11 +50,6 @@ Get extracted text for a specific page range. Useful for LLM workflows where loa
 }
 ```
 
-**Example:**
-```
-get_document_text(document_id=42, page_start=2, page_end=4)
-```
-
 ---
 
 ## list_documents
@@ -73,7 +61,7 @@ Paginated document listing with optional filters.
 {
   "limit": "integer (default: 50, max: 100)",
   "offset": "integer (default: 0)",
-  "status": "pending | processing | processed | error (optional)",
+  "status": "pending | processing | processed | failed | error (optional)",
   "category": "string (optional)",
   "tag": "string (optional)",
   "sort": "created_desc | created_asc | title (default: created_desc)"
@@ -94,8 +82,6 @@ Add a tag to a document. Creates the tag if it doesn't exist.
 }
 ```
 
-**Error:** `[DOCUMENT_NOT_FOUND]` if document ID is invalid.
-
 ---
 
 ## remove_tag
@@ -109,8 +95,6 @@ Remove a tag from a document.
   "tag": "string (required)"
 }
 ```
-
-**Error:** `[TAG_NOT_FOUND]` if tag is not assigned to the document.
 
 ---
 
@@ -127,20 +111,77 @@ Upload a new document to the library. Provide either a local file path (preferre
 }
 ```
 
-**Notes:**
-- Exactly one of `file_path` or `content` must be provided
-- `file_path` is validated against `allowed_parent_paths` in config
-- Document is queued for processing (not immediately available)
-
-**Errors:**
-- `[INVALID_PARAMETERS]` -- Missing or conflicting parameters
-- `[UPLOAD_TOO_LARGE]` -- File exceeds size limit
-- `[UPLOAD_FAILED]` -- Could not save document
-
 ---
 
 ## get_library_stats
 
-Get overall library statistics. No parameters required.
+Get overall library statistics.
 
-**Returns:** Document counts (total, processed, pending, error), storage size, chunk count, and queue status.
+**Returns:** Document counts, storage size, chunk count, and queue status.
+
+---
+
+## reclassify_documents
+
+Re-classify documents using LLM to update auto-tags and document type.
+
+**Parameters:**
+```json
+{
+  "document_ids": "integer[] (optional)",
+  "all_documents": "boolean (default: false)"
+}
+```
+
+---
+
+## reextract_documents
+
+Re-run structured extraction on documents using LLM.
+
+**Parameters:**
+```json
+{
+  "document_ids": "integer[] (optional)",
+  "all_documents": "boolean (default: false)"
+}
+```
+
+---
+
+## list_document_types
+
+List all auto-classified document categories with their document counts.
+
+**Returns:** A table of categories and counts.
+
+---
+
+## get_extracted_fields
+
+View extracted structured fields (amounts, entities, dates) for a specific document.
+
+**Parameters:**
+```json
+{
+  "document_id": "integer (required)"
+}
+```
+
+---
+
+## aggregate_amounts
+
+Aggregate monetary values across documents based on filters.
+
+**Parameters:**
+```json
+{
+  "category": "string (optional)",
+  "field_name": "string (optional, e.g., 'total_tax')",
+  "date_from": "string (ISO date, optional)",
+  "date_to": "string (ISO date, optional)",
+  "currency": "string (optional, e.g., 'EUR')",
+  "min_confidence": "number (default: 0.5)"
+}
+```

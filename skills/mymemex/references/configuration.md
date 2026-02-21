@@ -33,8 +33,6 @@ Complete setup and configuration for MyMemex OpenClaw skill.
 
 Add to `~/.openclaw/config.yaml`:
 
-### Option 1: stdio transport (recommended)
-
 ```yaml
 mcp:
   servers:
@@ -42,17 +40,6 @@ mcp:
       transport: stdio
       command: mymemex
       args: ["mcp", "serve"]
-```
-
-### Option 2: HTTP transport
-
-```yaml
-mcp:
-  servers:
-    mymemex:
-      transport: http
-      url: http://localhost:8001/mcp
-      api_key: ${MYMEMEX_MCP_KEY}
 ```
 
 ## Claude Desktop Configuration

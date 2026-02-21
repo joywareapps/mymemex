@@ -56,6 +56,8 @@ This skill uses these MyMemex MCP tools:
 | `add_tag` / `remove_tag` | Tag management |
 | `upload_document` | Add new documents |
 | `get_library_stats` | Library overview |
+| `get_extracted_fields`| View LLM-extracted data fields |
+| `aggregate_amounts` | Calculate totals (e.g., tax, spending) |
 
 See [references/mcp-tools.md](references/mcp-tools.md) for complete API reference.
 
@@ -73,15 +75,6 @@ mcp:
       transport: stdio
       command: mymemex
       args: ["mcp", "serve"]
-```
-
-Or for HTTP transport:
-```yaml
-mcp:
-  servers:
-    mymemex:
-      transport: http
-      url: http://localhost:8001/mcp
 ```
 
 ### Claude Desktop Configuration
@@ -205,5 +198,4 @@ python scripts/quick_search.py --mode keyword "tax"
 ## Resources
 
 - **MyMemex GitHub:** https://github.com/joywareapps/mymemex
-- **MCP Specification:** docs/MCP-SPEC.md
 - **ClawHub:** https://clawhub.com
