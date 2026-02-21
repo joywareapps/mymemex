@@ -42,8 +42,8 @@ All licenses include:
 
 For commercial licensing inquiries:
 
-- **Email:** [YOUR_EMAIL]
-- **Website:** [YOUR_WEBSITE]
+- **Email:** support@joywareapps.com
+- **Website:** https://joywareapps.com
 - **Response time:** Within 2 business days
 
 ---

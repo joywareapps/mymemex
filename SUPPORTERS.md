@@ -9,18 +9,18 @@ If it saves you time or you believe in the project, consider supporting developm
 - **0% fees** — GitHub covers payment processing
 - **Monthly or one-time** donations
 - **Badges** on your GitHub profile
-- 🔗 [github.com/sponsors/YOUR_USERNAME](https://github.com/sponsors/YOUR_USERNAME)
+- 🔗 [github.com/sponsors/joywareapps](https://github.com/sponsors/joywareapps)
 
 ### Patreon
 - **Monthly subscriptions** with tiers
 - **Exclusive posts** and updates
 - **Early access** to new features
-- 🔗 [patreon.com/YOUR_USERNAME](https://patreon.com/YOUR_USERNAME)
+- 🔗 [patreon.com/joywareapps](https://patreon.com/joywareapps)
 
 ### Ko-fi
 - **One-time donations** (buy me a coffee)
 - **No account required** for donors
-- 🔗 [ko-fi.com/YOUR_USERNAME](https://ko-fi.com/YOUR_USERNAME)
+- 🔗 [ko-fi.com/joywareapps](https://ko-fi.com/joywareapps)
 
 ---
 

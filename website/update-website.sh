@@ -29,7 +29,7 @@ else
     cp -r "${SCRIPT_DIR}/dist/." "$SMB_PATH/"
 fi
 
-echo "✅ Website deployed to https://mymemex.joywareapps.com/"
+echo "✅ Website deployed to https://mymemex.io/"
 echo ""
 echo "Files deployed:"
 ls -la "$SMB_PATH" | head -10

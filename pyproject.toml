@@ -2,6 +2,9 @@
 name = "mymemex"
 version = "0.1.0"
 description = "Your AI Document Memory - Self-hosted document intelligence with semantic search"
+authors = [
+    { name = "Goran Obradovic (Joyware Apps)", email = "support@joywareapps.com" },
+]
 requires-python = ">=3.10"
 
 dependencies = [
