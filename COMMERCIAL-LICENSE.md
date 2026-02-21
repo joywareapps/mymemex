@@ -36,7 +36,6 @@ All licenses include:
 - Unlimited users/documents
 - All current and future features
 - Email support
-- Minor version upgrades
 
 ## Contact
 

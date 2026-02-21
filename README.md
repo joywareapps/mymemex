@@ -180,7 +180,7 @@ ai:
 If you find MyMemex useful, consider:
 
 - ⭐ **Starring the repo** on GitHub
-- 💬 **Joining our Discord** (coming soon)
+- 💬 **Joining our [Discord](https://discord.gg/yvR8Mw9bZa)** 
 - 💰 **Sponsoring development** (GitHub Sponsors / Patreon)
 
 See [SUPPORTERS.md](SUPPORTERS.md) for supporter benefits.
