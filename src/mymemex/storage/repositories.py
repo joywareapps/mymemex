@@ -597,8 +597,31 @@ class UserRepository:
         result = await self.session.scalar(select(func.count(User.id)))
         return result or 0
 
-    async def create(self, name: str, aliases: str = "[]") -> User:
-        user = User(name=name, aliases=aliases)
+    async def get_by_name(self, name: str) -> User | None:
+        result = await self.session.execute(select(User).where(User.name == name))
+        return result.scalar_one_or_none()
+
+    async def get_admin(self) -> User | None:
+        result = await self.session.execute(
+            select(User).where(User.is_admin == True).limit(1)  # noqa: E712
+        )
+        return result.scalar_one_or_none()
+
+    async def create(
+        self,
+        name: str,
+        aliases: str = "[]",
+        password_hash: str | None = None,
+        is_admin: bool = False,
+        is_default: bool = False,
+    ) -> User:
+        user = User(
+            name=name,
+            aliases=aliases,
+            password_hash=password_hash,
+            is_admin=is_admin,
+            is_default=is_default,
+        )
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)

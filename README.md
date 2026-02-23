@@ -108,7 +108,7 @@ mymemex/
 ├── website/            # Astro website
 ├── workers/            # Cloudflare Workers
 ├── config/             # Configuration
-├── tests/              # Test suite (140+ tests)
+├── tests/              # Test suite (160+ tests)
 └── docs/               # Documentation
 ```
 
@@ -163,10 +163,11 @@ ai:
 | M8 | ✅ Complete | Web UI |
 | M9 | ✅ Complete | Structured extraction |
 | M10 | ✅ Complete | Cloud LLM support |
-| M11 | 🔜 Planned | Admin Panel |
-| M12+ | 🔜 Planned | Multi-user, Chat, Cloud OCR |
+| M11 | ✅ Complete | Admin Panel |
+| M12 | ✅ Complete | Multi-user auth + Web UI login |
+| M13+ | 🔜 Planned | Chat, Cloud OCR |
 
-**141 tests passing** • **Zero known bugs**
+**160+ tests passing** • **Zero known bugs**
 
 ## License
 

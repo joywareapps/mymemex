@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from ..services import NotFoundError
@@ -18,6 +19,17 @@ import os
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 templates.env.globals["demo_mode"] = os.environ.get("DEMO_MODE") == "true"
+
+
+@router.get("/login")
+async def login_page(request: Request):
+    """Login page."""
+    config = request.app.state.config
+    if not config.auth.enabled:
+        return RedirectResponse(url="/ui/", status_code=302)
+    if request.state.current_user:
+        return RedirectResponse(url="/ui/", status_code=302)
+    return templates.TemplateResponse(request, "login.html")
 
 
 @router.get("/")

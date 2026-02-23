@@ -30,7 +30,13 @@
       "Bash(git commit:*)",
       "Bash(uv run pytest:*)",
       "Bash(~/.local/bin/uv run pytest:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(tail:*)",
+      "Bash(which pytest && pytest --version 2>&1)",
+      "Bash(head:*)",
+      "Bash(pytest:*)",
+      "Bash(git stash:*)",
+      "Bash(git rm:*)"
     ]
   }
 }

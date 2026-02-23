@@ -53,14 +53,17 @@ class ClassificationService:
             users = await user_repo.list()
             user_context_builder = UserContextBuilder(session)
             user_context = await user_context_builder.build_prompt_context()
+            user_names = UserContextBuilder.get_user_names(users)
 
             # Classify
-            result = await self.classifier.classify(content, user_context=user_context)
+            result = await self.classifier.classify(
+                content, user_context=user_context, user_names=user_names
+            )
             if not result:
                 log.warning("Classification returned no result", document_id=document_id)
                 return None
 
-            # Auto-add person tags based on known users
+            # Auto-add user tags based on known users (fallback text matching)
             person_tags = user_context_builder.get_person_tags(content, users)
             for ptag in person_tags:
                 try:
@@ -103,13 +106,15 @@ class ClassificationService:
                 except Exception:
                     pass
 
-            # Update document summary and category if provided
-            if result.summary or result.document_type:
+            # Update document summary, category, and frequency if provided
+            if result.summary or result.document_type or result.document_frequency:
                 updates = {}
                 if result.summary:
                     updates["summary"] = result.summary
                 if result.document_type and result.type_confidence >= threshold:
                     updates["category"] = result.document_type
+                if result.document_frequency:
+                    updates["document_frequency"] = result.document_frequency
                 if updates:
                     await doc_repo.update(doc, **updates)
 

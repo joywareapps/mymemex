@@ -1,8 +1,8 @@
 # MyMemex Specification
 
-**Version:** 0.1.0
-**Last Updated:** 2026-02-19
-**Test Coverage:** 148 tests passing, 15 skipped (integration tests requiring live Ollama)
+**Version:** M12
+**Last Updated:** 2026-02-23
+**Test Coverage:** 160+ tests passing, 15 skipped (integration tests requiring live Ollama)
 
 ---
 
@@ -20,9 +20,9 @@ The system exposes three interfaces: a REST/Web UI for humans, an MCP (Model Con
 
 **Chunk** — A 1,500-character (max) overlapping segment of a document's text. The unit of full-text and semantic search. Indexed in SQLite FTS5 and (optionally) ChromaDB.
 
-**Tag** — A short label attached to documents. Tags are either manually applied or auto-applied by the LLM classifier. Person tags use the `person:{name}` prefix.
+**Tag** — A short label attached to documents. Tags are either manually applied or auto-applied by the LLM classifier. User tags use the `user:{name}` prefix (e.g. `user:Alice`).
 
-**User (M11)** — A named person with optional aliases. Used to inject identity context into LLM classification prompts, enabling auto-tagging of people in documents.
+**User (M11/M12)** — A named person with optional aliases, optional password (bcrypt), and admin/default flags. Used to inject identity context into LLM classification prompts and (when auth enabled) for login sessions.
 
 **Watch Directory** — A filesystem path monitored by the file watcher. Stored in the database (not config file); each directory has an active/inactive flag and a file policy that determines what happens to source files after ingestion.
 
@@ -176,6 +176,14 @@ MYMEMEX_DEBUG=true
 | `include.config` | bool | `true` |
 | `include.original_files` | bool | `false` |
 
+#### `AuthConfig` (M12)
+
+| Field | Type | Default |
+|-------|------|---------|
+| `enabled` | bool | `false` — when false, all endpoints are accessible without authentication |
+| `jwt_secret_key` | str | `""` — auto-generated per-session if empty |
+| `session_expiry_hours` | int | `24` |
+
 ---
 
 ## Database Schema
@@ -212,6 +220,9 @@ Primary record for each unique file ingested.
 | `updated_at` | DATETIME | Auto-updated |
 | `current_path` | TEXT(1024) | Nullable; updated by file policy |
 | `file_policy_applied` | TEXT(32) | Nullable; set once after policy applied |
+| `uploaded_by_user_id` | INTEGER FK | Nullable; references `users.id`, SET NULL on delete (M12) |
+| `document_frequency` | TEXT(32) | Nullable; `yearly`, `monthly`, `quarterly`, `one-time` (M12) |
+| `time_period` | TEXT(20) | Nullable; e.g. `2024`, `2024-03`, `2024-Q1` (M12) |
 | `error_count` | INTEGER | Default 0 |
 | `last_error` | TEXT | Nullable |
 
@@ -306,13 +317,16 @@ Background task queue.
 
 ### Table: `users`
 
-Known people for LLM context injection.
+Known people for LLM context injection and authentication (M12).
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | INTEGER PK | |
 | `name` | TEXT(255) | |
 | `aliases` | TEXT | JSON array of strings |
+| `password_hash` | TEXT | Nullable; `NULL` means no auth required for this user |
+| `is_admin` | BOOLEAN | Default `false` |
+| `is_default` | BOOLEAN | Default `false` |
 | `created_at` | DATETIME | |
 | `updated_at` | DATETIME | Auto-updated |
 
@@ -409,7 +423,17 @@ Base path: `/api/v1`
 
 ### Authentication
 
-None currently. Admin endpoints (`/api/v1/admin/*`) are protected by same-origin middleware: cross-origin requests (different `Origin` header) receive `403 Forbidden`. Future: M12 will add user authentication.
+Admin endpoints (`/api/v1/admin/*`) are protected by same-origin middleware: cross-origin requests (different `Origin` header) receive `403 Forbidden`.
+
+**M12 Auth API** (`auth.enabled=true` required for login/me to enforce checks):
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/auth/login` | Accepts `{name, password}`, returns `{access_token, token_type, user}` and sets `access_token` cookie |
+| `POST` | `/api/v1/auth/logout` | Clears the `access_token` cookie |
+| `GET`  | `/api/v1/auth/me` | Returns current user or `{authenticated:false, auth_enabled:false}` when auth disabled |
+
+When `auth.enabled=false` (default), all existing endpoints work without authentication.
 
 ### Documents — `/api/v1/documents`
 
@@ -661,6 +685,13 @@ Main command: `mymemex`
 | `mymemex backup restore BACKUP_PATH` | `--config/-c PATH`, `--yes/-y` (skip confirmation) | Restore from .tar.gz backup |
 | `mymemex backup list` | `--destination/-d PATH` (default `./backups`) | List available .tar.gz backups |
 
+### Users Sub-Commands (M12)
+
+| Command | Options | Description |
+|---------|---------|-------------|
+| `mymemex users create NAME` | `--admin`, `--default`, `--password PASSWORD` | Create a user |
+| `mymemex users list` | — | List all users with roles and password status |
+
 ### MCP Sub-Commands
 
 | Command | Options | Description |
@@ -727,7 +758,7 @@ CLASSIFY task:
   └─ Send first 3,000 chars to LLM
   └─ Parse: document_type, tags with confidence, summary
   └─ Filter tags by confidence_threshold, cap at max_tags
-  └─ Auto-apply person: tags for known users/aliases found in text
+  └─ Auto-apply user: tags for known users/aliases found in text
   └─ Update document: category, summary, tags
 
 EXTRACT_METADATA task:
@@ -811,7 +842,7 @@ Known people in this collection:
 - Bob Johnson (also known as: bob)
 ```
 
-After classification, `get_person_tags(llm_response_text, users)` scans the LLM output for user names/aliases and adds `person:{name}` tags automatically.
+After classification, `get_person_tags(llm_response_text, users)` scans the LLM output for user names/aliases and adds `user:{name}` tags automatically.
 
 ### Structured Extraction
 

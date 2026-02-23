@@ -160,6 +160,10 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     from .middleware.demo_mode import DemoModeMiddleware
     app.add_middleware(DemoModeMiddleware)
 
+    # Auth enforcement (runs first — innermost middleware)
+    from .middleware.auth import AuthMiddleware
+    app.add_middleware(AuthMiddleware)
+
     # Include API router
     from .api.router import api_router
 

@@ -155,6 +155,13 @@ from .cli.backup import app as backup_app
 app.add_typer(backup_app, name="backup")
 
 
+# --- Users command group ---
+
+from .cli.users import app as users_app
+
+app.add_typer(users_app, name="users")
+
+
 # --- MCP command group ---
 
 mcp_app = typer.Typer(help="MCP server commands")

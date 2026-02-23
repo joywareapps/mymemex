@@ -13,13 +13,18 @@ log = structlog.get_logger()
 
 DEFAULT_CLASSIFICATION_PROMPT = """Analyze this document and classify it.
 
+Known users in this system: {user_names}
+
 Document content:
 {content}
 
 Instructions:
 1. Identify the document type (e.g., invoice, tax_return, receipt, contract, medical_record, insurance_policy, bank_statement, utility_bill, other)
 2. Extract relevant tags (e.g., financial, legal, medical, personal, work, insurance, tax)
-3. Assign confidence scores (0.0-1.0)
+3. If the document belongs to one of the known users, add a tag in the format user:Name (using their primary name)
+4. If the document has a recurring frequency, identify it: yearly, monthly, quarterly, or one-time
+5. If the document covers a specific time period, add a tag: year (e.g., 2024), year-month (e.g., 2024-03), or year-quarter (e.g., 2024-Q1)
+6. Assign confidence scores (0.0-1.0)
 
 Return JSON:
 {{
@@ -27,9 +32,11 @@ Return JSON:
   "type_confidence": 0.95,
   "tags": [
     {{"name": "tag1", "confidence": 0.9}},
-    {{"name": "tag2", "confidence": 0.8}}
+    {{"name": "user:Name", "confidence": 0.95}},
+    {{"name": "2024", "confidence": 0.9}}
   ],
-  "summary": "Brief 1-2 sentence description"
+  "summary": "Brief 1-2 sentence description",
+  "document_frequency": "yearly"
 }}
 """
 
@@ -43,11 +50,13 @@ class ClassificationResult:
         type_confidence: float,
         tags: list[dict[str, Any]],
         summary: str,
+        document_frequency: str | None = None,
     ):
         self.document_type = document_type
         self.type_confidence = type_confidence
         self.tags = tags
         self.summary = summary
+        self.document_frequency = document_frequency
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ClassificationResult:
@@ -57,6 +66,7 @@ class ClassificationResult:
             type_confidence=data.get("type_confidence", 0.0),
             tags=data.get("tags", []),
             summary=data.get("summary", ""),
+            document_frequency=data.get("document_frequency"),
         )
 
 
@@ -80,6 +90,7 @@ class DocumentClassifier:
         self,
         content: str,
         user_context: str = "",
+        user_names: list[str] | None = None,
     ) -> ClassificationResult | None:
         """
         Classify document content.
@@ -87,6 +98,7 @@ class DocumentClassifier:
         Args:
             content: Document text (first N chunks or summary)
             user_context: Optional system prompt addition with user profiles
+            user_names: List of user names to inject into the prompt
 
         Returns:
             ClassificationResult or None if classification fails
@@ -104,7 +116,13 @@ class DocumentClassifier:
                 self.classification_config.prompt_template
                 or DEFAULT_CLASSIFICATION_PROMPT
             )
-            prompt = prompt_template.format(content=content[:3000])
+
+            if user_names:
+                names_str = ", ".join(user_names)
+            else:
+                names_str = "(no specific users configured)"
+
+            prompt = prompt_template.format(content=content[:3000], user_names=names_str)
 
             if user_context:
                 prompt = user_context + "\n\n" + prompt
@@ -124,7 +142,7 @@ class DocumentClassifier:
 
         except Exception as e:
             log.error("Classification failed", error=str(e), exc_info=True)
-            raise
+            return None
 
     def filter_tags_by_confidence(
         self,

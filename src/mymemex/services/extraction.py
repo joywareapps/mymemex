@@ -10,11 +10,19 @@ import structlog
 from ..config import AppConfig
 from ..intelligence.llm_client import LLMClient, create_llm_client
 from ..storage.database import get_session
-from ..storage.repositories import ChunkRepository, DocumentFieldRepository, DocumentRepository
+from ..storage.repositories import (
+    ChunkRepository,
+    DocumentFieldRepository,
+    DocumentRepository,
+    TagRepository,
+    UserRepository,
+)
 
 log = structlog.get_logger()
 
 DEFAULT_EXTRACTION_PROMPT = """Extract structured metadata from this document.
+
+Known users in this system: {user_names}
 
 Document content:
 {content}
@@ -26,6 +34,9 @@ Extract:
 4. Category (tax, financial, medical, insurance, legal, personal, work, utility, other)
 5. Monetary amounts with labels (e.g., total_tax, premium, invoice_total)
 6. Key entities (organizations, people, reference numbers)
+7. Document frequency: yearly, monthly, quarterly, or one-time
+8. Time period covered (e.g., "2024", "2024-03", "2024-Q1")
+9. Related users from the known users list (if the document is about or addressed to specific users)
 
 Return JSON only:
 {{
@@ -41,6 +52,9 @@ Return JSON only:
     {{"type": "organization", "name": "Finanzamt Fürth"}},
     {{"type": "reference", "value": "StNr. 123/456/78901"}}
   ],
+  "document_frequency": "yearly",
+  "time_period": "2023",
+  "related_users": ["Alice"],
   "confidence": 0.92
 }}
 """
@@ -58,6 +72,9 @@ class ExtractionResult:
         amounts: list[dict] | None = None,
         entities: list[dict] | None = None,
         confidence: float = 1.0,
+        document_frequency: str | None = None,
+        time_period: str | None = None,
+        related_users: list[str] | None = None,
     ):
         self.title = title
         self.document_type = document_type
@@ -66,6 +83,9 @@ class ExtractionResult:
         self.amounts = amounts or []
         self.entities = entities or []
         self.confidence = confidence
+        self.document_frequency = document_frequency
+        self.time_period = time_period
+        self.related_users = related_users or []
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ExtractionResult:
@@ -78,6 +98,9 @@ class ExtractionResult:
             amounts=data.get("amounts", []),
             entities=data.get("entities", []),
             confidence=data.get("confidence", 1.0),
+            document_frequency=data.get("document_frequency"),
+            time_period=data.get("time_period"),
+            related_users=data.get("related_users", []),
         )
 
 
@@ -119,6 +142,8 @@ class ExtractionService:
             doc_repo = DocumentRepository(session)
             chunk_repo = ChunkRepository(session)
             field_repo = DocumentFieldRepository(session)
+            tag_repo = TagRepository(session)
+            user_repo = UserRepository(session)
 
             doc = await doc_repo.get_by_id(document_id)
             if not doc:
@@ -133,13 +158,20 @@ class ExtractionService:
 
             content = "\n\n".join(chunk.text for chunk in chunks)
 
+            # Build user names list for prompt injection
+            users = await user_repo.list()
+            if users:
+                user_names_str = ", ".join(u.name for u in users)
+            else:
+                user_names_str = "(no specific users configured)"
+
             try:
                 # Extract via LLM
                 prompt_template = (
                     self.config.extraction.prompt_template
                     or DEFAULT_EXTRACTION_PROMPT
                 )
-                prompt = prompt_template.format(content=content[:4000])
+                prompt = prompt_template.format(content=content[:4000], user_names=user_names_str)
                 response = await llm.generate_json(prompt)
 
                 result = ExtractionResult.from_dict(response)
@@ -184,8 +216,21 @@ class ExtractionService:
                         updates["document_date"] = date.fromisoformat(result.document_date)
                     except ValueError:
                         pass
+                if result.document_frequency:
+                    updates["document_frequency"] = result.document_frequency
+                if result.time_period:
+                    updates["time_period"] = result.time_period
                 if updates:
                     await doc_repo.update(doc, **updates)
+
+                # Apply user:Name tags for related users
+                for user_name in result.related_users:
+                    try:
+                        await tag_repo.add_to_document(
+                            document_id, f"user:{user_name}", is_auto=True
+                        )
+                    except Exception:
+                        pass
 
                 log.info(
                     "Document extracted",
@@ -193,6 +238,8 @@ class ExtractionService:
                     category=result.category,
                     amounts=len(result.amounts),
                     entities=len(result.entities),
+                    document_frequency=result.document_frequency,
+                    related_users=result.related_users,
                 )
 
                 return result

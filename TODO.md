@@ -34,13 +34,12 @@ Bugs, issues, and improvements to address.
 ## Priority: Medium
 
 - [ ] **Alembic Migrations for Production**
-  - **Current state:** No migrations; fresh DB on each reset during development
-  - **When:** Add alongside or after user management/auth milestone
+  - **Current state:** No migrations; `create_all()` handles fresh installs during development
+  - **When:** Before first production release with existing data
   - **Scope:**
     - M11 tables: `users`, `watch_directories`, `mcp_tokens`, `backups`, `file_operations_log`, `system_log`
     - M11 columns: `documents.current_path`, `documents.file_policy_applied`
-    - Future: user auth tables, sessions, etc.
-  - **Blocker:** Schema must be stable before writing migrations
+    - M12 columns: `users.password_hash`, `users.is_admin`, `users.is_default`, `documents.uploaded_by_user_id`, `documents.document_frequency`, `documents.time_period`
 
 - [ ] **Web UI: Show extracted title in document grid**
   - Display `doc.title` (extracted from content) instead of `original_filename`
@@ -62,6 +61,19 @@ Bugs, issues, and improvements to address.
   - Include suggestion for common issues
 
 ---
+
+## Priority: Low
+
+- [ ] **ARCHITECTURE.md: Add auth ADR for M12**
+  - Add ADR-011 covering authentication design (JWT, bcrypt, middleware-based enforcement)
+
+- [ ] **CLI: `mymemex users assign-all --user 1`**
+  - Migration helper: assign all unowned documents to a specific user
+  - Useful when migrating from single-user to multi-user setup
+
+- [ ] **Security: Tighten CORS configuration**
+  - Change `allow_origins=["*"]` to localhost-only variants
+  - Reduces CSRF risk on network-exposed instances
 
 ## Priority: Low (Gemini-Suitable)
 
@@ -90,6 +102,7 @@ These tasks are good candidates for Gemini CLI delegation (large context, simple
 - [x] **Web UI: Dark mode** (Tailwind dark variants)
 - [x] **Milestone M8:** Web UI basic implementation
 - [x] **Milestone M7.5:** OpenClaw skill
+- [x] **Milestone M12:** Multi-User Support with Authentication (2026-02-23)
 - [x] **Milestone M7:** MCP Server
 - [x] **Milestone M6.5:** Service Layer Extraction
 - [x] **Milestones M1-M6:** Core features

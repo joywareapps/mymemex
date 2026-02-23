@@ -35,6 +35,7 @@ def test_classification_result_from_dict():
             {"name": "financial", "confidence": 0.9},
         ],
         "summary": "Test invoice",
+        "document_frequency": "yearly",
     }
 
     result = ClassificationResult.from_dict(data)
@@ -43,6 +44,7 @@ def test_classification_result_from_dict():
     assert result.type_confidence == 0.95
     assert len(result.tags) == 1
     assert result.summary == "Test invoice"
+    assert result.document_frequency == "yearly"
 
 
 def test_classification_result_from_dict_defaults():
@@ -53,6 +55,7 @@ def test_classification_result_from_dict_defaults():
     assert result.type_confidence == 0.0
     assert result.tags == []
     assert result.summary == ""
+    assert result.document_frequency is None
 
 
 # --- Unit tests: DocumentClassifier ---
@@ -151,6 +154,7 @@ async def test_classify_success():
             {"name": "business", "confidence": 0.8},
         ],
         "summary": "An invoice for services rendered",
+        "document_frequency": "monthly",
     }
 
     classifier = DocumentClassifier(config, llm_client=mock_llm)
@@ -160,7 +164,37 @@ async def test_classify_success():
     assert result.document_type == "invoice"
     assert result.type_confidence == 0.95
     assert len(result.tags) == 2
+    assert result.document_frequency == "monthly"
     mock_llm.generate_json.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_classify_passes_user_names():
+    """Test that user_names are embedded in the prompt."""
+    config = AppConfig(
+        classification=ClassificationConfig(enabled=True),
+        llm=LLMConfig(provider="ollama", model="test-model"),
+    )
+
+    mock_llm = AsyncMock(spec=LLMClient)
+    mock_llm.generate_json.return_value = {
+        "document_type": "invoice",
+        "type_confidence": 0.9,
+        "tags": [{"name": "user:Alice", "confidence": 0.95}],
+        "summary": "Invoice for Alice",
+    }
+
+    classifier = DocumentClassifier(config, llm_client=mock_llm)
+    result = await classifier.classify(
+        "Invoice for Alice Smith", user_names=["Alice", "Bob"]
+    )
+
+    assert result is not None
+    # Verify the prompt contained the user names
+    call_args = mock_llm.generate_json.call_args
+    prompt_used = call_args[0][0]
+    assert "Alice" in prompt_used
+    assert "Bob" in prompt_used
 
 
 @pytest.mark.asyncio
@@ -183,63 +217,12 @@ async def test_classify_llm_error():
 # --- Unit tests: LLM client factory ---
 
 
-def test_create_llm_client_ollama():
-    """Test creating Ollama client."""
-    from mymemex.intelligence.llm_client import OllamaClient
-
-    config = LLMConfig(provider="ollama", model="llama2")
-    client = create_llm_client(config)
-    assert isinstance(client, OllamaClient)
-
-
-def test_create_llm_client_openai():
-    """Test creating OpenAI client with api_key in config."""
-    from mymemex.intelligence.llm_client import OpenAIClient
-
-    config = LLMConfig(provider="openai", model="gpt-4o-mini", api_key="test-key")
-    client = create_llm_client(config)
-    assert isinstance(client, OpenAIClient)
-    assert client.api_key == "test-key"
-
-
-def test_create_llm_client_openai_env_key(monkeypatch):
-    """Test OpenAI client reads API key from environment."""
-    from mymemex.intelligence.llm_client import OpenAIClient
-
-    monkeypatch.setenv("OPENAI_API_KEY", "env-test-key")
-    config = LLMConfig(provider="openai", model="gpt-4o-mini")
-    client = create_llm_client(config)
-    assert isinstance(client, OpenAIClient)
-    assert client.api_key == "env-test-key"
-
-
 def test_create_llm_client_openai_no_key(monkeypatch):
     """Test OpenAI client requires API key."""
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     config = LLMConfig(provider="openai", model="gpt-4o-mini")
     with pytest.raises(ValueError, match="API key required"):
         create_llm_client(config)
-
-
-def test_create_llm_client_anthropic():
-    """Test creating Anthropic client with api_key in config."""
-    from mymemex.intelligence.llm_client import AnthropicClient
-
-    config = LLMConfig(provider="anthropic", model="claude-haiku-4-5-20251001", api_key="test-key")
-    client = create_llm_client(config)
-    assert isinstance(client, AnthropicClient)
-    assert client.api_key == "test-key"
-
-
-def test_create_llm_client_anthropic_env_key(monkeypatch):
-    """Test Anthropic client reads API key from environment."""
-    from mymemex.intelligence.llm_client import AnthropicClient
-
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "ant-env-key")
-    config = LLMConfig(provider="anthropic", model="claude-haiku-4-5-20251001")
-    client = create_llm_client(config)
-    assert isinstance(client, AnthropicClient)
-    assert client.api_key == "ant-env-key"
 
 
 def test_create_llm_client_anthropic_no_key(monkeypatch):

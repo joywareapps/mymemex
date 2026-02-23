@@ -143,6 +143,14 @@ class MCPConfig(BaseModel):
     security: MCPSecurityConfig = Field(default_factory=MCPSecurityConfig)
 
 
+class AuthConfig(BaseModel):
+    """Authentication configuration (M12)."""
+
+    enabled: bool = False
+    jwt_secret_key: str = ""  # Auto-generated per-session if empty
+    session_expiry_hours: int = 24
+
+
 class BackupIncludeConfig(BaseModel):
     """What to include in backups."""
 
@@ -198,6 +206,7 @@ class AppConfig(BaseSettings):
     extraction: ExtractionConfig = Field(default_factory=ExtractionConfig)
     ingestion: IngestionConfig = Field(default_factory=IngestionConfig)
     backup: BackupConfig = Field(default_factory=BackupConfig)
+    auth: AuthConfig = Field(default_factory=AuthConfig)
 
     @model_validator(mode="before")
     @classmethod

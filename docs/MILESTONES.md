@@ -1,6 +1,6 @@
 # MyMemex: Milestones & Roadmap
 
-**Last Updated:** 2026-02-19
+**Last Updated:** 2026-02-23
 
 ---
 
@@ -22,20 +22,26 @@
 | **M9.5** | Structured Extraction & Aggregation | ✅ |
 | **M10** | Deployment & Distribution | ✅ |
 | **M11** | Admin Panel, File Management & User Context | ✅ |
+| **M12** | Multi-User Support with Authentication | ✅ |
 
-### What M1-M11 Delivers
+### What M1-M12 Delivers
 
 - File watching with deduplication (xxhash + SHA-256)
 - PDF text extraction (PyMuPDF) with OCR fallback (Tesseract)
 - Chunking (1500 chars, 200 overlap)
 - FTS5 keyword search + vector semantic search + hybrid RRF
 - REST API (FastAPI) on port 8000
-- CLI (Typer): `init`, `serve`, `config`, `version`, `backup`
+- CLI (Typer): `init`, `serve`, `config`, `version`, `backup`, `users`
 - MCP Server with 13 tools for Claude Desktop / OpenClaw integration
 - Web UI for documents, search, tags, upload
 - Admin Panel for settings, backup, MCP tokens, users, queue, logs
 - First-run wizard for user setup
-- 141 tests passing
+- Authentication: JWT tokens, bcrypt passwords, optional auth mode
+- Auth enforcement: `AuthMiddleware` on admin + write ops; 401 JSON (API) / 302 redirect (UI)
+- Web UI login: `/ui/login` page, nav bar shows user/sign-out or sign-in button
+- Document ownership: `uploaded_by_user_id`, `document_frequency`, `time_period`
+- User-aware classification/extraction: `user:Name` tags, `document_frequency` detection
+- 173+ tests passing
 
 ### Specs for Completed Milestones
 
@@ -45,29 +51,6 @@
 ---
 
 ## Upcoming Milestones
-
-### M12: Multi-User Support (Auth, Ownership, Visibility)
-
-**Goal:** Full multi-user support with authentication, document ownership, and visibility controls.
-
-| Feature | Description | Effort |
-|---------|-------------|--------|
-| User authentication | Username/password login with bcrypt | Medium |
-| Session management | Secure sessions, logout | Medium |
-| Document ownership | Track who uploaded each document | Low |
-| Per-folder user association | Assign watch folders to users | Low |
-| Visibility flags | Shared vs private documents | Medium |
-| Query filtering | "My documents" vs "all documents" | Low |
-| MCP user context | Pass user identity through MCP requests | Low |
-| Alembic migrations | Schema migrations for production | Medium |
-
-**Estimated effort:** 2-3 weeks
-
-**Dependencies:** M7 (MCP), M11 (User table exists)
-
-**Spec:** See [MULTI-USER-SPEC.md](MULTI-USER-SPEC.md) for design details.
-
----
 
 ### M13: Chat Interface
 
@@ -158,11 +141,10 @@ M13 (Chat Interface)
 
 | Milestone | Effort | Notes |
 |-----------|--------|-------|
-| M12 Multi-User | ~2-3 weeks | Auth, ownership, visibility |
 | M13 Chat Interface | ~1-2 weeks | Optional RAG chat |
 | M14 Cloud OCR | ~3-4 days | Independent, can be done anytime |
 
-**Total remaining effort:** ~4-6 weeks for M12-M14.
+**Total remaining effort:** ~2-3 weeks for M13-M14.
 
 ---
 
@@ -170,7 +152,7 @@ M13 (Chat Interface)
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Auth security vulnerabilities | M12 exposure | Use battle-tested libraries (passlib), rate limiting |
+| Auth security vulnerabilities | M12 exposure | Use battle-tested libraries (bcrypt, jose), rate limiting |
 | ChromaDB multi-user isolation | M12 complexity | Use metadata filtering, not separate collections |
 | Cloud OCR cost/privacy | M14 adoption | Strict opt-in, per-directory policies |
 | Ollama model availability | M13 blocked | Graceful degradation when LLM unavailable |
@@ -181,7 +163,7 @@ M13 (Chat Interface)
 
 | Category | Tests | Status |
 |----------|-------|--------|
-| Unit + Integration | 141 | Pass |
+| Unit + Integration | 173 | Pass |
 | OCR integration | — | Pass (skip if unavailable) |
 | Ollama integration | — | Pass (skip if unavailable) |
 

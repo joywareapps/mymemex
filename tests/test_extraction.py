@@ -36,6 +36,9 @@ def test_extraction_result_from_dict():
             {"type": "organization", "name": "Finanzamt"},
         ],
         "confidence": 0.92,
+        "document_frequency": "yearly",
+        "time_period": "2023",
+        "related_users": ["Alice"],
     }
 
     result = ExtractionResult.from_dict(data)
@@ -47,6 +50,9 @@ def test_extraction_result_from_dict():
     assert len(result.amounts) == 1
     assert len(result.entities) == 1
     assert result.confidence == 0.92
+    assert result.document_frequency == "yearly"
+    assert result.time_period == "2023"
+    assert result.related_users == ["Alice"]
 
 
 def test_extraction_result_defaults():
@@ -60,6 +66,9 @@ def test_extraction_result_defaults():
     assert result.amounts == []
     assert result.entities == []
     assert result.confidence == 1.0
+    assert result.document_frequency is None
+    assert result.time_period is None
+    assert result.related_users == []
 
 
 # --- Unit tests: ExtractionService without DB ---
@@ -167,6 +176,9 @@ async def test_extract_document_stores_fields(db_session_for_extraction, sample_
             {"type": "organization", "name": "Finanzamt"},
             {"type": "reference", "value": "123/456/78901"},
         ],
+        "document_frequency": "yearly",
+        "time_period": "2023",
+        "related_users": [],
         "confidence": 0.92,
     }
 
@@ -179,6 +191,8 @@ async def test_extract_document_stores_fields(db_session_for_extraction, sample_
     assert result.category == "tax"
     assert len(result.amounts) == 2
     assert len(result.entities) == 2
+    assert result.document_frequency == "yearly"
+    assert result.time_period == "2023"
 
     # Verify fields stored in DB
     async with get_session() as session:
@@ -195,7 +209,7 @@ async def test_extract_document_stores_fields(db_session_for_extraction, sample_
     string_fields = [f for f in fields if f.field_type == "string"]
     assert len(string_fields) == 2
 
-    # Verify document metadata updated
+    # Verify document metadata updated including new M12 fields
     async with get_session() as session:
         doc_repo = DocumentRepository(session)
         updated_doc = await doc_repo.get_by_id(doc.id)
@@ -203,6 +217,8 @@ async def test_extract_document_stores_fields(db_session_for_extraction, sample_
     assert updated_doc.title == "Tax Return 2023 - Finanzamt"
     assert updated_doc.category == "tax"
     assert updated_doc.document_date == date(2023, 12, 31)
+    assert updated_doc.document_frequency == "yearly"
+    assert updated_doc.time_period == "2023"
 
 
 @pytest.mark.asyncio

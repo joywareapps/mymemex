@@ -1,11 +1,11 @@
 # MyMemex - Project Status
 
-**Last Updated:** 2026-02-19
-**Phase:** M1-M11 Complete | Production Ready
+**Last Updated:** 2026-02-23
+**Phase:** M1-M12 Complete | Production Ready
 
 ## Current State
 
-- M1-M11 complete (141 tests passing)
+- M1-M12 complete (173+ tests passing)
 - Pre-built Docker images (GHCR)
 - Cloud LLM support (OpenAI, Anthropic)
 - MCP Server with 13 tools
@@ -31,6 +31,18 @@
 | **M9.5** | Structured Extraction & Aggregation | ✅ |
 | **M10** | Deployment & Distribution | ✅ |
 | **M11** | Admin Panel, File Management & User Context | ✅ |
+| **M12** | Multi-User Support with Authentication | ✅ |
+
+## M12 Features
+
+- **Authentication** — Optional JWT login (bcrypt passwords, Bearer token + cookie)
+- **Auth enforcement** — `AuthMiddleware` protects admin + write ops; 401 JSON (API) / 302 redirect (UI)
+- **Web UI login** — `/ui/login` page with Alpine.js form; nav shows username/sign-out or sign-in
+- **User fields** — `password_hash`, `is_admin`, `is_default` on User model
+- **Document ownership** — `uploaded_by_user_id`, `document_frequency`, `time_period` fields
+- **User-aware AI** — Classification/extraction prompts receive known user names; auto-tags `user:Name`
+- **CLI** — `mymemex users create/list`
+- **MCP** — `user_filter` on `search_documents` and `list_documents`
 
 ## M11 Features
 
@@ -57,16 +69,8 @@
 
 | Milestone | Description |
 |-----------|-------------|
-| **M12** | Multi-User Support (Ownership, Privacy, Visibility, Auth) |
 | **M13** | Chat Interface |
 | **M14** | Cloud OCR Fallback |
-
-### M12 Features
-
-- Document ownership (who uploaded)
-- Per-folder user association
-- Shared/private visibility flags
-- Login authentication flow (username/password)
 
 ## Deployment Options
 
@@ -100,11 +104,11 @@ None currently.
 
 ## Notes
 
-- 141 tests passing (unit + integration)
+- 173+ tests passing (unit + integration)
 - Cloud LLM optional (OpenAI/Anthropic via env vars)
 - Local-first: Ollama works offline
 - Watch folders now stored in database (not config.yaml)
-- Users stored in database for LLM context (no auth yet)
+- Users stored in database with optional JWT authentication (M12)
 - See [TODO.md](TODO.md) for known issues
 - See [docs/MILESTONES.md](docs/MILESTONES.md) for full roadmap
 - See [docs/INSTALLATION.md](docs/INSTALLATION.md) for setup guide

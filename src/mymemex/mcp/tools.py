@@ -28,6 +28,7 @@ def register(mcp: FastMCP) -> None:
         query: str,
         mode: str = "hybrid",
         limit: int = 10,
+        user_filter: str | None = None,
         ctx: Context = None,
     ) -> str:
         """Search the document library using keyword, semantic, or hybrid search.
@@ -36,6 +37,7 @@ def register(mcp: FastMCP) -> None:
             query: The search query.
             mode: Search mode — keyword, semantic, or hybrid (default: hybrid).
             limit: Maximum results to return (default: 10).
+            user_filter: Filter results to documents tagged user:{user_filter} or uploaded by that user.
         """
         lctx = _get_ctx(ctx)
         try:
@@ -44,14 +46,27 @@ def register(mcp: FastMCP) -> None:
 
                 service = SearchService(session, lctx.config)
 
+                # Convert user_filter to a tag filter
+                tag_filter = f"user:{user_filter}" if user_filter else None
+
                 if mode == "keyword":
-                    results, total = await service.keyword_search(query, page=1, per_page=limit)
+                    results, total = await service.keyword_search(
+                        query, page=1, per_page=limit, tag=tag_filter
+                    )
                     return _format_keyword_results(results, total, query, mode)
                 elif mode == "semantic":
                     results = await service.semantic_search(query, limit=limit)
+                    # Apply user filter post-hoc for semantic results
+                    if tag_filter:
+                        results = [r for r in results if tag_filter in r.get("tags", [])]
                     return _format_semantic_results(results, query, mode)
                 else:
                     data = await service.hybrid_search(query, limit=limit)
+                    # Apply user filter post-hoc for hybrid results
+                    if tag_filter:
+                        data["results"] = [
+                            r for r in data["results"] if tag_filter in r.get("tags", [])
+                        ]
                     return _format_hybrid_results(data, query)
         except ServiceUnavailableError as e:
             raise ValueError(f"[SEARCH_UNAVAILABLE] {e}")
@@ -111,6 +126,7 @@ def register(mcp: FastMCP) -> None:
         category: str | None = None,
         tag: str | None = None,
         sort: str = "created_desc",
+        user_filter: str | None = None,
         ctx: Context = None,
     ) -> str:
         """List documents with optional filters and pagination.
@@ -122,11 +138,16 @@ def register(mcp: FastMCP) -> None:
             category: Filter by category.
             tag: Filter by tag name.
             sort: Sort order — created_desc, created_asc, or title (default: created_desc).
+            user_filter: Filter to documents tagged user:{user_filter} (overrides tag parameter).
         """
         limit = min(limit, 100)
 
         # Convert offset/limit to page/per_page
         page = (offset // limit) + 1 if limit > 0 else 1
+
+        # user_filter overrides tag parameter
+        if user_filter:
+            tag = f"user:{user_filter}"
 
         # Map sort names
         sort_map = {

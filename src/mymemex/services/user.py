@@ -41,7 +41,7 @@ class UserContextBuilder:
 
         lines.append(
             "When classifying documents, if the content refers to any of these people, "
-            "add a 'person:{name}' tag using their primary name."
+            "add a 'user:{name}' tag using their primary name."
         )
 
         return "\n".join(lines)
@@ -50,7 +50,7 @@ class UserContextBuilder:
         """
         Check if any known user/alias appears in text.
 
-        Returns list of 'person:{name}' tags for any matches.
+        Returns list of 'user:{name}' tags for any matches.
         """
         text_lower = text.lower()
         tags = []
@@ -61,7 +61,12 @@ class UserContextBuilder:
 
             for name in names_to_check:
                 if name.lower() in text_lower:
-                    tags.append(f"person:{user.name}")
+                    tags.append(f"user:{user.name}")
                     break  # Don't double-tag same user
 
         return tags
+
+    @staticmethod
+    def get_user_names(users) -> list[str]:
+        """Return list of user names for prompt injection."""
+        return [u.name for u in users]

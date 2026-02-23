@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — MyMemex{% endblock %}
+
+{% block content %}
+<div class="flex min-h-[60vh] items-center justify-center">
+    <div class="w-full max-w-sm" x-data="{
+        username: '',
+        password: '',
+        error: '',
+        loading: false,
+        async submit() {
+            this.error = '';
+            this.loading = true;
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const next = params.get('next') || '/ui/';
+                const resp = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'same-origin',
+                    body: JSON.stringify({name: this.username, password: this.password}),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    window.location.href = next;
+                } else {
+                    this.error = data.detail || 'Login failed';
+                }
+            } catch (e) {
+                this.error = 'Network error — please try again';
+            } finally {
+                this.loading = false;
+            }
+        }
+    }">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-8">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6 text-center">Sign in to MyMemex</h1>
+
+            <form @submit.prevent="submit" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Username
+                    </label>
+                    <input id="username"
+                           type="text"
+                           x-model="username"
+                           autocomplete="username"
+                           required
+                           class="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Password
+                    </label>
+                    <input id="password"
+                           type="password"
+                           x-model="password"
+                           autocomplete="current-password"
+                           required
+                           class="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                </div>
+
+                <div x-show="error" x-text="error"
+                     class="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md px-3 py-2">
+                </div>
+
+                <button type="submit"
+                        :disabled="loading"
+                        class="w-full px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <span x-show="!loading">Sign in</span>
+                    <span x-show="loading">Signing in…</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

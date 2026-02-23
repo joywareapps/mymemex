@@ -77,6 +77,13 @@ class Document(Base):
     current_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     file_policy_applied: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
+    # User ownership (M12)
+    uploaded_by_user_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    document_frequency: Mapped[str | None] = mapped_column(String(32), nullable=True)  # yearly, monthly, quarterly, one-time
+    time_period: Mapped[str | None] = mapped_column(String(20), nullable=True)  # 2024, 2024-03, 2024-Q1
+
     # Error tracking
     error_count: Mapped[int] = mapped_column(Integer, default=0)
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -227,6 +234,9 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     aliases: Mapped[str] = mapped_column(Text, default="[]")  # JSON array of strings
+    password_hash: Mapped[str | None] = mapped_column(Text, nullable=True)  # NULL = no auth required
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
