@@ -118,6 +118,22 @@ class ClassificationService:
                 if updates:
                     await doc_repo.update(doc, **updates)
 
+            # Enqueue ROUTE_FILE so tag-based routing runs after classification
+            try:
+                async with get_session() as q_session:
+                    from ..core.queue import TaskQueue, TaskType
+                    from .routing import _has_pending_route_task
+                    q = TaskQueue(q_session)
+                    if not await _has_pending_route_task(q_session, document_id):
+                        await q.enqueue(
+                            TaskType.ROUTE_FILE,
+                            {"document_id": document_id},
+                            document_id=document_id,
+                            priority=1,
+                        )
+            except Exception as e:
+                log.warning("Failed to enqueue ROUTE_FILE after classify", error=str(e))
+
             return result
 
     async def reclassify_all(self) -> int:

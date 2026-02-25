@@ -173,6 +173,11 @@ async def admin_watch_folders(request: Request):
     return templates.TemplateResponse(request, "admin/watch_folders.html")
 
 
+@router.get("/admin/routing")
+async def admin_routing(request: Request):
+    return templates.TemplateResponse(request, "admin/routing.html")
+
+
 @router.get("/admin/mcp")
 async def admin_mcp(request: Request):
     return templates.TemplateResponse(request, "admin/mcp.html")

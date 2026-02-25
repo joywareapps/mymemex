@@ -242,6 +242,22 @@ class ExtractionService:
                     related_users=result.related_users,
                 )
 
+                # Enqueue ROUTE_FILE so tag-based routing runs after extraction
+                try:
+                    async with get_session() as q_session:
+                        from ..core.queue import TaskQueue, TaskType
+                        from .routing import _has_pending_route_task
+                        q = TaskQueue(q_session)
+                        if not await _has_pending_route_task(q_session, document_id):
+                            await q.enqueue(
+                                TaskType.ROUTE_FILE,
+                                {"document_id": document_id},
+                                document_id=document_id,
+                                priority=1,
+                            )
+                except Exception as e:
+                    log.warning("Failed to enqueue ROUTE_FILE after extract", error=str(e))
+
                 return result
 
             except Exception as e:

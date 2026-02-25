@@ -311,14 +311,20 @@ async def run_ingest_pipeline(
                 await repo.update(doc, processed_at=datetime.utcnow())
 
                 # Step 5b: Apply file policy if a watch directory is configured
+                # (Skip if routing rules exist — ROUTE_FILE task handles it after classify)
                 try:
                     from ..services.file_policy import FilePolicyService
+                    from ..storage.repositories import RoutingRuleRepository
 
                     wd_repo = WatchDirectoryRepository(session)
                     wd = await _find_watch_directory(wd_repo, doc.original_path)
                     if wd:
-                        policy_service = FilePolicyService(session)
-                        await policy_service.apply(doc, wd)
+                        rule_repo = RoutingRuleRepository(session)
+                        has_rules = await rule_repo.has_active_rules(wd.id)
+                        if not has_rules:
+                            policy_service = FilePolicyService(session)
+                            await policy_service.apply(doc, wd)
+                        # else: ROUTE_FILE task handles move after classification
                 except Exception as fe:
                     log.warning("File policy apply failed", doc_id=doc.id, error=str(fe))
 
@@ -480,6 +486,13 @@ async def _process_task(
             doc_id = payload["document_id"]
             service = ExtractionService(config)
             await service.extract_document(doc_id)
+            await queue.complete(task)
+
+        elif task.task_type == TaskType.ROUTE_FILE.value:
+            from ..services.routing import RoutingService
+
+            async with get_session() as route_session:
+                await RoutingService(route_session).route_document(payload["document_id"])
             await queue.complete(task)
 
         elif task.task_type == TaskType.EMBED.value:

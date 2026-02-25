@@ -25,6 +25,7 @@ class TaskType(str, Enum):
     CLASSIFY = "classify"
     EXTRACT_METADATA = "extract_metadata"
     SUGGEST = "suggest"
+    ROUTE_FILE = "route_file"
 
 
 class TaskStatus(str, Enum):

@@ -8,6 +8,7 @@ from .logs import router as logs_router
 from .mcp import router as mcp_router
 from .processing import router as processing_router
 from .queue import router as queue_router
+from .routing import router as routing_router
 from .setup import router as setup_router
 from .stats import router as stats_router
 from .users import router as users_router
@@ -18,6 +19,7 @@ admin_router = APIRouter(tags=["admin"])
 admin_router.include_router(setup_router)
 admin_router.include_router(users_router)
 admin_router.include_router(watch_folders_router)
+admin_router.include_router(routing_router)
 admin_router.include_router(mcp_router)
 admin_router.include_router(backup_router)
 admin_router.include_router(config_router)

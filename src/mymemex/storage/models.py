@@ -260,6 +260,37 @@ class WatchDirectory(Base):
         DateTime, server_default=func.now(), onupdate=func.now()
     )
 
+    routing_rules: Mapped[list["RoutingRule"]] = relationship(
+        "RoutingRule", back_populates="watch_directory",
+        cascade="all, delete-orphan", order_by="RoutingRule.priority"
+    )
+
+
+class RoutingRule(Base):
+    """Tag-based file routing rule for a watch directory."""
+
+    __tablename__ = "routing_rules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    watch_directory_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("watch_directories.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(255))
+    directory_name: Mapped[str] = mapped_column(String(1024))   # subfolder under archive_path
+    tags: Mapped[str] = mapped_column(Text, default="[]")        # JSON array of tag name strings
+    match_mode: Mapped[str] = mapped_column(String(8), default="any")   # "any" | "all"
+    priority: Mapped[int] = mapped_column(Integer, default=100)          # lower = higher priority
+    sub_levels: Mapped[str] = mapped_column(Text, default="[]")  # JSON array of template strings
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+    watch_directory: Mapped["WatchDirectory"] = relationship(
+        "WatchDirectory", back_populates="routing_rules"
+    )
+
 
 class MCPToken(Base):
     """MCP API token for HTTP transport authentication."""

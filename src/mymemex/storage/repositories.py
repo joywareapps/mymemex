@@ -17,6 +17,7 @@ from .models import (
     FileOperationLog,
     FilePath,
     MCPToken,
+    RoutingRule,
     SystemLog,
     Tag,
     Task,
@@ -841,6 +842,100 @@ class FileOperationLogRepository:
         self.session.add(entry)
         await self.session.commit()
         return entry
+
+
+class RoutingRuleRepository:
+    """Data access for tag-based file routing rules."""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def list_for_watch_dir(self, watch_directory_id: int) -> list[RoutingRule]:
+        """Return active rules for a watch directory, ordered by priority ASC."""
+        result = await self.session.execute(
+            select(RoutingRule)
+            .where(RoutingRule.watch_directory_id == watch_directory_id)
+            .where(RoutingRule.is_active == True)  # noqa: E712
+            .order_by(RoutingRule.priority.asc())
+        )
+        return list(result.scalars().all())
+
+    async def has_active_rules(self, watch_directory_id: int) -> bool:
+        """Return True if any active routing rules exist for the watch directory."""
+        result = await self.session.execute(
+            select(RoutingRule)
+            .where(RoutingRule.watch_directory_id == watch_directory_id)
+            .where(RoutingRule.is_active == True)  # noqa: E712
+            .limit(1)
+        )
+        return result.scalar_one_or_none() is not None
+
+    async def list_all(self, watch_directory_id: int | None = None) -> list[RoutingRule]:
+        """List all routing rules, optionally filtered by watch directory."""
+        query = select(RoutingRule).order_by(RoutingRule.watch_directory_id, RoutingRule.priority)
+        if watch_directory_id is not None:
+            query = query.where(RoutingRule.watch_directory_id == watch_directory_id)
+        result = await self.session.execute(query)
+        return list(result.scalars().all())
+
+    async def get(self, rule_id: int) -> RoutingRule | None:
+        result = await self.session.execute(
+            select(RoutingRule).where(RoutingRule.id == rule_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def list_doc_ids_for_watch_dir(self, watch_directory_id: int) -> list[int]:
+        """Return IDs of all documents whose original_path is under the watch directory path."""
+        wd_result = await self.session.execute(
+            select(WatchDirectory).where(WatchDirectory.id == watch_directory_id)
+        )
+        wd = wd_result.scalar_one_or_none()
+        if not wd:
+            return []
+        prefix = wd.path.rstrip("/") + "/"
+        result = await self.session.execute(
+            select(Document.id).where(Document.original_path.like(prefix + "%"))
+        )
+        return [row[0] for row in result.fetchall()]
+
+    async def create(
+        self,
+        watch_directory_id: int,
+        name: str,
+        directory_name: str,
+        tags: str = "[]",
+        match_mode: str = "any",
+        priority: int = 100,
+        sub_levels: str = "[]",
+        is_active: bool = True,
+    ) -> RoutingRule:
+        rule = RoutingRule(
+            watch_directory_id=watch_directory_id,
+            name=name,
+            directory_name=directory_name,
+            tags=tags,
+            match_mode=match_mode,
+            priority=priority,
+            sub_levels=sub_levels,
+            is_active=is_active,
+        )
+        self.session.add(rule)
+        await self.session.commit()
+        await self.session.refresh(rule)
+        return rule
+
+    async def update(self, rule: RoutingRule, **kwargs) -> None:
+        for key, value in kwargs.items():
+            setattr(rule, key, value)
+        await self.session.commit()
+
+    async def delete(self, rule_id: int) -> bool:
+        rule = await self.get(rule_id)
+        if not rule:
+            return False
+        await self.session.delete(rule)
+        await self.session.commit()
+        return True
 
 
 class SystemLogRepository:

@@ -1,8 +1,8 @@
 # MyMemex Specification
 
-**Version:** M12 + AI Pause
-**Last Updated:** 2026-02-24
-**Test Coverage:** 183 passing, 15 skipped (integration tests requiring live Ollama)
+**Version:** M12 + Tag-Based File Routing
+**Last Updated:** 2026-02-25
+**Test Coverage:** 202 passing, 15 skipped (integration tests requiring live Ollama)
 
 ---
 
@@ -28,7 +28,9 @@ The system exposes three interfaces: a REST/Web UI for humans, an MCP (Model Con
 
 **Task** — A unit of background work in the task queue (ingest, classify, embed, extract, OCR). Tasks have priorities, retry logic with exponential backoff, and status tracking.
 
-**File Policy** — What happens to the original file after ingestion: keep it in place, move it to an archive, copy it, rename it using a template, or delete it.
+**File Policy** — What happens to the original file after ingestion: keep it in place, move it to an archive, copy it, rename it using a template, or delete it. When routing rules exist for a watch directory, the file policy is skipped at ingest time — routing handles the move after classification.
+
+**Routing Rule** — A prioritised, tag-based rule attached to a watch directory. After classification and extraction, the `ROUTE_FILE` task evaluates each active rule (in priority order) against the document's tags and moves the file to the matching destination folder under the watch directory's `archive_path`. Rules support `any` (at least one tag matches) or `all` (every rule tag must be present) match modes, and optional sub-folder levels rendered from template strings (e.g. `{year}`, `{tag:category}`).
 
 **AI Processing Pause** — A module-level toggle that suppresses new dequeues of AI/LLM task types (CLASSIFY, EXTRACT_METADATA, EMBED) and skips embedding scheduler runs. Non-AI tasks (INGEST) continue unaffected. In-flight tasks always complete. State is held in memory only; app restart always resumes processing.
 
@@ -348,6 +350,24 @@ Filesystem folders to monitor, managed via DB (not config file).
 | `created_at` | DATETIME | |
 | `updated_at` | DATETIME | Auto-updated |
 
+### Table: `routing_rules`
+
+Tag-based file routing rules attached to a watch directory.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | INTEGER PK | |
+| `watch_directory_id` | INTEGER FK | CASCADE delete; references `watch_directories.id` |
+| `name` | TEXT(255) | Human-readable rule name |
+| `directory_name` | TEXT(1024) | Destination subfolder under the watch directory's `archive_path` |
+| `tags` | TEXT | JSON array of tag name strings used for matching |
+| `match_mode` | TEXT(8) | `any` (default) or `all` |
+| `priority` | INTEGER | Default 100; lower value = higher priority |
+| `sub_levels` | TEXT | JSON array of template strings for nested subfolders (e.g. `["{year}", "{category}"]`) |
+| `is_active` | BOOLEAN | Default true |
+| `created_at` | DATETIME | |
+| `updated_at` | DATETIME | Auto-updated |
+
 ### Table: `mcp_tokens`
 
 API tokens for MCP HTTP transport authentication.
@@ -543,6 +563,33 @@ All admin endpoints require same-origin requests (browser-initiated from the sam
 **POST body:** `{ "path": "string", "patterns": [], "is_active": true, "file_policy": "keep_original", "archive_path": null, "rename_template": null }`
 
 Creating/deleting a watch folder dynamically updates the live watcher without restart.
+
+#### Routing Rules
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/admin/routing-rules` | List all rules; optional `?watch_directory_id=N` filter |
+| POST | `/admin/routing-rules` | Create a rule (201) — triggers re-route of all docs in watch dir |
+| GET | `/admin/routing-rules/{id}` | Get a single rule |
+| PATCH | `/admin/routing-rules/{id}` | Update a rule — triggers re-route of all docs in watch dir |
+| DELETE | `/admin/routing-rules/{id}` | Delete a rule (204) — triggers re-route of all docs in watch dir |
+| POST | `/admin/routing-rules/reroute-all/{watch_directory_id}` | Enqueue `ROUTE_FILE` for all docs in the watch directory |
+
+**POST body:**
+```json
+{
+  "watch_directory_id": 1,
+  "name": "Tax Returns",
+  "directory_name": "tax",
+  "tags": ["category:tax_return"],
+  "match_mode": "any",
+  "priority": 10,
+  "sub_levels": ["{year}"],
+  "is_active": true
+}
+```
+
+**`reroute-all` response:** `{ "enqueued": N, "total_documents": M }`
 
 #### MCP Tokens
 
@@ -751,6 +798,7 @@ All admin pages are under `/ui/admin/`. The navigation bar has an **Admin** drop
 | `/ui/admin/setup` | Setup Wizard | First-run wizard: create initial user profile (name + aliases). Skip button sets `localStorage.setup_skipped = 1` |
 | `/ui/admin/settings` | Settings | Tabbed config editor (Server, LLM, OCR, AI, Backup, MCP tabs). Shows restart-required warning for structural changes |
 | `/ui/admin/watch-folders` | Watch Folders | CRUD table of watched directories + add/edit modal with path, patterns, file policy, active toggle |
+| `/ui/admin/routing` | Routing Rules | Watch directory selector + rules table with priority, name, destination, tags, match mode, sub-levels. Add/edit modal + "Re-route All" button |
 | `/ui/admin/mcp` | MCP Tokens | Token list with prefix display + generate-token modal. Full token displayed once on creation |
 | `/ui/admin/backup` | Backup | Config form (cron schedule, retention, destination) + backup history table + "Backup Now" button |
 | `/ui/admin/users` | Users | CRUD table of user profiles + add/edit modal with name and aliases list |
@@ -777,7 +825,7 @@ File detected by watcher (or uploaded via API/MCP)
       └─ [If OCR enabled] Tesseract OCR on pages needing it
           └─ Chunk and store OCR text
       └─ Update document status: processed
-      └─ Apply file policy (if watch directory has one)
+      └─ Apply file policy (only if NO routing rules exist for this watch directory)
       └─ [If classification enabled] Enqueue CLASSIFY task (priority 3)
       └─ [If extraction enabled + LLM configured] Enqueue EXTRACT_METADATA task (priority 2)
 
@@ -788,17 +836,31 @@ CLASSIFY task:
   └─ Filter tags by confidence_threshold, cap at max_tags
   └─ Auto-apply user: tags for known users/aliases found in text
   └─ Update document: category, summary, tags
+  └─ Enqueue ROUTE_FILE task (priority 1, dedup: skip if already pending)
 
 EXTRACT_METADATA task:
   └─ Send document content to LLM
   └─ Parse: title, document_date, category, monetary amounts, entities
   └─ Store to document_fields table
   └─ Update document.title, document.document_date if extracted
+  └─ Enqueue ROUTE_FILE task (priority 1, dedup: skip if already pending)
+
+ROUTE_FILE task (NOT suppressed during AI pause):
+  └─ Locate file on disk (current_path or original_path)
+  └─ Find watch directory by original_path prefix
+  └─ Load active routing rules (ordered by priority ASC)
+  └─ Get document tags
+  └─ First matching rule → build destination:
+        archive_path / directory_name / [sub_level_1] / [sub_level_2] / filename
+  └─ Idempotent: skip if file is already at the natural destination
+  └─ shutil.move to destination; update current_path + file_policy_applied = "route_file"
+  └─ Log to file_operation_logs
+  └─ No match → fall back to watch directory's file_policy
 ```
 
 ### File Policy Execution
 
-Applied immediately after a document reaches `processed` status. The policy comes from the `watch_directories` record for the directory where the file was found.
+Applied immediately after a document reaches `processed` status, **only when no active routing rules exist** for the watch directory. The policy comes from the `watch_directories` record for the directory where the file was found.
 
 | Policy | Action |
 |--------|--------|
@@ -809,6 +871,38 @@ Applied immediately after a document reaches `processed` status. The policy come
 | `rename_template` | `os.rename(source, source_dir/rendered_name)` |
 
 Conflict resolution: appends `-{hash[:8]}` suffix if destination exists. All operations logged to `file_operation_logs`. File operations update `document.current_path` and `document.file_policy_applied`.
+
+### Tag-Based Routing
+
+When routing rules exist for a watch directory, file movement is deferred from ingest time to after classification/extraction (when tags are available).
+
+**Rule evaluation (ROUTE_FILE task):**
+1. Load active rules for the watch directory, ordered by `priority ASC` (lower = higher priority)
+2. For each rule, check if the document's tags match: `any` = at least one rule tag present, `all` = every rule tag present
+3. First matching rule determines the destination:
+   ```
+   archive_path / directory_name / sub_level_1 / sub_level_2 / original_filename
+   ```
+4. If no rule matches, the watch directory's `file_policy` is applied as fallback
+
+**Sub-level templates** — each sub-level is rendered with:
+
+| Variable | Value |
+|----------|-------|
+| `{year}` | From `document_date` if set, otherwise UTC now |
+| `{month}` | From `document_date` (zero-padded) |
+| `{day}` | From `document_date` (zero-padded) |
+| `{date}` | ISO date (YYYY-MM-DD) |
+| `{category}` | `document.category` or `"other"` |
+| `{title}` | Sanitised document title |
+| `{original_name}` | Filename stem without extension |
+| `{ext}` | File extension without leading dot |
+| `{hash}` | First 8 chars of content hash |
+| `{tag:prefix}` | Value of the first tag matching `prefix:*` (e.g. `{tag:category}` on `category:tax` → `tax`) |
+
+**Re-routing on config changes:** Creating, updating, or deleting a routing rule automatically enqueues `ROUTE_FILE` for all documents whose `original_path` is under that watch directory. The "Re-route All" button in the admin UI does the same on demand.
+
+**Idempotency:** If a document is already at its natural destination path, the task is a no-op.
 
 ### Chunker
 
@@ -830,11 +924,12 @@ Duplicate files are not re-indexed; their new path is recorded in `file_paths`.
 
 Background workers poll the `tasks` table. Task routing:
 
-| TaskType | Handler |
-|----------|---------|
-| `ingest` | `run_ingest_pipeline()` |
-| `classify` | `ClassificationService.classify_document()` |
-| `extract_metadata` | `ExtractionService.extract_document()` |
+| TaskType | Handler | AI-paused? |
+|----------|---------|------------|
+| `ingest` | `run_ingest_pipeline()` | Runs |
+| `classify` | `ClassificationService.classify_document()` | Suppressed |
+| `extract_metadata` | `ExtractionService.extract_document()` | Suppressed |
+| `route_file` | `RoutingService.route_document()` | Runs |
 
 Failed tasks retry up to `max_attempts` (default 3) with exponential backoff: 1m → 5m → 15m. Stale tasks (stuck in `running` > 30 minutes) are reset to `pending` by `recover_stale()`.
 
@@ -850,7 +945,7 @@ When paused, the task worker passes `exclude_types={"classify", "extract_metadat
 | Indefinite | `POST /admin/processing/pause {}` | Stays paused until `POST /admin/processing/resume` |
 | App restart | — | Pause state is in-memory only; always clears on restart |
 
-**What continues during pause:** INGEST tasks (text extraction, OCR, chunking), file watching, FTS5 indexing, deduplication.
+**What continues during pause:** INGEST tasks (text extraction, OCR, chunking), ROUTE_FILE tasks (file moves), file watching, FTS5 indexing, deduplication.
 
 **What is suppressed:** CLASSIFY and EXTRACT_METADATA dequeues, embedding scheduler runs.
 
@@ -1056,9 +1151,9 @@ class MyRepository:
 
 | Category | Description | Files |
 |----------|-------------|-------|
-| Unit | Pure logic, no I/O | `test_chunker.py`, `test_hasher.py`, `test_config.py` |
-| Service | Async DB with in-memory SQLite | `test_database.py`, `test_extraction.py`, `test_classification.py`, `test_embedder.py` |
-| API | FastAPI test client | `test_api.py`, `test_web.py`, `test_mcp.py` |
+| Unit | Pure logic, no I/O | `test_chunker.py`, `test_hasher.py`, `test_config.py`, `test_routing.py` (unit section) |
+| Service | Async DB with in-memory SQLite | `test_database.py`, `test_extraction.py`, `test_classification.py`, `test_embedder.py`, `test_routing.py` (DB section) |
+| API | FastAPI test client | `test_api.py`, `test_web.py`, `test_mcp.py`, `test_routing.py` (API section) |
 | Integration | Requires live Ollama instance | `test_ollama_integration.py`, `test_semantic_search_e2e.py`, `test_ocr_integration.py` |
 
 Integration tests are marked with `@pytest.mark.integration` and skipped unless `OLLAMA_API_BASE` is set in the environment.
