@@ -2,6 +2,85 @@
 {% block title %}Queue — Admin — MyMemex{% endblock %}
 
 {% block content %}
+
+<!-- Processing Engine Status Card -->
+<div x-data="{
+    engine: {paused: false, paused_until: null, paused_at: null, ai_tasks_pending: 0},
+    dropdownOpen: false,
+    async loadEngine() {
+        const r = await fetch('/api/v1/admin/processing/status');
+        if (r.ok) this.engine = await r.json();
+    },
+    async pause(minutes) {
+        this.dropdownOpen = false;
+        const body = minutes ? {minutes} : {};
+        await fetch('/api/v1/admin/processing/pause', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        await this.loadEngine();
+    },
+    async resume() {
+        await fetch('/api/v1/admin/processing/resume', {method: 'POST'});
+        await this.loadEngine();
+    },
+    timeRemaining() {
+        if (!this.engine.paused_until) return 'until resumed';
+        const ms = new Date(this.engine.paused_until) - new Date();
+        if (ms <= 0) return 'expiring\u2026';
+        const m = Math.floor(ms / 60000);
+        const h = Math.floor(m / 60);
+        if (h >= 1) return h + 'h ' + (m % 60) + 'm';
+        return m + 'm';
+    }
+}" x-init="loadEngine()" class="mb-6">
+
+    <!-- Active state -->
+    <div x-show="!engine.paused" class="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 shadow-sm">
+        <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+            <span>AI processing active</span>
+        </div>
+        <div class="relative">
+            <button @click="dropdownOpen = !dropdownOpen"
+                    class="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
+                Pause
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div x-show="dropdownOpen" @click.outside="dropdownOpen = false"
+                 class="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-10 py-1">
+                <button @click="pause(15)"  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">15 minutes</button>
+                <button @click="pause(60)"  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">1 hour</button>
+                <button @click="pause(240)" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">4 hours</button>
+                <button @click="pause(480)" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">8 hours</button>
+                <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+                <button @click="pause(null)" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">Until resumed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paused state -->
+    <div x-show="engine.paused" class="flex items-center justify-between bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg px-4 py-3 shadow-sm">
+        <div class="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300">
+            <span class="text-base">&#9646;&#9646;</span>
+            <span>
+                AI processing paused &middot;
+                <span x-text="timeRemaining()"></span>
+                <span x-show="engine.ai_tasks_pending > 0">
+                    (<span x-text="engine.ai_tasks_pending"></span> task<span x-show="engine.ai_tasks_pending !== 1">s</span> waiting)
+                </span>
+            </span>
+        </div>
+        <button @click="resume()"
+                class="px-3 py-1.5 text-sm border border-amber-400 dark:border-amber-600 rounded-md hover:bg-amber-100 dark:hover:bg-amber-800/40 transition-colors text-amber-800 dark:text-amber-300">
+            Resume
+        </button>
+    </div>
+</div>
+
 <div x-data="{
     tasks: [],
     total: 0,

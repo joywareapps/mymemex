@@ -68,10 +68,16 @@ class TaskQueue:
         self,
         task_types: list[TaskType] | None = None,
         limit: int = 1,
+        exclude_types: set[str] | None = None,
     ) -> list[Task]:
         """
         Get next pending tasks, ordered by priority (desc) then created_at (asc).
         Atomically marks them as RUNNING.
+
+        Args:
+            task_types: Only dequeue tasks of these types (allowlist).
+            limit: Maximum number of tasks to return.
+            exclude_types: Skip tasks of these types (used to suppress AI tasks when paused).
         """
         query = (
             select(Task)
@@ -85,6 +91,9 @@ class TaskQueue:
 
         if task_types:
             query = query.where(Task.task_type.in_([t.value for t in task_types]))
+
+        if exclude_types:
+            query = query.where(Task.task_type.notin_(list(exclude_types)))
 
         result = await self.session.execute(query)
         tasks = list(result.scalars().all())

@@ -1,8 +1,8 @@
 # MyMemex Specification
 
-**Version:** M12
-**Last Updated:** 2026-02-23
-**Test Coverage:** 160+ tests passing, 15 skipped (integration tests requiring live Ollama)
+**Version:** M12 + AI Pause
+**Last Updated:** 2026-02-24
+**Test Coverage:** 183 passing, 15 skipped (integration tests requiring live Ollama)
 
 ---
 
@@ -29,6 +29,8 @@ The system exposes three interfaces: a REST/Web UI for humans, an MCP (Model Con
 **Task** — A unit of background work in the task queue (ingest, classify, embed, extract, OCR). Tasks have priorities, retry logic with exponential backoff, and status tracking.
 
 **File Policy** — What happens to the original file after ingestion: keep it in place, move it to an archive, copy it, rename it using a template, or delete it.
+
+**AI Processing Pause** — A module-level toggle that suppresses new dequeues of AI/LLM task types (CLASSIFY, EXTRACT_METADATA, EMBED) and skips embedding scheduler runs. Non-AI tasks (INGEST) continue unaffected. In-flight tasks always complete. State is held in memory only; app restart always resumes processing.
 
 **MCP Token** — A bearer token for authenticating HTTP-transport MCP server requests. Tokens have a `mymemex_` prefix, are stored as SHA-256 hashes, and are shown in full only once on creation.
 
@@ -591,6 +593,32 @@ Creating/deleting a watch folder dynamically updates the live watcher without re
 |--------|------|-------------|
 | GET | `/admin/stats` | Extended stats: docs, users, watch folders, tokens, backups |
 
+#### Processing Engine
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/admin/processing/status` | Current pause state + pending AI task count |
+| POST | `/admin/processing/pause` | Pause AI/LLM processing |
+| POST | `/admin/processing/resume` | Resume AI/LLM processing |
+
+**GET /admin/processing/status response:**
+```json
+{
+  "paused": false,
+  "paused_until": null,
+  "paused_at": null,
+  "ai_tasks_pending": 0
+}
+```
+
+**POST /admin/processing/pause body:** `{ "minutes": int | null }`
+- `minutes=null` (or omitted) → pause indefinitely until manually resumed
+- `minutes=60` → auto-resume after 60 minutes
+- Writes a `processing` component entry to the system log
+- In-flight tasks always complete; only new dequeues are suppressed
+
+**POST /admin/processing/resume:** No body. Clears pause state immediately.
+
 ---
 
 ## MCP Server
@@ -726,7 +754,7 @@ All admin pages are under `/ui/admin/`. The navigation bar has an **Admin** drop
 | `/ui/admin/mcp` | MCP Tokens | Token list with prefix display + generate-token modal. Full token displayed once on creation |
 | `/ui/admin/backup` | Backup | Config form (cron schedule, retention, destination) + backup history table + "Backup Now" button |
 | `/ui/admin/users` | Users | CRUD table of user profiles + add/edit modal with name and aliases list |
-| `/ui/admin/queue` | Task Queue | Live task list with WebSocket updates, status filter, cancel/retry actions |
+| `/ui/admin/queue` | Task Queue | Processing Engine status card (pause/resume AI tasks) above a live task list with status filter, cancel/retry actions |
 | `/ui/admin/logs` | Logs | Dual-tab view: File Operations log and System Log, each with level/component filters |
 
 ---
@@ -809,6 +837,22 @@ Background workers poll the `tasks` table. Task routing:
 | `extract_metadata` | `ExtractionService.extract_document()` |
 
 Failed tasks retry up to `max_attempts` (default 3) with exponential backoff: 1m → 5m → 15m. Stale tasks (stuck in `running` > 30 minutes) are reset to `pending` by `recover_stale()`.
+
+### AI Processing Pause
+
+When paused, the task worker passes `exclude_types={"classify", "extract_metadata", "embed"}` to `TaskQueue.dequeue()`. AI tasks remain `PENDING` — they are never dropped or failed. The embedding scheduler skips its `embed_pending_chunks()` call but keeps its sleep loop running.
+
+**Pause modes:**
+
+| Mode | How | Behavior |
+|------|-----|----------|
+| Timed | `POST /admin/processing/pause {"minutes": N}` | Auto-resumes when `paused_until` passes; checked on every dequeue |
+| Indefinite | `POST /admin/processing/pause {}` | Stays paused until `POST /admin/processing/resume` |
+| App restart | — | Pause state is in-memory only; always clears on restart |
+
+**What continues during pause:** INGEST tasks (text extraction, OCR, chunking), file watching, FTS5 indexing, deduplication.
+
+**What is suppressed:** CLASSIFY and EXTRACT_METADATA dequeues, embedding scheduler runs.
 
 ---
 

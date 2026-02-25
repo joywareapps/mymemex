@@ -8,6 +8,7 @@ import structlog
 
 from ..config import AppConfig
 from ..intelligence.pipeline import embed_pending_chunks
+from ..processing.pipeline import get_ai_pause_state
 
 log = structlog.get_logger()
 
@@ -23,6 +24,10 @@ async def embedding_scheduler(config: AppConfig) -> None:
     while True:
         try:
             await asyncio.sleep(60)
+
+            if get_ai_pause_state().is_ai_paused():
+                log.debug("Embedding scheduler skipped — AI processing paused")
+                continue
 
             count = await embed_pending_chunks(config)
             if count > 0:

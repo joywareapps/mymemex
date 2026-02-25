@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 import structlog
@@ -24,11 +25,47 @@ from ..storage.repositories import ChunkRepository, DocumentRepository, WatchDir
 log = structlog.get_logger()
 
 
+# Task types that use AI/LLM — suppressed when processing is paused
+AI_TASK_TYPES = {"classify", "extract_metadata", "embed"}
+
+
+@dataclass
+class ProcessingPauseState:
+    """Module-level singleton tracking whether AI/LLM processing is paused."""
+
+    paused: bool = False
+    paused_until: datetime | None = None  # None = manual resume only
+    paused_at: datetime | None = None
+
+    def is_ai_paused(self) -> bool:
+        """Return True if AI processing is currently paused.
+
+        Auto-clears if a timed pause has expired.
+        """
+        if not self.paused:
+            return False
+        if self.paused_until and datetime.now(timezone.utc) >= self.paused_until:
+            self.paused = False
+            self.paused_until = None
+            self.paused_at = None
+            return False
+        return True
+
+
+_ai_pause_state = ProcessingPauseState()
+
+
+def get_ai_pause_state() -> ProcessingPauseState:
+    """Return the module-level AI pause state singleton."""
+    return _ai_pause_state
+
+
 # Module-level semaphore to limit concurrent ingestion (SQLite write protection)
 _ingest_semaphore: asyncio.Semaphore | None = None
 
 
 def _get_ingest_semaphore(config: AppConfig) -> asyncio.Semaphore:
+
     """Get or create the global ingestion semaphore."""
     global _ingest_semaphore
     if _ingest_semaphore is None:
@@ -363,7 +400,11 @@ async def task_worker(
             async with get_session() as session:
                 queue = TaskQueue(session)
 
-                tasks = await queue.dequeue(limit=1)
+                pause = get_ai_pause_state()
+                if pause.is_ai_paused():
+                    tasks = await queue.dequeue(limit=1, exclude_types=AI_TASK_TYPES)
+                else:
+                    tasks = await queue.dequeue(limit=1)
                 if not tasks:
                     if exit_when_empty:
                         # Re-check a few times with delay to ensure no new tasks 
