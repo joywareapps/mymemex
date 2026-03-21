@@ -70,13 +70,14 @@ async def create_watch_folder(body: WatchFolderCreate, request: Request):
             archive_path=body.archive_path,
             rename_template=body.rename_template,
         )
+        result = _wd_to_dict(wd)
 
     # Dynamically register with running watcher
     watcher = getattr(request.app.state, "watcher", None)
     if watcher and body.is_active:
         watcher.add_directory(path)
 
-    return _wd_to_dict(wd)
+    return result
 
 
 @router.get("/watch-folders/{folder_id}")
@@ -84,9 +85,9 @@ async def get_watch_folder(folder_id: int):
     async with get_session() as session:
         repo = WatchDirectoryRepository(session)
         wd = await repo.get(folder_id)
-    if not wd:
-        raise HTTPException(status_code=404, detail="Watch folder not found")
-    return _wd_to_dict(wd)
+        if not wd:
+            raise HTTPException(status_code=404, detail="Watch folder not found")
+        return _wd_to_dict(wd)
 
 
 @router.patch("/watch-folders/{folder_id}")
@@ -111,6 +112,7 @@ async def update_watch_folder(folder_id: int, body: WatchFolderUpdate, request: 
 
         await repo.update(wd, **kwargs)
         path = wd.path
+        result = _wd_to_dict(wd)
 
     # Sync with watcher
     watcher = getattr(request.app.state, "watcher", None)
@@ -120,7 +122,7 @@ async def update_watch_folder(folder_id: int, body: WatchFolderUpdate, request: 
         elif body.is_active is False:
             watcher.remove_directory(path)
 
-    return _wd_to_dict(wd)
+    return result
 
 
 @router.delete("/watch-folders/{folder_id}", status_code=204)
