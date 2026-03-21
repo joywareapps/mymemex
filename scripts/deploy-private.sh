@@ -38,6 +38,10 @@ fi
 DOCS_HOST_PATH=$(eval echo "${DOCUMENTS_PATH:-~/Documents}")
 ABS_DOCS_PATH=$(readlink -f "$DOCS_HOST_PATH")
 
+# Library path for organized files
+LIB_HOST_PATH=$(eval echo "${LIBRARY_PATH:-$ABS_DOCS_PATH}")
+ABS_LIB_PATH=$(readlink -f "$LIB_HOST_PATH")
+
 docker run -d \
   --name mymemex-private \
   -p 8002:8000 \
@@ -45,7 +49,8 @@ docker run -d \
   --env-file .env \
   -v "$(pwd)/config:/app/config:ro" \
   -v "$(pwd)/data:/var/lib/mymemex" \
-  -v "$ABS_DOCS_PATH:/app/incoming:ro" \
+  -v "$ABS_DOCS_PATH:/app/inbox" \
+  -v "$ABS_LIB_PATH:/media/seagate/mymemex" \
   --restart unless-stopped \
   mymemex:latest
 
