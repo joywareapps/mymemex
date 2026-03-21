@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
     tesseract-ocr-deu \
+    tesseract-ocr-srp \
+    tesseract-ocr-hrv \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
