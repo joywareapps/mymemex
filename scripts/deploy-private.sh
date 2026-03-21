@@ -45,6 +45,7 @@ ABS_LIB_PATH=$(readlink -f "$LIB_HOST_PATH")
 docker run -d \
   --name mymemex-private \
   -p 8002:8000 \
+  -p 8003:8001 \
   --user root \
   --env-file .env \
   -v "$(pwd)/config:/app/config:ro" \
