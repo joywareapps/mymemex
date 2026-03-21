@@ -141,7 +141,7 @@ async def delete_watch_folder(folder_id: int, request: Request):
 
 
 @router.post("/watch-folders/{folder_id}/rescan")
-async def rescan_watch_folder(folder_id: int):
+async def rescan_watch_folder(folder_id: int, request: Request):
     """Trigger a rescan of all files in a watch folder."""
     async with get_session() as session:
         repo = WatchDirectoryRepository(session)
@@ -153,6 +153,14 @@ async def rescan_watch_folder(folder_id: int):
     if not path.exists():
         raise HTTPException(status_code=422, detail="Directory does not exist on disk")
 
-    # Count files to scan (actual scanning happens asynchronously)
+    # Start rescan in background
+    from ...processing.rescan import rescan_directory
+    config = request.app.state.config
+    events = request.app.state.events
+    
+    # We don't await this, just fire and forget into the event loop
+    asyncio.create_task(rescan_directory(path, config, events))
+
+    # Count files to scan for immediate feedback
     file_count = sum(1 for _ in path.rglob("*") if _.is_file())
     return {"status": "scheduled", "path": str(path), "file_count": file_count}
