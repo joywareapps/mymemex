@@ -2,6 +2,8 @@ FROM python:3.11-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    # For health checks
+    curl \
     # For python-magic
     libmagic1 \
     # For pdf2image
