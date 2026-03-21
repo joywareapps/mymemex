@@ -58,6 +58,21 @@ async def update_config(updates: dict, request: Request):
     return {"status": "saved", "path": str(config_path)}
 
 
+@router.post("/restart")
+async def restart_server():
+    """Restart the server process."""
+    import sys
+    import threading
+
+    def _restart():
+        import time
+        time.sleep(0.5)
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+
+    threading.Thread(target=_restart, daemon=True).start()
+    return {"status": "restarting"}
+
+
 @router.post("/config/validate")
 async def validate_config(data: dict):
     """Validate a config dict without saving."""

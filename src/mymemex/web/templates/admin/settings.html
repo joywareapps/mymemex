@@ -8,6 +8,8 @@
     saving: false,
     saved: false,
     restartNeeded: false,
+    restarting: false,
+    restartStatus: '',
     async load() {
         const r = await fetch('/api/v1/admin/config');
         this.config = await r.json();
@@ -27,6 +29,21 @@
             setTimeout(() => this.saved = false, 3000);
         }
     },
+    async restart() {
+        this.restarting = true;
+        this.restartStatus = 'Restarting…';
+        await fetch('/api/v1/admin/restart', {method: 'POST'}).catch(() => {});
+        const poll = setInterval(async () => {
+            try {
+                const r = await fetch('/api/v1/admin/config');
+                if (r.ok) {
+                    clearInterval(poll);
+                    this.restartStatus = 'Done! Reloading…';
+                    setTimeout(() => location.reload(), 800);
+                }
+            } catch {}
+        }, 1000);
+    },
     tabs: [
         {id: 'server', label: 'Server'},
         {id: 'llm', label: 'LLM'},
@@ -40,11 +57,16 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
         <div class="flex items-center gap-3">
-            <span x-show="restartNeeded" class="text-yellow-600 text-sm font-medium">⚠ Restart required</span>
+            <span x-show="restartNeeded && !restarting" class="text-yellow-600 text-sm font-medium">⚠ Restart required</span>
+            <span x-show="restarting" class="text-blue-600 text-sm font-medium" x-text="restartStatus"></span>
             <span x-show="saved" class="text-green-600 text-sm">Saved!</span>
             {% if demo_mode %}
             <span class="text-amber-600 text-sm font-medium">Demo mode: Read-only</span>
             {% endif %}
+            <button x-show="restartNeeded && !restarting" @click="restart()"
+                    class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 text-sm transition-colors">
+                Restart Now
+            </button>
             <button @click="save()" :disabled="saving || {{ 'true' if demo_mode else 'false' }}"
                     class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm transition-colors">
                 <span x-show="!saving">Save</span>
