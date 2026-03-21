@@ -34,6 +34,10 @@ if [ -f ".env" ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
+# Resolve absolute path for documents to avoid Docker error
+DOCS_HOST_PATH=$(eval echo "${DOCUMENTS_PATH:-~/Documents}")
+ABS_DOCS_PATH=$(readlink -f "$DOCS_HOST_PATH")
+
 docker run -d \
   --name mymemex-private \
   -p 8002:8000 \
@@ -41,7 +45,7 @@ docker run -d \
   --env-file .env \
   -v "$(pwd)/config:/app/config:ro" \
   -v "$(pwd)/data:/var/lib/mymemex" \
-  -v "${DOCUMENTS_PATH:-~/Documents}:/app/incoming:ro" \
+  -v "$ABS_DOCS_PATH:/app/incoming:ro" \
   --restart unless-stopped \
   mymemex:latest
 
