@@ -80,14 +80,21 @@
     },
     async rescan(f) {
         f.rescanning = true;
-        const r = await fetch('/api/v1/admin/watch-folders/' + f.id + '/rescan', {method: 'POST'});
-        if (r.ok) {
-            const d = await r.json();
-            alert('Rescan started: ' + d.file_count + ' files found in ' + f.path);
-        } else {
-            alert('Rescan failed');
+        f.rescanMsg = '';
+        try {
+            const r = await fetch('/api/v1/admin/watch-folders/' + f.id + '/rescan', {method: 'POST'});
+            if (r.ok) {
+                const d = await r.json();
+                f.rescanMsg = 'Queued ' + d.file_count + ' files';
+            } else {
+                const d = await r.json().catch(() => ({}));
+                f.rescanMsg = 'Error: ' + (d.detail || r.status);
+            }
+        } catch (e) {
+            f.rescanMsg = 'Network error';
         }
         f.rescanning = false;
+        setTimeout(() => f.rescanMsg = '', 8000);
     }
 }" x-init="load()">
 
@@ -120,6 +127,9 @@
                                   x-text="f.is_active ? 'Active' : 'Paused'"></span>
                         </td>
                         <td class="px-6 py-4 text-right space-x-2">
+                            <span x-show="f.rescanMsg" x-text="f.rescanMsg"
+                                  :class="f.rescanMsg && f.rescanMsg.startsWith('Error') ? 'text-red-500' : 'text-green-600'"
+                                  class="text-xs mr-2"></span>
                             <button @click="rescan(f)" :disabled="f.rescanning" class="text-green-600 hover:underline text-sm disabled:opacity-50"
                                     x-text="f.rescanning ? 'Scanning…' : 'Rescan'"></button>
                             <button @click="toggle(f)" class="text-yellow-600 hover:underline text-sm"
