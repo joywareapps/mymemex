@@ -51,9 +51,14 @@ async def update_config(updates: dict, request: Request):
     # Deep merge
     _deep_merge(existing, updates)
 
-    config_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(config_path, "w") as f:
-        yaml.dump(existing, f, default_flow_style=False)
+    try:
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, "w") as f:
+            yaml.dump(existing, f, default_flow_style=False)
+    except PermissionError:
+        raise HTTPException(status_code=403, detail=f"Config file is read-only: {config_path}")
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to write config: {e}")
 
     return {"status": "saved", "path": str(config_path)}
 

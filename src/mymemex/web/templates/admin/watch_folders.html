@@ -77,6 +77,17 @@
         if (!confirm('Remove watch folder ' + f.path + '?')) return;
         await fetch('/api/v1/admin/watch-folders/' + f.id, {method: 'DELETE'});
         await this.load();
+    },
+    async rescan(f) {
+        f.rescanning = true;
+        const r = await fetch('/api/v1/admin/watch-folders/' + f.id + '/rescan', {method: 'POST'});
+        if (r.ok) {
+            const d = await r.json();
+            alert('Rescan started: ' + d.file_count + ' files found in ' + f.path);
+        } else {
+            alert('Rescan failed');
+        }
+        f.rescanning = false;
     }
 }" x-init="load()">
 
@@ -109,6 +120,8 @@
                                   x-text="f.is_active ? 'Active' : 'Paused'"></span>
                         </td>
                         <td class="px-6 py-4 text-right space-x-2">
+                            <button @click="rescan(f)" :disabled="f.rescanning" class="text-green-600 hover:underline text-sm disabled:opacity-50"
+                                    x-text="f.rescanning ? 'Scanning…' : 'Rescan'"></button>
                             <button @click="toggle(f)" class="text-yellow-600 hover:underline text-sm"
                                     x-text="f.is_active ? 'Pause' : 'Resume'"></button>
                             <button @click="openEdit(f)" class="text-blue-600 hover:underline text-sm">Edit</button>
