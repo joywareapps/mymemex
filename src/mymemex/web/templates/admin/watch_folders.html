@@ -9,6 +9,8 @@
     form: {path: '', patterns: '', is_active: true, file_policy: 'keep_original', archive_path: '', rename_template: ''},
     loading: false,
     rescanState: {},
+    accessTest: null,
+    accessTesting: false,
     policies: ['keep_original', 'rename_template', 'move_to_archive', 'copy_organized', 'delete_original'],
     async load() {
         const r = await fetch('/api/v1/admin/watch-folders');
@@ -17,10 +19,12 @@
     },
     openAdd() {
         this.editFolder = null;
+        this.accessTest = null;
         this.form = {path: '', patterns: '', is_active: true, file_policy: 'keep_original', archive_path: '', rename_template: ''};
         this.showModal = true;
     },
     openEdit(f) {
+        this.accessTest = null;
         this.editFolder = f;
         this.form = {
             path: f.path,
@@ -73,6 +77,24 @@
             body: JSON.stringify({is_active: !f.is_active})
         });
         await this.load();
+    },
+    async testAccess() {
+        this.accessTesting = true;
+        this.accessTest = null;
+        try {
+            const r = await fetch('/api/v1/admin/watch-folders/' + this.editFolder.id + '/test-access', {method: 'POST'});
+            const d = await r.json();
+            if (r.ok) {
+                this.accessTest = d.ok
+                    ? {ok: true, msg: 'Write access OK — ' + d.path}
+                    : {ok: false, msg: d.error};
+            } else {
+                this.accessTest = {ok: false, msg: d.detail || 'Error ' + r.status};
+            }
+        } catch (e) {
+            this.accessTest = {ok: false, msg: 'Network error'};
+        }
+        this.accessTesting = false;
     },
     async del(f) {
         if (!confirm('Remove watch folder ' + f.path + '?')) return;
@@ -176,6 +198,15 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Archive Path</label>
                     <input x-model="form.archive_path" type="text"
                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="flex items-center gap-3 mt-2" x-show="editFolder">
+                        <button type="button" @click="testAccess()"
+                                :class="accessTesting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 dark:hover:bg-gray-600'"
+                                class="px-3 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                                x-text="accessTesting ? 'Testing…' : 'Test Access'"></button>
+                        <span x-show="accessTest" x-text="accessTest?.msg"
+                              :class="accessTest?.ok ? 'text-green-600' : 'text-red-500'"
+                              class="text-xs"></span>
+                    </div>
                 </div>
                 <div x-show="form.file_policy === 'rename_template'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rename Template</label>

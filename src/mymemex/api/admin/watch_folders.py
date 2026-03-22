@@ -143,6 +143,38 @@ async def delete_watch_folder(folder_id: int, request: Request):
         watcher.remove_directory(path)
 
 
+@router.post("/watch-folders/{folder_id}/test-access")
+async def test_watch_folder_access(folder_id: int):
+    """Test write/delete access to the archive path by creating and removing a temp file."""
+    import tempfile
+    import os
+
+    async with get_session() as session:
+        repo = WatchDirectoryRepository(session)
+        wd = await repo.get(folder_id)
+        if not wd:
+            raise HTTPException(status_code=404, detail="Watch folder not found")
+        archive_path = wd.archive_path
+
+    if not archive_path:
+        raise HTTPException(status_code=422, detail="No archive path configured on this watch folder")
+
+    dest = Path(archive_path)
+    try:
+        dest.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        return {"ok": False, "error": f"Cannot create archive directory: {e}"}
+
+    try:
+        fd, tmp_path = tempfile.mkstemp(prefix=".mymemex_test_", dir=dest)
+        os.close(fd)
+        os.unlink(tmp_path)
+    except Exception as e:
+        return {"ok": False, "error": f"Cannot write/delete in archive path: {e}"}
+
+    return {"ok": True, "path": str(dest)}
+
+
 @router.post("/watch-folders/{folder_id}/rescan")
 async def rescan_watch_folder(folder_id: int, request: Request):
     """Trigger a rescan of all files in a watch folder."""
