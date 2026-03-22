@@ -51,7 +51,7 @@ async def rescan_directory(
             continue
 
         # Ingest
-        log.debug("Rescan discovered file", path=str(p))
+        log.info("Rescan discovered file", path=str(p))
         await handle_new_file(p, config, events)
         count += 1
 

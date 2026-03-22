@@ -162,7 +162,13 @@ async def rescan_watch_folder(folder_id: int, request: Request):
     events = request.app.state.events
     
     # We don't await this, just fire and forget into the event loop
-    asyncio.create_task(rescan_directory(path, config, events))
+    async def _run():
+        try:
+            await rescan_directory(path, config, events)
+        except Exception as e:
+            import structlog
+            structlog.get_logger().error("Rescan task failed", path=str(path), error=str(e), exc_info=True)
+    asyncio.create_task(_run())
 
     # Count files to scan for immediate feedback
     file_count = sum(1 for _ in path.rglob("*") if _.is_file())
