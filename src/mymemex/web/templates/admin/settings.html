@@ -10,6 +10,8 @@
     restartNeeded: false,
     restarting: false,
     restartStatus: '',
+    llmTesting: false,
+    llmTestResult: null,
     async load() {
         const r = await fetch('/api/v1/admin/config');
         this.config = await r.json();
@@ -28,6 +30,29 @@
             this.restartNeeded = true;
             setTimeout(() => this.saved = false, 3000);
         }
+    },
+    async testLlm() {
+        this.llmTesting = true;
+        this.llmTestResult = null;
+        try {
+            const r = await fetch('/api/v1/admin/config/test-llm', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({llm: this.config.llm})
+            });
+            const d = await r.json();
+            if (r.ok) {
+                this.llmTestResult = d.ok
+                    ? {ok: true, msg: 'Connected — response: ' + d.response}
+                    : {ok: false, msg: d.error};
+            } else {
+                this.llmTestResult = {ok: false, msg: d.detail || 'Error ' + r.status};
+            }
+        } catch (e) {
+            this.llmTestResult = {ok: false, msg: 'Network error'};
+        }
+        this.llmTesting = false;
+        setTimeout(() => this.llmTestResult = null, 15000);
     },
     async restart() {
         this.restarting = true;
@@ -140,6 +165,15 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
                 <input x-model="config.llm.api_key" type="password" placeholder="Leave blank to keep existing"
                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex items-center gap-3 pt-2">
+                <button @click="testLlm()"
+                        :class="llmTesting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 dark:hover:bg-gray-600'"
+                        class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                        x-text="llmTesting ? 'Testing…' : 'Test Connection'"></button>
+                <span x-show="llmTestResult"
+                      :class="llmTestResult?.ok ? 'text-green-600' : 'text-red-500'"
+                      class="text-sm" x-text="llmTestResult?.msg"></span>
             </div>
         </div>
 

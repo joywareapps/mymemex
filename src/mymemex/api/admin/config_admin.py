@@ -78,6 +78,35 @@ async def restart_server():
     return {"status": "restarting"}
 
 
+@router.post("/config/test-llm")
+async def test_llm(data: dict, request: Request):
+    """Test LLM connectivity using the provided (unsaved) config."""
+    from ...config import LLMConfig
+    from ...intelligence.llm_client import create_llm_client, NoneClient
+
+    # Merge submitted llm section over current config
+    current = request.app.state.config.llm.model_dump()
+    current.update(data.get("llm", data))  # accept {llm: {...}} or flat llm dict
+    try:
+        llm_config = LLMConfig.model_validate(current)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Invalid LLM config: {e}")
+
+    if llm_config.provider in (None, "none"):
+        raise HTTPException(status_code=422, detail="No LLM provider configured")
+
+    try:
+        client = create_llm_client(llm_config)
+        if isinstance(client.inner if hasattr(client, "inner") else client, NoneClient):
+            raise HTTPException(status_code=422, detail="No LLM provider configured")
+        response = await client.generate("Reply with exactly one word: OK")
+        return {"ok": True, "response": response.strip()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 @router.post("/config/validate")
 async def validate_config(data: dict):
     """Validate a config dict without saving."""
