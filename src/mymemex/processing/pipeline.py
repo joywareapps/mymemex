@@ -307,9 +307,33 @@ async def run_ingest_pipeline(
 
                 await session.commit()
 
+                total_chunks = len(all_chunks) + ocr_chunk_count
+                log.info(
+                    "Document ingested",
+                    doc_id=doc.id,
+                    native_chunks=len(all_chunks),
+                    ocr_chunks=ocr_chunk_count,
+                    total_chunks=total_chunks,
+                    pages=metadata["page_count"],
+                    pages_ocr=len(pages_needing_ocr),
+                )
+
+                # Determine which LLM tasks will be enqueued
+                will_classify = config.classification.enabled and total_chunks > 0
+                will_extract = (
+                    config.extraction.enabled
+                    and config.llm.provider
+                    and config.llm.provider != "none"
+                    and total_chunks > 0
+                )
+
                 # Step 5: Update document status
-                await repo.update_status(doc, "processed")
-                await repo.update(doc, processed_at=datetime.utcnow())
+                if will_classify or will_extract:
+                    await repo.update_status(doc, "waiting_llm")
+                    log.info("Document waiting for LLM processing", doc_id=doc.id)
+                else:
+                    await repo.update_status(doc, "processed")
+                    await repo.update(doc, processed_at=datetime.utcnow())
 
                 # Step 5b: Apply file policy if a watch directory is configured
                 # (Skip if routing rules exist — ROUTE_FILE task handles it after classify)
@@ -329,19 +353,8 @@ async def run_ingest_pipeline(
                 except Exception as fe:
                     log.warning("File policy apply failed", doc_id=doc.id, error=str(fe))
 
-                total_chunks = len(all_chunks) + ocr_chunk_count
-                log.info(
-                    "Document ingested",
-                    doc_id=doc.id,
-                    native_chunks=len(all_chunks),
-                    ocr_chunks=ocr_chunk_count,
-                    total_chunks=total_chunks,
-                    pages=metadata["page_count"],
-                    pages_ocr=len(pages_needing_ocr),
-                )
-
                 # Step 6: Enqueue classification if enabled
-                if config.classification.enabled and total_chunks > 0:
+                if will_classify:
                     await queue.enqueue(
                         task_type=TaskType.CLASSIFY,
                         payload={"document_id": doc.id},
@@ -351,12 +364,7 @@ async def run_ingest_pipeline(
                     log.info("Classification task enqueued", doc_id=doc.id)
 
                 # Step 7: Enqueue structured extraction if LLM configured
-                if (
-                    config.extraction.enabled
-                    and config.llm.provider
-                    and config.llm.provider != "none"
-                    and total_chunks > 0
-                ):
+                if will_extract:
                     await queue.enqueue(
                         task_type=TaskType.EXTRACT_METADATA,
                         payload={"document_id": doc.id},
@@ -480,6 +488,15 @@ async def _process_task(
             service = ClassificationService(config)
             await service.classify_document(doc_id)
             await queue.complete(task)
+            # Mark processed if no EXTRACT_METADATA task is still pending
+            if not await queue.has_pending_task(doc_id, TaskType.EXTRACT_METADATA.value):
+                async with get_session() as s2:
+                    repo2 = DocumentRepository(s2)
+                    doc2 = await repo2.get_by_id(doc_id)
+                    if doc2 and doc2.status == "waiting_llm":
+                        await repo2.update_status(doc2, "processed")
+                        await repo2.update(doc2, processed_at=datetime.utcnow())
+                        log.info("Document marked processed after classification", doc_id=doc_id)
 
         elif task.task_type == TaskType.EXTRACT_METADATA.value:
             from ..services.extraction import ExtractionService
@@ -488,6 +505,14 @@ async def _process_task(
             service = ExtractionService(config)
             await service.extract_document(doc_id)
             await queue.complete(task)
+            # Mark processed after extraction completes
+            async with get_session() as s2:
+                repo2 = DocumentRepository(s2)
+                doc2 = await repo2.get_by_id(doc_id)
+                if doc2 and doc2.status == "waiting_llm":
+                    await repo2.update_status(doc2, "processed")
+                    await repo2.update(doc2, processed_at=datetime.utcnow())
+                    log.info("Document marked processed after extraction", doc_id=doc_id)
 
         elif task.task_type == TaskType.ROUTE_FILE.value:
             from ..services.routing import RoutingService

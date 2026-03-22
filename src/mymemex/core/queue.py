@@ -151,6 +151,17 @@ class TaskQueue:
             stats[row[0]] = row[1]
         return stats
 
+    async def has_pending_task(self, document_id: int, task_type: str) -> bool:
+        """Check if a pending or running task of the given type exists for a document."""
+        result = await self.session.execute(
+            select(Task.id).where(
+                Task.document_id == document_id,
+                Task.task_type == task_type,
+                Task.status.in_([TaskStatus.PENDING.value, TaskStatus.RUNNING.value]),
+            ).limit(1)
+        )
+        return result.scalar() is not None
+
     async def recover_stale(self, timeout_minutes: int = 30) -> int:
         """Reset tasks stuck in RUNNING state (e.g., after crash)."""
         cutoff = datetime.utcnow() - timedelta(minutes=timeout_minutes)

@@ -104,7 +104,7 @@ async def test_single_ingest_works_unchanged(test_config, db_session, sample_pdf
     # Run ingestion
     await run_ingest_pipeline(doc.id, test_config)
 
-    # Verify document is ready
+    # Verify document is ready (waiting_llm if classification is enabled, else processed)
     await db_session.refresh(doc)
-    assert doc.status == "processed"
+    assert doc.status in ("processed", "waiting_llm")
     assert doc.page_count is not None
