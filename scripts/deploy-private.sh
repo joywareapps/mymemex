@@ -48,7 +48,7 @@ docker run -d \
   -p 8003:8001 \
   --user root \
   --env-file .env \
-  -v "$(pwd)/config:/app/config:ro" \
+  -v "$(pwd)/config:/app/config" \
   -v "$(pwd)/data:/var/lib/mymemex" \
   -v "$ABS_DOCS_PATH:/app/inbox" \
   -v "$ABS_LIB_PATH:/media/seagate/mymemex" \
