@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlparse
 
+import logging
 import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -129,6 +130,29 @@ class SameOriginAdminMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+def _configure_logging(log_level: str = "INFO") -> None:
+    """Configure structlog to output JSON to stdout."""
+    level = getattr(logging, log_level.upper(), logging.INFO)
+    logging.basicConfig(
+        format="%(message)s",
+        level=level,
+    )
+    structlog.configure(
+        processors=[
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.add_logger_name,
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.dev.ConsoleRenderer() if log_level == "DEBUG" else structlog.processors.JSONRenderer(),
+        ],
+        wrapper_class=structlog.stdlib.BoundLogger,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )
+
+
 def create_app(config: AppConfig | None = None) -> FastAPI:
     """Create FastAPI application."""
     if config is None:
@@ -140,6 +164,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+
+    _configure_logging(config.log_level)
 
     app.state.config = config
     app.state.events = EventManager()

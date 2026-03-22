@@ -209,9 +209,10 @@ async def run_ingest_pipeline(
 
         path = Path(doc.original_path)
         if not path.exists():
-            log.error("File not found", path=str(path))
-            await repo.update_status(doc, "failed", error="File not found on disk")
-            return
+            error = f"File not found on disk: {path}"
+            log.error("File not found", path=str(path), doc_id=document_id)
+            await repo.update_status(doc, "failed", error=error)
+            raise FileNotFoundError(error)
 
         await repo.update_status(doc, "processing")
 
