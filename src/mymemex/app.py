@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlparse
 
-import logging
 import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -131,24 +130,19 @@ class SameOriginAdminMiddleware(BaseHTTPMiddleware):
 
 
 def _configure_logging(log_level: str = "INFO") -> None:
-    """Configure structlog to output JSON to stdout."""
-    level = getattr(logging, log_level.upper(), logging.INFO)
-    logging.basicConfig(
-        format="%(message)s",
-        level=level,
-    )
+    """Configure structlog to write directly to stdout, bypassing stdlib logging."""
+    import logging as _logging
+    level = getattr(_logging, log_level.upper(), _logging.INFO)
     structlog.configure(
         processors=[
-            structlog.stdlib.add_log_level,
-            structlog.stdlib.add_logger_name,
             structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.add_log_level,
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
-            structlog.dev.ConsoleRenderer() if log_level == "DEBUG" else structlog.processors.JSONRenderer(),
+            structlog.dev.ConsoleRenderer() if log_level.upper() == "DEBUG" else structlog.processors.JSONRenderer(),
         ],
-        wrapper_class=structlog.stdlib.BoundLogger,
-        context_class=dict,
-        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.make_filtering_bound_logger(level),
+        logger_factory=structlog.PrintLoggerFactory(),
         cache_logger_on_first_use=True,
     )
 
