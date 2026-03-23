@@ -127,6 +127,8 @@ class DocumentRepository:
         if error:
             doc.last_error = error
             doc.error_count = (doc.error_count or 0) + 1
+        else:
+            doc.last_error = None
         doc.updated_at = datetime.utcnow()
         await self.session.commit()
 
