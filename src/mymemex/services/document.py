@@ -85,6 +85,7 @@ class DocumentService:
             "title": doc.title,
             "original_filename": doc.original_filename,
             "original_path": doc.original_path,
+            "current_path": doc.current_path,
             "mime_type": doc.mime_type,
             "file_size": doc.file_size,
             "page_count": doc.page_count,
