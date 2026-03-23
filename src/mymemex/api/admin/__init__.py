@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from .backup import router as backup_router
 from .config_admin import router as config_router
 from .logs import router as logs_router
+from .maintenance import router as maintenance_router
 from .mcp import router as mcp_router
 from .processing import router as processing_router
 from .queue import router as queue_router
@@ -27,3 +28,4 @@ admin_router.include_router(queue_router)
 admin_router.include_router(logs_router)
 admin_router.include_router(stats_router)
 admin_router.include_router(processing_router)
+admin_router.include_router(maintenance_router)

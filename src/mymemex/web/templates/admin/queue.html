@@ -120,6 +120,10 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Task Queue</h1>
         <div class="flex items-center gap-3">
+            <button @click="if(confirm('Reconcile all file paths against disk?\n\nThis will:\n• Find files recorded as missing from their expected path\n• Move files to archive if they should have been moved\n• Update DB references to wherever files were found\n\nThis may take a moment.')) fetch('/api/v1/admin/maintenance/reconcile-files',{method:'POST'}).then(r=>r.json()).then(d=>alert('Reconcile complete:\n✓ OK: '+d.ok+'\n→ Path updated: '+d.path_updated+'\n📦 Moved to archive: '+d.moved+'\n✗ Missing: '+d.missing+(d.missing>0?'\n\nCheck system log for missing file details.':`\n\nAll files accounted for!`)))"
+                    class="px-3 py-2 border border-orange-300 dark:border-orange-700 rounded-md text-sm hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors text-orange-700 dark:text-orange-400">
+                Reconcile Files
+            </button>
             <button @click="if(confirm('Re-run classification on all processed documents?')) fetch('/api/v1/admin/processing/reclassify-all',{method:'POST'}).then(()=>alert('Reclassification scheduled'))"
                     class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                 Reclassify All
