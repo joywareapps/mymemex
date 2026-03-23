@@ -1,5 +1,3 @@
-version: "3.8"
-
 # Private/personal instance — edit .env to configure paths and LLM
 # Deploy: cd <repo> && docker compose -f docker-compose.private.yml up -d --build
 # Or use: ./scripts/deploy-private.sh

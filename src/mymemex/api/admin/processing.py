@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Request
@@ -93,31 +92,51 @@ async def resume_processing():
 
 @router.post("/reclassify-all")
 async def reclassify_all(request: Request):
-    """Re-enqueue classification for all processed documents."""
-    config = request.app.state.config
+    """Enqueue CLASSIFY tasks for all processed documents."""
+    from ...core.queue import TaskQueue, TaskType
+    from ...storage.repositories import DocumentRepository
 
-    async def _run():
-        from ...services.classification import ClassificationService
-        svc = ClassificationService(config)
-        count = await svc.reclassify_all()
-        await system_log(level="info", component="processing",
-                         message=f"Reclassification complete", details={"count": count})
+    async with get_session() as session:
+        doc_repo = DocumentRepository(session)
+        docs, total = await doc_repo.list_documents(status="processed", per_page=10000)
+        queue = TaskQueue(session)
+        count = 0
+        for doc in docs:
+            if not await queue.has_pending_task(doc.id, TaskType.CLASSIFY.value):
+                await queue.enqueue(
+                    task_type=TaskType.CLASSIFY,
+                    payload={"document_id": doc.id},
+                    document_id=doc.id,
+                    priority=3,
+                )
+                count += 1
 
-    asyncio.create_task(_run())
-    return {"status": "scheduled"}
+    await system_log(level="info", component="processing",
+                     message=f"Reclassify-all: enqueued {count} tasks", details={"count": count})
+    return {"status": "scheduled", "enqueued": count}
 
 
 @router.post("/reextract-all")
 async def reextract_all(request: Request):
-    """Re-enqueue metadata extraction for all processed documents."""
-    config = request.app.state.config
+    """Enqueue EXTRACT_METADATA tasks for all processed documents."""
+    from ...core.queue import TaskQueue, TaskType
+    from ...storage.repositories import DocumentRepository
 
-    async def _run():
-        from ...services.extraction import ExtractionService
-        svc = ExtractionService(config)
-        count = await svc.reextract_all()
-        await system_log(level="info", component="processing",
-                         message=f"Re-extraction complete", details={"count": count})
+    async with get_session() as session:
+        doc_repo = DocumentRepository(session)
+        docs, total = await doc_repo.list_documents(status="processed", per_page=10000)
+        queue = TaskQueue(session)
+        count = 0
+        for doc in docs:
+            if not await queue.has_pending_task(doc.id, TaskType.EXTRACT_METADATA.value):
+                await queue.enqueue(
+                    task_type=TaskType.EXTRACT_METADATA,
+                    payload={"document_id": doc.id},
+                    document_id=doc.id,
+                    priority=2,
+                )
+                count += 1
 
-    asyncio.create_task(_run())
-    return {"status": "scheduled"}
+    await system_log(level="info", component="processing",
+                     message=f"Reextract-all: enqueued {count} tasks", details={"count": count})
+    return {"status": "scheduled", "enqueued": count}
