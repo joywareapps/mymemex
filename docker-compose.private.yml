@@ -1,0 +1,27 @@
+version: "3.8"
+
+# Private/personal instance — edit .env to configure paths and LLM
+# Deploy: cd <repo> && docker compose -f docker-compose.private.yml up -d --build
+# Or use: ./scripts/deploy-private.sh
+
+services:
+  mymemex-private:
+    image: mymemex:private
+    build: .
+    container_name: mymemex-private
+    user: root
+    ports:
+      - "${PRIVATE_HTTP_PORT:-8002}:8000"
+    volumes:
+      - ./config:/app/config
+      - ./data:/var/lib/mymemex
+      - ${LIBRARY_PATH:-~/Documents}:/documents
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
