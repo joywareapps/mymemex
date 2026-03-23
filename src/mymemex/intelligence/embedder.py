@@ -14,9 +14,10 @@ log = structlog.get_logger()
 class Embedder:
     """Generate embeddings via Ollama HTTP API."""
 
-    def __init__(self, api_base: str, embedding_model: str):
+    def __init__(self, api_base: str, embedding_model: str, timeout: float = 60.0):
         self.api_base = api_base.rstrip("/")
         self.embedding_model = embedding_model
+        self.timeout = timeout
         self._model_available: Optional[bool] = None
 
     async def is_available(self) -> bool:
@@ -76,7 +77,7 @@ class Embedder:
     def _embed_sync(self, text: str) -> Optional[list[float]]:
         """Synchronous embedding call (runs in thread pool)."""
         try:
-            with httpx.Client(timeout=30.0) as client:
+            with httpx.Client(timeout=self.timeout) as client:
                 resp = client.post(
                     f"{self.api_base}/api/embeddings",
                     json={"model": self.embedding_model, "prompt": text},

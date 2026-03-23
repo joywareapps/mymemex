@@ -207,7 +207,8 @@ async def run_ingest_pipeline(
             log.error("Document not found", doc_id=document_id)
             return
 
-        path = Path(doc.original_path)
+        # Prefer current_path (file may have been moved to archive)
+        path = Path(doc.current_path) if doc.current_path and Path(doc.current_path).exists() else Path(doc.original_path)
         if not path.exists():
             error = f"File not found on disk: {path}"
             log.error("File not found", path=str(path), doc_id=document_id)
@@ -450,6 +451,17 @@ async def task_worker(
                         exc_info=True
                     )
                     await queue.fail(task, str(e))
+                    try:
+                        from ..services.system_log import system_log
+                        doc_id = payload.get("document_id") if payload else None
+                        await system_log(
+                            level="error",
+                            component="pipeline",
+                            message=f"Task {task.task_type} failed: {e}",
+                            details={"task_id": task.id, "document_id": doc_id, "error": str(e)},
+                        )
+                    except Exception:
+                        pass
 
         except asyncio.CancelledError:
             log.info("Task worker stopping", worker_id=worker_id)
