@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from sqlalchemy import func, select
 
@@ -88,3 +89,35 @@ async def resume_processing():
     )
 
     return {"paused": False}
+
+
+@router.post("/reclassify-all")
+async def reclassify_all(request: Request):
+    """Re-enqueue classification for all processed documents."""
+    config = request.app.state.config
+
+    async def _run():
+        from ...services.classification import ClassificationService
+        svc = ClassificationService(config)
+        count = await svc.reclassify_all()
+        await system_log(level="info", component="processing",
+                         message=f"Reclassification complete", details={"count": count})
+
+    asyncio.create_task(_run())
+    return {"status": "scheduled"}
+
+
+@router.post("/reextract-all")
+async def reextract_all(request: Request):
+    """Re-enqueue metadata extraction for all processed documents."""
+    config = request.app.state.config
+
+    async def _run():
+        from ...services.extraction import ExtractionService
+        svc = ExtractionService(config)
+        count = await svc.reextract_all()
+        await system_log(level="info", component="processing",
+                         message=f"Re-extraction complete", details={"count": count})
+
+    asyncio.create_task(_run())
+    return {"status": "scheduled"}

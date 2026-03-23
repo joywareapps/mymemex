@@ -120,6 +120,14 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Task Queue</h1>
         <div class="flex items-center gap-3">
+            <button @click="if(confirm('Re-run classification on all processed documents?')) fetch('/api/v1/admin/processing/reclassify-all',{method:'POST'}).then(()=>alert('Reclassification scheduled'))"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
+                Reclassify All
+            </button>
+            <button @click="if(confirm('Re-run metadata extraction on all processed documents?')) fetch('/api/v1/admin/processing/reextract-all',{method:'POST'}).then(()=>alert('Re-extraction scheduled'))"
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
+                Reextract All
+            </button>
             <select x-model="statusFilter" @change="page=1; load()"
                     class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All statuses</option>
