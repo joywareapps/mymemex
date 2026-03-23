@@ -34,13 +34,12 @@ if [ -f ".env" ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-# Resolve absolute path for documents to avoid Docker error
-DOCS_HOST_PATH=$(eval echo "${DOCUMENTS_PATH:-~/Documents}")
-ABS_DOCS_PATH=$(readlink -f "$DOCS_HOST_PATH")
-
-# Library path for organized files
-LIB_HOST_PATH=$(eval echo "${LIBRARY_PATH:-$ABS_DOCS_PATH}")
+# Resolve absolute path for the document library root (contains inbox/ and archive/ subdirs)
+LIB_HOST_PATH=$(eval echo "${LIBRARY_PATH:-~/Documents}")
 ABS_LIB_PATH=$(readlink -f "$LIB_HOST_PATH")
+
+# Ensure inbox and archive subdirectories exist
+mkdir -p "$ABS_LIB_PATH/inbox" "$ABS_LIB_PATH/archive"
 
 docker run -d \
   --name mymemex-private \
@@ -50,8 +49,7 @@ docker run -d \
   --env-file .env \
   -v "$(pwd)/config:/app/config" \
   -v "$(pwd)/data:/var/lib/mymemex" \
-  -v "$ABS_DOCS_PATH:/app/inbox" \
-  -v "$ABS_LIB_PATH:/media/seagate/mymemex" \
+  -v "$ABS_LIB_PATH:/documents" \
   --restart unless-stopped \
   mymemex:latest
 
