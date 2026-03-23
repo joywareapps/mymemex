@@ -81,7 +81,7 @@
                                   x-text="b.status"></span>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400"
-                            x-text="new Date(b.created_at).toLocaleString()"></td>
+                            x-text="fmtDateTime(b.created_at)"></td>
                         <td class="px-6 py-4 text-right">
                             <button x-show="b.status === 'success'" @click="download(b.id)"
                                     class="text-blue-600 hover:underline text-sm">Download</button>

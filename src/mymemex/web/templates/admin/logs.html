@@ -93,7 +93,7 @@
                                 <span :class="e.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
                                       class="px-2 py-0.5 rounded-full text-xs font-medium" x-text="e.status"></span>
                             </td>
-                            <td class="px-4 py-3 text-gray-500" x-text="new Date(e.created_at).toLocaleString()"></td>
+                            <td class="px-4 py-3 text-gray-500" x-text="fmtDateTime(e.created_at)"></td>
                         </tr>
                     </template>
                     <tr x-show="fileOps.length === 0">
@@ -147,7 +147,7 @@
                             </td>
                             <td class="px-4 py-3 font-mono text-gray-600 dark:text-gray-400" x-text="e.component"></td>
                             <td class="px-4 py-3 text-gray-700 dark:text-gray-300" x-text="e.message"></td>
-                            <td class="px-4 py-3 text-gray-500" x-text="new Date(e.created_at).toLocaleString()"></td>
+                            <td class="px-4 py-3 text-gray-500" x-text="fmtDateTime(e.created_at)"></td>
                         </tr>
                     </template>
                     <tr x-show="sysLogs.length === 0">

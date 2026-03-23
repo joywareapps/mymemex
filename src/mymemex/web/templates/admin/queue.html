@@ -174,7 +174,7 @@
                         </td>
                         <td class="px-4 py-3 text-sm text-gray-500" x-text="t.document_id || '—'"></td>
                         <td class="px-4 py-3 text-sm text-gray-500" x-text="t.attempt_count + '/' + t.max_attempts"></td>
-                        <td class="px-4 py-3 text-sm text-gray-500" x-text="new Date(t.created_at).toLocaleString()"></td>
+                        <td class="px-4 py-3 text-sm text-gray-500" x-text="fmtDateTime(t.created_at)"></td>
                         <td class="px-4 py-3 text-right space-x-2">
                             <button x-show="['pending','running'].includes(t.status)"
                                     @click="cancel(t.id)" class="text-red-600 hover:underline text-xs">Cancel</button>
