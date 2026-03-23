@@ -9,11 +9,48 @@
     <span class="text-gray-900 dark:text-white">{{ doc.title or doc.original_filename }}</span>
 </nav>
 
-<div x-data="{ showDeleteConfirm: false }">
+<div x-data="{
+    showDeleteConfirm: false,
+    editingTitle: false,
+    title: {{ (doc.title or doc.original_filename)|tojson }},
+    titleDraft: '',
+    async saveTitle() {
+        const t = this.titleDraft.trim();
+        if (!t || t === this.title) { this.editingTitle = false; return; }
+        const r = await fetch('/api/v1/documents/{{ doc.id }}', {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title: t})
+        });
+        if (r.ok) { this.title = t; document.title = t + ' — MyMemex'; }
+        this.editingTitle = false;
+    }
+}">
     <!-- Header -->
     <div class="flex items-start justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ doc.title or doc.original_filename }}</h1>
+        <div class="flex-1 min-w-0 mr-4">
+            <!-- View mode -->
+            <div x-show="!editingTitle" class="group flex items-center gap-2">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white" x-text="title"></h1>
+                {% if not demo_mode %}
+                <button @click="titleDraft = title; editingTitle = true; $nextTick(() => $refs.titleInput.select())"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                </button>
+                {% endif %}
+            </div>
+            <!-- Edit mode -->
+            <form x-show="editingTitle" x-cloak @submit.prevent="saveTitle()" class="flex items-center gap-2">
+                <input x-ref="titleInput" x-model="titleDraft" type="text"
+                       class="text-2xl font-bold bg-transparent border-b-2 border-blue-500 text-gray-900 dark:text-white focus:outline-none w-full"
+                       @keydown.escape="editingTitle = false">
+                <button type="submit" class="text-green-600 hover:text-green-700 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </button>
+                <button type="button" @click="editingTitle = false" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </form>
             {% if doc.title %}
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ doc.original_filename }}</p>
             {% endif %}
