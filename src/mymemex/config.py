@@ -63,6 +63,7 @@ class LLMConfig(BaseSettings):
     api_base: str = "http://localhost:11434"
     api_key: str | None = None  # For cloud providers (OpenAI, Anthropic)
     max_concurrent: int = 2
+    timeout: float = 60.0  # Request timeout in seconds (increase for slow Ollama startup)
 
 
 class AIConfig(BaseSettings):

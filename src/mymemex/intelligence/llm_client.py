@@ -75,7 +75,7 @@ class OllamaClient(LLMClient):
         self.config = config
         self.base_url = config.api_base.rstrip("/")
         self.model = config.model
-        self._client = httpx.AsyncClient(timeout=60.0)
+        self._client = httpx.AsyncClient(timeout=config.timeout)
 
     async def generate(
         self,
@@ -121,7 +121,7 @@ class OpenAIClient(LLMClient):
     def __init__(self, config: LLMConfig, api_key: str):
         self.config = config
         self.api_key = api_key
-        self._client = httpx.AsyncClient(timeout=60.0)
+        self._client = httpx.AsyncClient(timeout=config.timeout)
 
     async def generate(
         self,
@@ -170,7 +170,7 @@ class AnthropicClient(LLMClient):
     def __init__(self, config: LLMConfig, api_key: str):
         self.config = config
         self.api_key = api_key
-        self._client = httpx.AsyncClient(timeout=60.0)
+        self._client = httpx.AsyncClient(timeout=config.timeout)
 
     async def generate(
         self,
