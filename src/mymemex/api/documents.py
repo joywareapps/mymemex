@@ -138,8 +138,10 @@ async def download_document(document_id: int, inline: bool = False):
         service = DocumentService(session)
         try:
             doc_data = await service.get_document(document_id)
-            path = doc_data["original_path"]
             filename = doc_data["original_filename"]
+            original = doc_data["original_path"]
+            current = doc_data.get("current_path") or original
+            path = current if os.path.exists(current) else original
 
             if not os.path.exists(path):
                 raise HTTPException(status_code=404, detail="File not found on disk")
