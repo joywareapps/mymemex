@@ -132,23 +132,28 @@ async def get_document(document_id: int):
 
 
 @router.get("/{document_id}/download")
-async def download_document(document_id: int):
-    """Download the original document file."""
+async def download_document(document_id: int, inline: bool = False):
+    """Download the original document file. Pass ?inline=true to render in browser."""
     async with get_session() as session:
         service = DocumentService(session)
         try:
             doc_data = await service.get_document(document_id)
-            # Find the primary or first available path
             path = doc_data["original_path"]
             filename = doc_data["original_filename"]
-            
+
             if not os.path.exists(path):
                 raise HTTPException(status_code=404, detail="File not found on disk")
-                
+
+            if inline:
+                return FileResponse(
+                    path,
+                    media_type=doc_data["mime_type"],
+                    headers={"Content-Disposition": f"inline; filename=\"{filename}\""},
+                )
             return FileResponse(
-                path, 
+                path,
                 filename=filename,
-                media_type=doc_data["mime_type"]
+                media_type=doc_data["mime_type"],
             )
         except NotFoundError:
             raise HTTPException(status_code=404, detail="Document not found")
