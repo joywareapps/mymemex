@@ -12,7 +12,7 @@
 <div x-data="{
     showDeleteConfirm: false,
     editingTitle: false,
-    title: {{ (doc.title or doc.original_filename)|tojson }},
+    title: '',
     titleDraft: '',
     async saveTitle() {
         const t = this.titleDraft.trim();
@@ -25,7 +25,8 @@
         if (r.ok) { this.title = t; document.title = t + ' — MyMemex'; }
         this.editingTitle = false;
     }
-}">
+}" x-init="title = $el.dataset.title"
+   data-title="{{ doc.title or doc.original_filename }}">
     <!-- Header -->
     <div class="flex items-start justify-between mb-6">
         <div class="flex-1 min-w-0 mr-4">
