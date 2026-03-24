@@ -30,8 +30,6 @@ async def init_database(db_path: Path) -> None:
         url,
         echo=False,
         connect_args={"timeout": 60},  # aiosqlite busy-wait timeout (seconds)
-        pool_size=1,
-        max_overflow=0,
     )
     _session_factory = async_sessionmaker(_engine, expire_on_commit=False)
 
