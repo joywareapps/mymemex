@@ -1,24 +1,23 @@
 services:
   mymemex-demo:
-    image: ghcr.io/joywareapps/mymemex:demo
+    build: .
+    image: mymemex:demo
     container_name: mymemex-demo
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - DEMO_MODE=true
-      - MYMEMEX_DATABASE__PATH=/app/data/demo.db
-      - MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=${MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED:-false}
-      - MYMEMEX_AI__EMBEDDING_MODEL=${MYMEMEX_AI__EMBEDDING_MODEL:-nomic-embed-text}
-      - MYMEMEX_AI__EMBEDDING_DIMENSION=${MYMEMEX_AI__EMBEDDING_DIMENSION:-768}
-      - MYMEMEX_LLM__PROVIDER=${MYMEMEX_LLM__PROVIDER:-none}
-      - MYMEMEX_LLM__API_BASE=${MYMEMEX_LLM__API_BASE:-http://localhost:11434}
-      - MYMEMEX_LLM__MODEL=${MYMEMEX_LLM__MODEL:-}
-    env_file:
-      - path: .env
-        required: false
+      - MYMEMEX_DATABASE__PATH=/var/lib/mymemex/demo.db
+      - MYMEMEX_LLM__PROVIDER=none
+      - MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=false
     volumes:
-      - demo_data:/app/data
+      - demo_data:/var/lib/mymemex
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   demo_data:

@@ -1,80 +1,59 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Deploy MyMemex Demo
-# This script updates the demo-version branch and restarts the container in demo mode.
-
+# Uses an isolated Docker named volume — never touches real data.
 set -e
 
-# Ensure snap binaries are in path
 export PATH=$PATH:/snap/bin
+
+DEMO_VOLUME="mymemex-demo-data"
+DEMO_DB_PATH="/var/lib/mymemex/demo.db"
 
 echo "🚀 Starting MyMemex Demo deployment..."
 
-# 1. Stop and remove existing container
-echo "🛑 Stopping existing container..."
-docker stop mymemex 2>/dev/null || true
-docker rm mymemex 2>/dev/null || true
-
-# 2. Get latest code
 echo "📥 Fetching latest code from demo-version branch..."
 git fetch origin
 git checkout demo-version
-# Reset local changes (like chmod +x mode changes) to allow clean pull
-# Note: .env and data/ are gitignored, so they won't be affected by --hard reset
 git reset --hard origin/demo-version
-git pull origin demo-version
 chmod +x scripts/deploy-demo.sh
 
-# 3. Ensure config exists
-if [ ! -f "config/config.yaml" ]; then
-    echo "⚙️ Creating default config..."
-    mkdir -p config
-    cp config/config.example.yaml config/config.yaml
-    # Set DB path for container environment
-    sed -i 's|~/.local/share/mymemex/mymemex.db|/var/lib/mymemex/mymemex.db|g' config/config.yaml
-fi
+echo "🛑 Stopping existing demo container..."
+docker stop mymemex-demo 2>/dev/null || true
+docker rm mymemex-demo 2>/dev/null || true
+# Also clean up any old container named 'mymemex' that used real data
+docker stop mymemex 2>/dev/null || true
+docker rm mymemex 2>/dev/null || true
 
-# 4. Build image
-echo "🛠️ Rebuilding Docker image..."
+echo "🛠️ Building demo image..."
 docker build -t mymemex:demo .
 
-# 5. Seed demo data
-echo "🌱 Seeding demo documents..."
-ENV_FILE_ARG=""
-if [ -f ".env" ]; then
-    ENV_FILE_ARG="--env-file .env"
-    # Export variables so they can be passed via -e
-    export $(grep -v '^#' .env | xargs)
-fi
-
-# We run a one-off container to generate the DB and documents
-# We explicitly pass LLM and AI vars because BaseSettings might not find .env inside /app
+echo "🌱 Seeding demo documents into isolated volume (${DEMO_VOLUME})..."
+# NOTE: Uses a named Docker volume only — never mounts ./data or real paths
 docker run --rm \
   --user root \
-  $ENV_FILE_ARG \
-  -v "$(pwd)/config:/app/config:ro" \
-  -v "$(pwd)/data:/var/lib/mymemex" \
-  -e MYMEMEX_DATABASE__PATH=/var/lib/mymemex/mymemex.db \
-  -e MYMEMEX_LLM__PROVIDER=$MYMEMEX_LLM__PROVIDER \
-  -e MYMEMEX_LLM__API_BASE=$MYMEMEX_LLM__API_BASE \
-  -e MYMEMEX_LLM__MODEL=$MYMEMEX_LLM__MODEL \
-  -e MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=$MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED \
+  -v "${DEMO_VOLUME}:/var/lib/mymemex" \
+  -e MYMEMEX_DATABASE__PATH="${DEMO_DB_PATH}" \
+  -e MYMEMEX_LLM__PROVIDER=none \
+  -e MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=false \
   mymemex:demo \
   python3 scripts/seed_demo_data.py
 
-# 6. Start container in demo mode
-echo "🚢 Starting container in demo mode on port 8001..."
-# Using --user root to handle permissions on the data volume
+echo "🚢 Starting demo container on port 8001..."
 docker run -d \
-  --name mymemex \
+  --name mymemex-demo \
   -p 8001:8000 \
   --user root \
-  $ENV_FILE_ARG \
   -e DEMO_MODE=true \
-  -v "$(pwd)/config:/app/config:ro" \
-  -v "$(pwd)/data:/var/lib/mymemex" \
+  -e MYMEMEX_DATABASE__PATH="${DEMO_DB_PATH}" \
+  -e MYMEMEX_LLM__PROVIDER=none \
+  -e MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=false \
+  -v "${DEMO_VOLUME}:/var/lib/mymemex" \
   --restart unless-stopped \
+  --health-cmd "curl -f http://localhost:8000/health || exit 1" \
+  --health-interval 30s \
+  --health-timeout 10s \
+  --health-retries 3 \
   mymemex:demo
 
-echo "✅ Deployment complete!"
+echo "✅ Demo deployment complete!"
 echo "📍 Access at: http://localhost:8001/ui/"
-echo "📄 Logs: docker logs -f mymemex"
+echo "📄 Logs: docker logs -f mymemex-demo"
