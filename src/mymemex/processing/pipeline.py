@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import asyncio
 import json
+import random
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
 import structlog
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 from ..config import AppConfig
 from ..core.events import EventManager
@@ -581,7 +582,7 @@ async def task_worker(
                 payload = json.loads(task.payload) if isinstance(task.payload, str) else task.payload
 
                 try:
-                    await _process_task(task, payload, config, queue, events)
+                    await _process_task_with_retry(task, payload, config, queue, events)
                 except Exception as e:
                     log.error(
                         "Task failed with exception",
@@ -609,6 +610,34 @@ async def task_worker(
         except Exception as e:
             log.exception("Worker error", worker_id=worker_id, error=str(e))
             await asyncio.sleep(5)
+
+
+async def _process_task_with_retry(
+    task: Task,
+    payload: dict,
+    config: AppConfig,
+    queue: TaskQueue,
+    events: EventManager | None,
+) -> None:
+    """Wrap _process_task with automatic retry on transient SQLite lock errors."""
+    max_lock_retries = 6
+    for attempt in range(max_lock_retries):
+        try:
+            await _process_task(task, payload, config, queue, events)
+            return
+        except OperationalError as e:
+            if "database is locked" in str(e).lower() and attempt < max_lock_retries - 1:
+                delay = min(0.5 * (2 ** attempt) + random.uniform(0, 0.5), 30.0)
+                log.warning(
+                    "DB lock on task, retrying",
+                    task_id=task.id,
+                    type=task.task_type,
+                    lock_attempt=attempt + 1,
+                    retry_in=round(delay, 2),
+                )
+                await asyncio.sleep(delay)
+            else:
+                raise
 
 
 async def _process_task(
