@@ -75,7 +75,15 @@ class FilePolicyService:
     async def apply(self, doc: Document, watch_dir: WatchDirectory) -> None:
         """Apply the watch directory's file policy to the document."""
         policy = watch_dir.file_policy or FilePolicy.keep_original.value
-        source = Path(doc.original_path)
+
+        # Prefer current_path (file may already be in archive from a previous run)
+        _orig = Path(doc.original_path)
+        _cur = Path(doc.current_path) if doc.current_path else None
+        source = _cur if (_cur and _cur.exists()) else _orig
+
+        # If the file is already inside the target archive directory, nothing to do
+        if watch_dir.archive_path and str(source).startswith(watch_dir.archive_path):
+            return
 
         if policy == FilePolicy.keep_original.value:
             return  # Nothing to do

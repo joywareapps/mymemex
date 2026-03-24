@@ -26,7 +26,13 @@ async def init_database(db_path: Path) -> None:
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     url = f"sqlite+aiosqlite:///{db_path}"
-    _engine = create_async_engine(url, echo=False)
+    _engine = create_async_engine(
+        url,
+        echo=False,
+        connect_args={"timeout": 60},  # aiosqlite busy-wait timeout (seconds)
+        pool_size=1,
+        max_overflow=0,
+    )
     _session_factory = async_sessionmaker(_engine, expire_on_commit=False)
 
     # Set SQLite pragmas for performance
