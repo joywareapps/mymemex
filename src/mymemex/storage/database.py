@@ -48,6 +48,19 @@ async def init_database(db_path: Path) -> None:
     async with _engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    # Add any columns introduced after the initial schema (lightweight migrations)
+    async with _engine.begin() as conn:
+        result = await conn.execute(text("PRAGMA table_info(documents)"))
+        existing_cols = {row[1] for row in result}
+        _new_document_cols = [
+            ("page_images", "TEXT"),  # multi-page image sequences
+        ]
+        for col_name, col_type in _new_document_cols:
+            if col_name not in existing_cols:
+                await conn.execute(
+                    text(f"ALTER TABLE documents ADD COLUMN {col_name} {col_type}")
+                )
+
     # Create FTS5 virtual table and triggers
     async with _engine.begin() as conn:
         await conn.execute(

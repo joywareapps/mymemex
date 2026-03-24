@@ -258,6 +258,14 @@ class ChunkRepository:
         await self.session.flush()
         return chunk
 
+    async def delete_by_document(self, document_id: int) -> int:
+        """Delete all chunks for a document. Returns number deleted."""
+        result = await self.session.execute(
+            delete(Chunk).where(Chunk.document_id == document_id)
+        )
+        await self.session.flush()
+        return result.rowcount
+
     async def get_by_document(self, document_id: int, limit: int | None = None) -> list[Chunk]:
         query = (
             select(Chunk)

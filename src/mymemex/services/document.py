@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -112,6 +113,7 @@ class DocumentService:
             ),
             "error_count": doc.error_count or 0,
             "last_error": doc.last_error,
+            "page_images": json.loads(doc.page_images) if doc.page_images else [],
         }
 
     async def update_document(

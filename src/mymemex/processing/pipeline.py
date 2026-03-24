@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,7 +17,7 @@ from ..core.events import EventManager
 from ..core.queue import TaskQueue, TaskStatus, TaskType
 from ..processing.chunker import chunk_pages, chunk_text
 from ..processing.extractor import extract_pdf_metadata, extract_text_from_pdf
-from ..processing.ocr import ocr_page
+from ..processing.ocr import ocr_image, ocr_page
 from ..processing.hasher import hash_file, quick_fingerprint
 from ..storage.database import get_session
 from ..storage.models import Task
@@ -98,6 +99,33 @@ def get_mime_type(path: Path) -> str:
         return mime_map.get(ext, "application/octet-stream")
 
 
+# Pattern: {base}-{NNN}.{ext} where NNN is exactly 3 zero-padded digits
+_SEQ_PATTERN = re.compile(r'^(.+)-(\d{3})(\.[^.]+)$', re.IGNORECASE)
+
+
+def _detect_sequence(filename: str) -> tuple[str, int, str] | None:
+    """Return (base, page_num, ext) if filename matches sequence pattern."""
+    m = _SEQ_PATTERN.match(filename)
+    if m:
+        return m.group(1), int(m.group(2)), m.group(3).lower()
+    return None
+
+
+def _find_sequence_pages(path: Path) -> list[Path] | None:
+    """Find all pages of an image sequence given one page. Returns sorted list or None."""
+    info = _detect_sequence(path.name)
+    if not info:
+        return None
+    base, _, ext = info
+    siblings = sorted(path.parent.glob(f"{base}-???{ext}"))
+    pages = [
+        s for s in siblings
+        if (det := _detect_sequence(s.name)) is not None
+        and det[0].lower() == base.lower()
+    ]
+    return pages if len(pages) >= 2 else None
+
+
 async def handle_new_file(
     path: Path | str,
     config: AppConfig,
@@ -109,10 +137,28 @@ async def handle_new_file(
         repo = DocumentRepository(session)
         queue = TaskQueue(session)
 
+        # ── Detect image sequence (e.g. img-X-001.jpg, img-X-002.jpg) ──────
+        seq_pages = _find_sequence_pages(path)
+        if seq_pages:
+            canonical = seq_pages[0]
+            if path != canonical:
+                # Non-canonical page: try to link to the canonical document if it exists
+                try:
+                    can_quick = quick_fingerprint(canonical)
+                    existing_can = await repo.find_by_quick_hash(can_quick)
+                    if existing_can:
+                        await repo.add_file_path(existing_can.id, str(path))
+                except Exception:
+                    pass
+                return  # Always skip non-canonical pages (canonical handles the group)
+
+        # Use canonical page as the file to hash/create for sequences
+        file_for_hash = seq_pages[0] if seq_pages else path
+
         try:
-            quick = quick_fingerprint(path)
+            quick = quick_fingerprint(file_for_hash)
         except Exception as e:
-            log.error("Failed to hash file", path=str(path), error=str(e))
+            log.error("Failed to hash file", path=str(file_for_hash), error=str(e))
             return
 
         # Check by quick hash first
@@ -128,7 +174,7 @@ async def handle_new_file(
             return
 
         # Compute full hash
-        file_hash = hash_file(path)
+        file_hash = hash_file(file_for_hash)
         existing = await repo.find_by_content_hash(file_hash.content_hash)
         if existing:
             log.info(
@@ -143,17 +189,29 @@ async def handle_new_file(
             return
 
         # New document
-        mime_type = get_mime_type(path)
+        mime_type = get_mime_type(file_for_hash)
+
+        # For sequences: use virtual filename (base without page number) and sum file sizes
+        if seq_pages:
+            seq_info = _detect_sequence(file_for_hash.name)
+            original_filename = f"{seq_info[0]}{seq_info[2]}"
+            file_size = sum(p.stat().st_size for p in seq_pages if p.exists())
+            page_images_json = json.dumps([str(p) for p in seq_pages])
+        else:
+            original_filename = path.name
+            file_size = file_hash.file_size
+            page_images_json = None
+
         log.info("Creating new document", path=str(path), hash=file_hash.content_hash[:8])
         try:
             doc = await repo.create(
                 content_hash=file_hash.content_hash,
                 quick_hash=file_hash.quick_hash,
-                file_size=file_hash.file_size,
-                original_path=str(path),
-                original_filename=path.name,
+                file_size=file_size,
+                original_path=str(file_for_hash),
+                original_filename=original_filename,
                 mime_type=mime_type,
-                file_modified_at=path.stat().st_mtime,
+                file_modified_at=file_for_hash.stat().st_mtime,
             )
         except IntegrityError as ie:
             # Race condition or path conflict
@@ -164,6 +222,13 @@ async def handle_new_file(
                 log.info("Duplicate detected (race)", path=str(path), existing_id=existing.id)
                 await repo.add_file_path(existing.id, str(path))
             return
+
+        if page_images_json:
+            await repo.update(doc, page_images=page_images_json, page_count=len(seq_pages))
+            for sp in seq_pages[1:]:
+                await repo.add_file_path(doc.id, str(sp))
+            log.info("Image sequence grouped", doc_id=doc.id, pages=len(seq_pages),
+                     name=original_filename)
 
         log.info("Enqueuing INGEST task", doc_id=doc.id, path=str(path))
         await queue.enqueue(
@@ -215,6 +280,9 @@ async def run_ingest_pipeline(
             await repo.update_status(doc, "failed", error=error)
             raise FileNotFoundError(error)
 
+        # Clear existing chunks before re-ingesting (handles reprocess correctly)
+        await chunk_repo.delete_by_document(document_id)
+
         await repo.update_status(doc, "processing")
 
         if events:
@@ -224,100 +292,172 @@ async def run_ingest_pipeline(
             )
 
         try:
-                # Only process PDFs for now (images handled in M5 with OCR)
-                if doc.mime_type != "application/pdf":
-                    log.info("Non-PDF file, skipping text extraction", doc_id=doc.id, mime=doc.mime_type)
-                    await repo.update_status(doc, "processed")
-                    await repo.update(doc, processed_at=datetime.utcnow())
-                    return
-
-                # Step 1: Extract metadata
-                metadata = extract_pdf_metadata(path)
-                await repo.update(
-                    doc,
-                    page_count=metadata["page_count"],
-                    title=metadata["title"],
-                    author=metadata["author"],
-                )
-
-                if events:
-                    await events.broadcast(
-                        "document.processing",
-                        {"id": doc.id, "step": "text_extraction", "progress": 0.2},
-                    )
-
-                # Step 2: Extract text page by page
-                pages_with_text: list[tuple[int, str]] = []
+                _image_mimes = {"image/jpeg", "image/png", "image/tiff", "image/webp", "image/bmp"}
                 pages_needing_ocr: list[int] = []
-
-                for page in extract_text_from_pdf(path):
-                    if page.method == "needs_ocr":
-                        pages_needing_ocr.append(page.page_number)
-                        continue
-                    if page.text.strip():
-                        pages_with_text.append((page.page_number, page.text))
-
-                if events:
-                    await events.broadcast(
-                        "document.processing",
-                        {"id": doc.id, "step": "chunking", "progress": 0.4},
-                    )
-
-                # Step 3: Chunk native text and store
-                all_chunks = chunk_pages(pages_with_text)
-                for chunk in all_chunks:
-                    await chunk_repo.create(
-                        document_id=doc.id,
-                        chunk_index=chunk.chunk_index,
-                        page_number=chunk.page_number,
-                        text=chunk.text,
-                        char_count=chunk.char_count,
-                        extraction_method="pymupdf_native",
-                    )
-
-                # Step 4: OCR pages that need it
                 ocr_chunk_count = 0
-                if config.ocr.enabled and pages_needing_ocr:
-                    log.info("Processing OCR pages", doc_id=doc.id, count=len(pages_needing_ocr))
+
+                if doc.page_images:
+                    # ── Multi-page image sequence ────────────────────────────
+                    page_paths = json.loads(doc.page_images)
+                    await repo.update(doc, page_count=len(page_paths))
 
                     if events:
                         await events.broadcast(
                             "document.processing",
-                            {"id": doc.id, "step": "ocr", "progress": 0.5},
+                            {"id": doc.id, "step": "ocr", "progress": 0.2},
                         )
 
-                    global_index = len(all_chunks)
-                    for page_num in pages_needing_ocr:
-                        text = await ocr_page(path, page_num, config.ocr)
-                        if not text.strip():
+                    global_chunk_index = 0
+                    for page_idx, img_path_str in enumerate(page_paths):
+                        img_path = Path(img_path_str)
+                        if not img_path.exists():
+                            log.warning("Sequence page missing", doc_id=doc.id,
+                                        page=page_idx, path=img_path_str)
                             continue
+                        text = await ocr_image(img_path, config.ocr)
+                        if text.strip():
+                            for chunk in chunk_text(text, page_number=page_idx):
+                                chunk.chunk_index = global_chunk_index
+                                global_chunk_index += 1
+                                await chunk_repo.create(
+                                    document_id=doc.id,
+                                    chunk_index=chunk.chunk_index,
+                                    page_number=page_idx,
+                                    text=chunk.text,
+                                    char_count=chunk.char_count,
+                                    extraction_method="tesseract_ocr",
+                                )
+                                ocr_chunk_count += 1
 
-                        page_chunks = chunk_text(text, page_number=page_num)
-                        for chunk in page_chunks:
-                            chunk.chunk_index = global_index
-                            global_index += 1
+                    await session.commit()
+                    total_chunks = ocr_chunk_count
+                    log.info("Multi-page image ingested", doc_id=doc.id,
+                             pages=len(page_paths), chunks=ocr_chunk_count)
+
+                elif doc.mime_type in _image_mimes:
+                    # ── Image file: OCR directly ────────────────────────────
+                    await repo.update(doc, page_count=1)
+
+                    if events:
+                        await events.broadcast(
+                            "document.processing",
+                            {"id": doc.id, "step": "ocr", "progress": 0.3},
+                        )
+
+                    ocr_chunk_count = 0
+                    text = await ocr_image(path, config.ocr)
+                    if text.strip():
+                        image_chunks = chunk_text(text, page_number=0)
+                        for chunk in image_chunks:
                             await chunk_repo.create(
                                 document_id=doc.id,
                                 chunk_index=chunk.chunk_index,
-                                page_number=chunk.page_number,
+                                page_number=0,
                                 text=chunk.text,
                                 char_count=chunk.char_count,
                                 extraction_method="tesseract_ocr",
                             )
                             ocr_chunk_count += 1
 
-                await session.commit()
+                    await session.commit()
+                    total_chunks = ocr_chunk_count
+                    log.info("Image ingested", doc_id=doc.id, ocr_chunks=ocr_chunk_count)
 
-                total_chunks = len(all_chunks) + ocr_chunk_count
-                log.info(
-                    "Document ingested",
-                    doc_id=doc.id,
-                    native_chunks=len(all_chunks),
-                    ocr_chunks=ocr_chunk_count,
-                    total_chunks=total_chunks,
-                    pages=metadata["page_count"],
-                    pages_ocr=len(pages_needing_ocr),
-                )
+                elif doc.mime_type != "application/pdf":
+                    log.info("Unsupported file type, skipping text extraction",
+                             doc_id=doc.id, mime=doc.mime_type)
+                    await repo.update_status(doc, "processed")
+                    await repo.update(doc, processed_at=datetime.utcnow())
+                    return
+
+                else:
+                    # ── PDF file ────────────────────────────────────────────
+                    # Step 1: Extract metadata
+                    metadata = extract_pdf_metadata(path)
+                    await repo.update(
+                        doc,
+                        page_count=metadata["page_count"],
+                        title=metadata["title"],
+                        author=metadata["author"],
+                    )
+
+                    if events:
+                        await events.broadcast(
+                            "document.processing",
+                            {"id": doc.id, "step": "text_extraction", "progress": 0.2},
+                        )
+
+                    # Step 2: Extract text page by page
+                    pages_with_text: list[tuple[int, str]] = []
+                    pages_needing_ocr: list[int] = []
+
+                    for page in extract_text_from_pdf(path):
+                        if page.method == "needs_ocr":
+                            pages_needing_ocr.append(page.page_number)
+                            continue
+                        if page.text.strip():
+                            pages_with_text.append((page.page_number, page.text))
+
+                    if events:
+                        await events.broadcast(
+                            "document.processing",
+                            {"id": doc.id, "step": "chunking", "progress": 0.4},
+                        )
+
+                    # Step 3: Chunk native text and store
+                    all_chunks = chunk_pages(pages_with_text)
+                    for chunk in all_chunks:
+                        await chunk_repo.create(
+                            document_id=doc.id,
+                            chunk_index=chunk.chunk_index,
+                            page_number=chunk.page_number,
+                            text=chunk.text,
+                            char_count=chunk.char_count,
+                            extraction_method="pymupdf_native",
+                        )
+
+                    # Step 4: OCR pages that need it
+                    if config.ocr.enabled and pages_needing_ocr:
+                        log.info("Processing OCR pages", doc_id=doc.id, count=len(pages_needing_ocr))
+
+                        if events:
+                            await events.broadcast(
+                                "document.processing",
+                                {"id": doc.id, "step": "ocr", "progress": 0.5},
+                            )
+
+                        global_index = len(all_chunks)
+                        for page_num in pages_needing_ocr:
+                            text = await ocr_page(path, page_num, config.ocr)
+                            if not text.strip():
+                                continue
+
+                            page_chunks = chunk_text(text, page_number=page_num)
+                            for chunk in page_chunks:
+                                chunk.chunk_index = global_index
+                                global_index += 1
+                                await chunk_repo.create(
+                                    document_id=doc.id,
+                                    chunk_index=chunk.chunk_index,
+                                    page_number=chunk.page_number,
+                                    text=chunk.text,
+                                    char_count=chunk.char_count,
+                                    extraction_method="tesseract_ocr",
+                                )
+                                ocr_chunk_count += 1
+
+                    await session.commit()
+
+                    total_chunks = len(all_chunks) + ocr_chunk_count
+                    log.info(
+                        "Document ingested",
+                        doc_id=doc.id,
+                        native_chunks=len(all_chunks),
+                        ocr_chunks=ocr_chunk_count,
+                        total_chunks=total_chunks,
+                        pages=metadata["page_count"],
+                        pages_ocr=len(pages_needing_ocr),
+                    )
 
                 # Determine which LLM tasks will be enqueued
                 will_classify = config.classification.enabled and total_chunks > 0

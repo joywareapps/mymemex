@@ -77,6 +77,9 @@ class Document(Base):
     current_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     file_policy_applied: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
+    # Multi-page image sequences (e.g. img-X-001.jpg, img-X-002.jpg, ...)
+    page_images: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array of image paths
+
     # User ownership (M12)
     uploaded_by_user_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True

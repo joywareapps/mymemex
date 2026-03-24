@@ -161,6 +161,37 @@ async def download_document(document_id: int, inline: bool = False):
             raise HTTPException(status_code=404, detail="Document not found")
 
 
+@router.get("/{document_id}/page-image/{page_index}")
+async def get_page_image(document_id: int, page_index: int):
+    """Serve a specific page image. For multi-page scans, page_index selects among all pages."""
+    async with get_session() as session:
+        service = DocumentService(session)
+        try:
+            doc_data = await service.get_document(document_id)
+        except NotFoundError:
+            raise HTTPException(status_code=404, detail="Document not found")
+
+        page_images = doc_data.get("page_images", [])
+        if page_images:
+            if page_index < 0 or page_index >= len(page_images):
+                raise HTTPException(status_code=404, detail="Page not found")
+            img_path = page_images[page_index]
+        else:
+            if page_index != 0:
+                raise HTTPException(status_code=404, detail="Page not found")
+            current = doc_data.get("current_path") or doc_data["original_path"]
+            img_path = current if os.path.exists(current) else doc_data["original_path"]
+
+        if not os.path.exists(img_path):
+            raise HTTPException(status_code=404, detail="Image not found on disk")
+
+        return FileResponse(
+            img_path,
+            media_type=doc_data["mime_type"],
+            headers={"Content-Disposition": "inline"},
+        )
+
+
 @router.patch("/{document_id}")
 async def update_document(document_id: int, patch: DocumentPatch):
     """Update document metadata (title, category, tags)."""

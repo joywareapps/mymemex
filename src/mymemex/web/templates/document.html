@@ -166,6 +166,44 @@
     </div>
 </div>
 
+<!-- Image Preview (single or multi-page scan) -->
+{% if doc.mime_type in ['image/jpeg', 'image/png', 'image/tiff', 'image/webp', 'image/bmp'] %}
+<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 mb-6 transition-colors duration-200"
+     x-data="{ open: false }">
+    <button @click="open = !open"
+            class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200">
+        <span>Image Preview{% if doc.page_images %} ({{ doc.page_images|length }} pages){% endif %}</span>
+        <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+    </button>
+    <div x-show="open" x-cloak class="border-t border-gray-200 dark:border-gray-700 p-4">
+        {% if doc.page_images and doc.page_images|length > 1 %}
+        <div x-data="{ page: 0, total: {{ doc.page_images|length }} }">
+            <img :src="`/api/v1/documents/{{ doc.id }}/page-image/${page}`"
+                 class="max-w-full mx-auto rounded shadow"
+                 :alt="`Page ${page + 1} of ${total}`">
+            <div class="flex items-center justify-center gap-4 mt-3">
+                <button @click="page = Math.max(0, page - 1)" :disabled="page === 0"
+                        class="px-3 py-1 text-sm rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200">
+                    &#8592; Prev
+                </button>
+                <span class="text-sm text-gray-600 dark:text-gray-400" x-text="`Page ${page + 1} of ${total}`"></span>
+                <button @click="page = Math.min(total - 1, page + 1)" :disabled="page === total - 1"
+                        class="px-3 py-1 text-sm rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200">
+                    Next &#8594;
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <img src="/api/v1/documents/{{ doc.id }}/page-image/0"
+             class="max-w-full mx-auto rounded shadow"
+             alt="{{ doc.original_filename }}">
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 <!-- PDF Preview -->
 {% if doc.mime_type == 'application/pdf' %}
 <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 mb-6 transition-colors duration-200"

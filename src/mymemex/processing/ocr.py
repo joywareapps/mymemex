@@ -90,3 +90,37 @@ def _ocr_page_sync(pdf_path: Path, page_number: int, config: OCRConfig) -> str:
         return text.strip()
     finally:
         doc.close()
+
+
+async def ocr_image(image_path: Path, config: OCRConfig) -> str:
+    """
+    Perform OCR directly on an image file (JPEG, PNG, etc.).
+
+    Returns:
+        Extracted text (empty string if OCR unavailable, disabled, or failed)
+    """
+    if not config.enabled:
+        log.debug("OCR disabled, skipping image", path=str(image_path))
+        return ""
+
+    if not TESSERACT_AVAILABLE:
+        log.warning("Tesseract not available, cannot OCR image", path=str(image_path))
+        return ""
+
+    try:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, _ocr_image_sync, image_path, config)
+    except Exception as e:
+        log.error("Image OCR failed", path=str(image_path), error=str(e))
+        return ""
+
+
+def _ocr_image_sync(image_path: Path, config: OCRConfig) -> str:
+    """Synchronous image OCR (runs in thread pool)."""
+    img = Image.open(str(image_path)).convert("RGB")
+    text = pytesseract.image_to_string(
+        img,
+        lang=config.language,
+        config="--psm 6",
+    )
+    return text.strip()
