@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir "fastapi>=0.115" "uvicorn[standard]>=0.34" "pydan
 COPY --chown=mymemex:mymemex . .
 
 # Final install to register the local package
-RUN pip install --no-cache-dir -e ".[ai]"
+RUN pip install --no-cache-dir -e ".[ai,mcp]"
 
 # Create data directory
 RUN mkdir -p /var/lib/mymemex && chown mymemex:mymemex /var/lib/mymemex
