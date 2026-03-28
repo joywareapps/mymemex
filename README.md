@@ -2,13 +2,13 @@
 
 > Your AI Document Memory — For 80 years it was science fiction. Now, it's yours.
 
-**[mymemex.io](https://mymemex.io)** • **[GitHub](https://github.com/joywareapps/mymemex)** • **[Documentation](docs/)**
+**[mymemex.app](https://mymemex.app/ui/)** • **[GitHub](https://github.com/joywareapps/mymemex)** • **[Documentation](docs/)**
 
 ---
 
 ## What is MyMemex?
 
-MyMemex transforms your personal document archive (PDFs, scans, images) into an AI-powered memory system. Search with natural language, auto-extract structured data, and chat with your documents.
+MyMemex transforms your personal document archive (PDFs, scans, images) into an AI-powered memory system. Search with natural language, auto-extract structured data, and chat with your documents through MCP.
 
 **Privacy-first:** Run fully air-gapped with local LLMs via [Ollama](https://ollama.ai). Your documents never leave your machine.
 
@@ -16,11 +16,14 @@ Named after [Vannevar Bush's 1945 vision](https://en.wikipedia.org/wiki/Memex) o
 
 ## Core Features
 
-- 📁 **Intelligent Ingestion** — Watch directories, auto-detect files, deduplicate by hash
-- 🔒 **100% Private** — Local OCR (Tesseract) + local LLMs (Ollama). No cloud required.
-- 🔍 **Semantic Search** — Ask questions in natural language, get instant answers with citations
-- 🤖 **Auto-Extraction** — AI extracts amounts, dates, entities, categories automatically
-- 💬 **MCP Integration** — Works with Claude Desktop, OpenClaw, and other AI assistants
+- **Intelligent Ingestion** — Watch directories, auto-detect files, deduplicate by hash
+- **100% Private** — Local OCR (Tesseract) + local LLMs (Ollama). No cloud required.
+- **Semantic Search** — Ask questions in natural language, get instant answers with citations
+- **Auto-Extraction** — AI extracts amounts, dates, entities, and categories automatically
+- **Tag-Based Filing** — Automatic routing rules move files to tag-matched subdirectories
+- **Multi-User Auth** — JWT-based login with per-user access control
+- **Admin Panel** — Watch folders, routing rules, queue management, logs, backup
+- **MCP Integration** — Works with Claude Desktop, OpenClaw, and other AI assistants via stdio or HTTP transport
 
 ## Quick Start
 
@@ -35,7 +38,7 @@ curl -O https://raw.githubusercontent.com/joywareapps/mymemex/main/docker-compos
 docker-compose up -d
 ```
 
-Visit `http://localhost:8000` to access the web UI.
+Visit `http://localhost:8000/ui/` to access the web UI.
 
 ### From Source
 
@@ -45,7 +48,7 @@ git clone https://github.com/joywareapps/mymemex.git
 cd mymemex
 
 # Install
-pip install mymemex[all]
+pip install -e ".[all]"
 
 # Configure
 cp config/config.example.yaml config/config.yaml
@@ -55,10 +58,28 @@ cp config/config.example.yaml config/config.yaml
 mymemex serve
 ```
 
+### Personal Instance (Private Deploy)
+
+Use `scripts/deploy-private.sh` with a `.env` file:
+
+```bash
+LIBRARY_PATH=/path/to/your/library   # must contain inbox/ and archive/
+PRIVATE_HTTP_PORT=8002
+MYMEMEX_LLM__PROVIDER=ollama
+MYMEMEX_LLM__API_BASE=http://your-ollama-host:11434
+MYMEMEX_LLM__MODEL=gemma3:12b
+```
+
+```bash
+bash scripts/deploy-private.sh
+# Access at http://localhost:8002/ui/
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for all deployment options.
+
 ### MCP for Claude Desktop
 
-Add to your `claude_desktop_config.json`:
-
+**stdio transport (local install):**
 ```json
 {
   "mcpServers": {
@@ -70,14 +91,28 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
+**HTTP transport (Docker instance):**
+
+Enable in Settings → MCP → Transport → `http`, then:
+```json
+{
+  "mcpServers": {
+    "mymemex": {
+      "type": "http",
+      "url": "http://your-server:8002/mcp"
+    }
+  }
+}
+```
+
 Now Claude can search your documents, extract data, and answer questions about your archive.
 
 ## Architecture
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Watcher   │────▶│  Ingestion  │────▶│  Embedding  │
-│ (filesystem)│     │   Pipeline  │     │   + OCR     │
+│   Watcher   │────▶│  Ingestion  │────▶│ OCR / Embed │
+│ (filesystem)│     │   Pipeline  │     │  (Tesseract)│
 └─────────────┘     └─────────────┘     └─────────────┘
                                                │
                                                ▼
@@ -99,16 +134,20 @@ Now Claude can search your documents, extract data, and answer questions about y
 ```
 mymemex/
 ├── src/mymemex/
-│   ├── watcher/        # File system monitoring
+│   ├── api/            # REST API endpoints
+│   ├── core/           # Queue, events, watcher, scheduler
 │   ├── processing/     # Ingestion pipeline
 │   ├── intelligence/   # Embeddings + OCR
 │   ├── services/       # Business logic
 │   ├── storage/        # Database + vector store
-│   └── mcp/            # MCP server for Claude
-├── website/            # Astro website
+│   ├── web/            # Web UI routes + templates
+│   ├── mcp/            # MCP server (stdio + HTTP)
+│   └── middleware/     # Auth, demo mode, MCP auth
+├── skills/             # OpenClaw skill definitions
+├── website/            # Astro marketing website
 ├── workers/            # Cloudflare Workers
 ├── config/             # Configuration
-├── tests/              # Test suite (160+ tests)
+├── tests/              # Test suite (202 tests)
 └── docs/               # Documentation
 ```
 
@@ -130,44 +169,48 @@ curl -fsSL https://ollama.ai/install.sh | sh
 # Pull models
 ollama pull nomic-embed-text  # Embeddings (274MB)
 ollama pull gemma3:12b        # Chat/reasoning (larger)
+```
 
-# Configure in config.yaml
-llm:
-  api_base: http://localhost:11434
-  model: gemma3:12b
+Configure via `.env` or `config.yaml`:
+```bash
+MYMEMEX_LLM__PROVIDER=ollama
+MYMEMEX_LLM__API_BASE=http://localhost:11434
+MYMEMEX_LLM__MODEL=gemma3:12b
+MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=true
+MYMEMEX_AI__EMBEDDING_MODEL=nomic-embed-text
 ```
 
 ### Without Ollama (Cloud AI)
 
-MyMemex also supports cloud providers:
-
-```yaml
-ai:
-  provider: openai  # or anthropic
-  api_key: ${OPENAI_API_KEY}
+```bash
+MYMEMEX_LLM__PROVIDER=openai   # or anthropic
+MYMEMEX_LLM__API_KEY=sk-...
+MYMEMEX_LLM__MODEL=gpt-4o
 ```
 
 ## Documentation
 
-- **[Milestones](docs/MILESTONES.md)** — Project roadmap
-- **[Deployment](docs/DEPLOYMENT.md)** — Production deployment guide
-- **[Architecture](docs/architecture.md)** — Technical deep dive
-- **[MCP Tools](docs/mcp-tools.md)** — Claude integration reference
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** — All deployment options (local, private, demo, production)
+- **[docs/MILESTONES.md](docs/MILESTONES.md)** — Project roadmap and history
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — Technical deep dive
+- **[docs/SPECIFICATION.md](docs/SPECIFICATION.md)** — Full feature specification
+- **[skills/mymemex/SKILL.md](skills/mymemex/SKILL.md)** — MCP tools reference for OpenClaw
 
 ## Status
 
 | Milestone | Status | Description |
 |-----------|--------|-------------|
-| M1-M6 | ✅ Complete | Core features (ingest, search, classify) |
-| M7 | ✅ Complete | MCP Server for Claude |
+| M1–M6 | ✅ Complete | Core features (ingest, OCR, search, classify, extract) |
+| M7 | ✅ Complete | MCP Server for Claude (stdio) |
 | M8 | ✅ Complete | Web UI |
-| M9 | ✅ Complete | Structured extraction |
-| M10 | ✅ Complete | Cloud LLM support |
-| M11 | ✅ Complete | Admin Panel |
-| M12 | ✅ Complete | Multi-user auth + Web UI login |
-| M13+ | 🔜 Planned | Chat, Cloud OCR |
+| M9 | ✅ Complete | Structured extraction + amounts |
+| M10 | ✅ Complete | Cloud LLM support (OpenAI, Anthropic) |
+| M11 | ✅ Complete | Admin panel |
+| M12 | ✅ Complete | Multi-user auth + login |
+| M12.5–M12.7 | ✅ Complete | AI pause/resume, tag-based routing, MCP HTTP, SQLite retry |
+| M13 | 🔜 Planned | Chat interface, document Q&A |
 
-**160+ tests passing** • **Zero known bugs**
+**202 tests passing** • **[Live demo](https://mymemex.app/ui/) — read-only, no sign-up**
 
 ## License
 
@@ -180,9 +223,8 @@ ai:
 
 If you find MyMemex useful, consider:
 
-- ⭐ **Starring the repo** on GitHub
-- 💬 **Joining our [Discord](https://discord.gg/yvR8Mw9bZa)** 
-- 💰 **Sponsoring development** (GitHub Sponsors / Patreon)
+- **Starring the repo** on GitHub
+- **Sponsoring development** (GitHub Sponsors)
 
 See [SUPPORTERS.md](SUPPORTERS.md) for supporter benefits.
 
@@ -193,4 +235,4 @@ See [SUPPORTERS.md](SUPPORTERS.md) for supporter benefits.
 
 ---
 
-**[Get Started](https://mymemex.io)** • **[View on GitHub](https://github.com/joywareapps/mymemex)** • **[Report Issue](https://github.com/joywareapps/mymemex/issues)**
+**[Live Demo](https://mymemex.app/ui/)** • **[View on GitHub](https://github.com/joywareapps/mymemex)** • **[Report Issue](https://github.com/joywareapps/mymemex/issues)**

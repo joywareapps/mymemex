@@ -50,7 +50,7 @@
 
 - **AI processing pause/resume**: Admin console button to pause/resume LLM tasks (classify, embed, extract_metadata). Non-AI tasks (ingest, route_file) continue while paused.
 - **Tag-based file routing**: After classification, files are moved to tag-matched subdirectories. `RoutingRule` model with `tags`, `match_mode` (any/all), `priority`, `sub_levels` (template strings supporting `{tag:prefix}`, `{year}`). `ROUTE_FILE` task type runs even when AI is paused. Admin UI at `/ui/admin/routing`.
-- **Private deployment script**: `scripts/deploy-private.sh` + `docker-compose.private.yml` for a personal instance on a configurable port (default 8002). Mounts `LIBRARY_PATH` (inbox + archive) and `./data` separately. MCP HTTP port on 8003.
+- **Private deployment script**: `scripts/deploy-private.sh` + `docker-compose.private.yml` for a personal instance on a configurable port (default 8002). Mounts `LIBRARY_PATH` (inbox + archive) and `./data` separately. MCP HTTP transport at `/mcp` on the same port when `mcp.transport=http`.
 - **Serbian/Croatian OCR**: Added `srp` and `hrv` Tesseract language packs to Docker image.
 
 ### What M12.6 Delivers (2026-03-01 – 2026-03-15)

@@ -10,5 +10,5 @@ mcp:
 
       # Option 2: HTTP transport (for remote access)
       # transport: http
-      # url: http://localhost:8001/mcp
-      # api_key: ${MYMEMEX_MCP_KEY}
+      # url: http://your-server:8002/mcp
+      # api_key: ${MYMEMEX_MCP_KEY}   # only if MCP auth token is enabled

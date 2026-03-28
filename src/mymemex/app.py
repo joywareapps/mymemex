@@ -199,6 +199,27 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         name="static",
     )
 
+    # MCP HTTP transport — mount at /mcp when configured
+    import os
+
+    if (
+        config.mcp.enabled
+        and config.mcp.transport == "http"
+        and os.environ.get("DEMO_MODE") != "true"
+    ):
+        try:
+            from .mcp import create_mcp_server
+            from .middleware.mcp_auth import MCPAuthMiddleware
+
+            mcp_server = create_mcp_server(config)
+            mcp_http_app = mcp_server.streamable_http_app()
+            if config.mcp.auth.mode != "none":
+                mcp_http_app = MCPAuthMiddleware(mcp_http_app, config)
+            app.mount("/mcp", mcp_http_app)
+            log.info("MCP HTTP transport mounted", path="/mcp")
+        except Exception as e:
+            log.warning("MCP HTTP transport not mounted", error=str(e))
+
     @app.get("/health")
     async def health():
         return {"status": "ok"}

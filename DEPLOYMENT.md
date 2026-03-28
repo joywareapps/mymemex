@@ -110,11 +110,11 @@ bash scripts/deploy-private.sh
 open http://localhost:8002/ui/
 
 # MCP HTTP transport (for Claude Desktop / OpenClaw)
-# available on port 8003
+# available at http://localhost:8002/mcp  (set mcp.transport=http in Settings)
 ```
 
 What it creates:
-- Container `mymemex-private` on port 8002 (MCP on 8003)
+- Container `mymemex-private` on port 8002 (MCP HTTP at /mcp when transport=http)
 - `./data/` bind-mounted as the database directory
 - `LIBRARY_PATH` mounted as `/documents` (read/write)
 - `LIBRARY_PATH/inbox` also mounted as `/app/inbox` for the file watcher
