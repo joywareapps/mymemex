@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -90,7 +90,13 @@ async def lifespan(app: FastAPI):
     log.info("MyMemex ready")
     await events.broadcast("system.started", {"version": "0.1.0"})
 
-    yield
+    # Run MCP session manager for the app lifetime (if HTTP transport is mounted)
+    async with AsyncExitStack() as stack:
+        mcp_session_manager = getattr(app.state, "mcp_session_manager", None)
+        if mcp_session_manager:
+            await stack.enter_async_context(mcp_session_manager.run())
+            log.info("MCP session manager started")
+        yield
 
     # Shutdown
     log.info("MyMemex shutting down")
@@ -209,6 +215,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
 
             mcp_server = create_mcp_server(config)
             mcp_http_app = mcp_server.streamable_http_app()
+            # Store session manager so lifespan can start it
+            app.state.mcp_session_manager = mcp_server.session_manager
             if config.mcp.auth.mode != "none":
                 mcp_http_app = MCPAuthMiddleware(mcp_http_app, config)
             app.mount("/mcp", mcp_http_app)

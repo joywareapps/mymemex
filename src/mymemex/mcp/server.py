@@ -42,6 +42,7 @@ def create_mcp_server(config: AppConfig | None = None) -> FastMCP[MyMemexContext
             "Use the available tools to search, browse, and manage documents."
         ),
         lifespan=lifespan,
+        streamable_http_path="/",  # mount at root so /mcp maps to /mcp not /mcp/mcp
     )
 
     # Stash config so lifespan can access it
