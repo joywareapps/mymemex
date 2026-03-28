@@ -29,21 +29,21 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
           </div>
           <div>
             <h2 class="text-2xl font-bold">Current Status</h2>
-            <p class="text-slate-400">M1-M11 Complete — Production Ready!</p>
+            <p class="text-slate-400">M1–M12 Complete — Production Ready</p>
           </div>
         </div>
         <div class="grid md:grid-cols-3 gap-4 mb-4">
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Phase</div>
-            <div class="text-lg font-semibold text-emerald-400">M1-M11 Complete</div>
+            <div class="text-lg font-semibold text-emerald-400">M1–M12 Complete</div>
           </div>
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Next Milestone</div>
-            <div class="text-lg font-semibold text-cyan-400">M12: Multi-User Support</div>
+            <div class="text-lg font-semibold text-cyan-400">M13: Chat Interface</div>
           </div>
           <div class="bg-slate-900/50 rounded-lg p-4">
             <div class="text-sm text-slate-400 mb-1">Tests</div>
-            <div class="text-lg font-semibold text-emerald-400">148 passing</div>
+            <div class="text-lg font-semibold text-emerald-400">202 passing</div>
           </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
@@ -54,7 +54,7 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
             <span class="text-slate-400">Docker:</span> <span class="font-semibold text-emerald-400">ghcr.io ready</span>
           </div>
           <div class="bg-slate-900/30 rounded-lg p-3">
-            <span class="text-slate-400">AI:</span> <span class="font-semibold">Ollama + Cloud LLM</span>
+            <span class="text-slate-400">Auth:</span> <span class="font-semibold">JWT + bcrypt</span>
           </div>
           <div class="bg-slate-900/30 rounded-lg p-3">
             <span class="text-slate-400">GitHub:</span> <span class="font-semibold">joywareapps/mymemex</span>
@@ -74,11 +74,11 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
           <ul class="space-y-2 text-slate-400 text-sm">
             <li>• PDF text extraction (PyMuPDF)</li>
             <li>• OCR for scanned documents (Tesseract)</li>
-            <li>• Auto-classification via LLM</li>
-            <li>• Structured data extraction</li>
+            <li>• Multi-page image sequence grouping</li>
+            <li>• Auto-classification &amp; structured extraction via LLM</li>
           </ul>
         </div>
-        
+
         <div class="border border-emerald-500/20 rounded-xl p-6 bg-gradient-to-br from-emerald-500/5 to-transparent">
           <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
             <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
@@ -108,13 +108,26 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
         <div class="border border-emerald-500/20 rounded-xl p-6 bg-gradient-to-br from-emerald-500/5 to-transparent">
           <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
             <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            Intelligence
+            Intelligence & Organisation
           </h3>
           <ul class="space-y-2 text-slate-400 text-sm">
             <li>• Auto-tagging with confidence thresholds</li>
             <li>• Structured extraction (amounts, dates)</li>
+            <li>• Tag-based automatic filing rules</li>
             <li>• Aggregation queries ("tax paid 2024?")</li>
-            <li>• 64 extracted fields per document avg</li>
+          </ul>
+        </div>
+
+        <div class="border border-emerald-500/20 rounded-xl p-6 bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            Users & Access Control
+          </h3>
+          <ul class="space-y-2 text-slate-400 text-sm">
+            <li>• JWT auth with bcrypt passwords</li>
+            <li>• Optional auth (single-user mode)</li>
+            <li>• Document ownership &amp; user-aware tagging</li>
+            <li>• Role-based admin access</li>
           </ul>
         </div>
       </div>
@@ -123,61 +136,35 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
       <h2 class="text-2xl font-bold mt-16 mb-8 text-cyan-400">Upcoming Milestones</h2>
 
       <div class="space-y-6">
-        <!-- M11 -->
-        <div class="border border-emerald-500/30 rounded-xl p-6 bg-gradient-to-r from-emerald-500/5 to-transparent">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-10 h-10 bg-emerald-500/30 rounded-lg flex items-center justify-center">
-              <span class="text-emerald-400 font-bold">M11</span>
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold">Admin Panel & File Management <span class="ml-2 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">✅ COMPLETE</span></h3>
-              <p class="text-slate-400">Web-based configuration, MCP access tokens, file organization policies, and user profiles</p>
-            </div>
-          </div>
-          <div class="ml-14">
-            <ul class="space-y-2 text-slate-400">
-              <li>• Configure watch folders and file policies through UI</li>
-              <li>• Generate and revoke MCP access tokens with secure hashing</li>
-              <li>• Automated backup scheduling and retention management</li>
-              <li>• User profile management for person-based auto-tagging</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- M12 -->
+        <!-- M13 -->
         <div class="border border-cyan-500/30 rounded-xl p-6 bg-gradient-to-r from-cyan-500/5 to-transparent">
           <div class="flex items-center gap-4 mb-4">
             <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-              <span class="text-cyan-400 font-bold">M12</span>
+              <span class="text-cyan-400 font-bold">M13</span>
             </div>
             <div>
-              <h3 class="text-xl font-semibold">Multi-User Support <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs font-semibold">NEXT UP</span></h3>
-              <p class="text-slate-400">Authentication, document ownership, and shared visibility</p>
+              <h3 class="text-xl font-semibold">Chat Interface <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs font-semibold">NEXT UP</span></h3>
+              <p class="text-slate-400">Built-in RAG chat with citations — for users who want a self-contained experience</p>
             </div>
           </div>
           <div class="ml-14">
             <ul class="space-y-2 text-slate-400">
-              <li>• User authentication (username/password login with bcrypt)</li>
-              <li>• Document ownership tracking (who uploaded what)</li>
-              <li>• Per-user filtering and shared vs private visibility</li>
-              <li>• User-aware MCP context for agentic interactions</li>
+              <li>• Natural language questions with sourced answers</li>
+              <li>• Citations linked to document and page</li>
+              <li>• Conversation history persisted across sessions</li>
+              <li>• Works with local Ollama (no cloud required)</li>
             </ul>
             <div class="mt-4">
-              <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm font-medium">2-3 weeks</span>
+              <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm font-medium">~1-2 weeks</span>
             </div>
           </div>
         </div>
 
-        <!-- M13, M14 in grid -->
+        <!-- M14 -->
         <div class="grid md:grid-cols-2 gap-4">
           <div class="border border-slate-800 rounded-xl p-5">
-            <div class="text-sm font-semibold text-slate-300 mb-2">M13: Chat Interface</div>
-            <p class="text-slate-400 text-sm">Built-in RAG chat with citations (optional, MCP already works)</p>
-            <p class="text-slate-500 text-xs mt-2">~1-2 weeks</p>
-          </div>
-          <div class="border border-slate-800 rounded-xl p-5">
             <div class="text-sm font-semibold text-slate-300 mb-2">M14: Cloud OCR Fallback</div>
-            <p class="text-slate-400 text-sm">AWS Textract/Google Vision fallback for difficult documents</p>
+            <p class="text-slate-400 text-sm">AWS Textract/Google Vision fallback for difficult scanned documents. Privacy controls per directory.</p>
             <p class="text-slate-500 text-xs mt-2">~3-4 days</p>
           </div>
         </div>
@@ -242,6 +229,18 @@ const checkIcon = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" vie
         <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
           <span class="text-emerald-400 font-bold">M11</span>
           <span class="text-slate-300 ml-2">Admin Panel & User Context</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M12</span>
+          <span class="text-slate-300 ml-2">Multi-User Auth</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M12.5</span>
+          <span class="text-slate-300 ml-2">AI Pause/Resume, Tag Routing</span>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-4 border border-emerald-500/10">
+          <span class="text-emerald-400 font-bold">M12.7</span>
+          <span class="text-slate-300 ml-2">Multi-Page Images, Reliability</span>
         </div>
       </div>
     </div>

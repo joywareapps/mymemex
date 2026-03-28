@@ -58,11 +58,13 @@ import Layout from '../layouts/Layout.astro';
               <h3 class="text-xl font-semibold mb-2">Intelligent OCR Pipeline</h3>
               <p class="text-slate-400 mb-4">
                 Multi-tier OCR with automatic fallback: native PDF text extraction (instant for born-digital documents),
-                local Tesseract OCR for scanned documents. Cloud OCR fallback planned for M11.
+                local Tesseract OCR for scanned documents. Multi-page image sequences (e.g. scanner output) are
+                automatically grouped into a single document with a pageable gallery preview.
               </p>
               <div class="flex flex-wrap gap-2">
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">PyMuPDF</span>
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Tesseract</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Multi-page sequences</span>
                 <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-sm">Working</span>
               </div>
             </div>
@@ -104,7 +106,7 @@ import Layout from '../layouts/Layout.astro';
               <h3 class="text-xl font-semibold mb-2">Conversational Access via MCP</h3>
               <p class="text-slate-400 mb-4">
                 Talk to your documents through Claude Desktop, OpenClaw, or any MCP-compatible client.
-                No custom chat UI needed — use your existing AI assistants. 8 tools for search, browsing, tagging, and upload.
+                No custom chat UI needed — use your existing AI assistants. 13 tools for search, browsing, tagging, upload, and structured aggregation.
               </p>
               <div class="flex flex-wrap gap-2">
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Claude Desktop</span>
@@ -200,12 +202,63 @@ import Layout from '../layouts/Layout.astro';
               <h3 class="text-xl font-semibold mb-2">Admin Control Center</h3>
               <p class="text-slate-400 mb-4">
                 Manage your library through a powerful web-based dashboard. Configure watch folders, generate secure MCP tokens,
-                set file organization policies, and schedule automated backups with ease.
+                set file organization policies, schedule automated backups, and pause/resume AI processing on demand.
               </p>
               <div class="flex flex-wrap gap-2">
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Web UI</span>
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Token Management</span>
                 <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">File Policies</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">AI Pause/Resume</span>
+                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-sm">Working</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 9: Tag-Based Routing -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8">
+          <div class="flex items-start gap-6">
+            <div class="w-14 h-14 bg-teal-500/20 rounded-xl flex items-center justify-center shrink-0">
+              <svg class="w-7 h-7 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Tag-Based Automatic Filing</h3>
+              <p class="text-slate-400 mb-4">
+                After AI classification, documents are automatically moved to the right folder based on their tags.
+                Define routing rules with priority, tag matching (any/all), and template-based subfolder paths
+                like <code class="text-teal-300 bg-slate-800 px-1 rounded">&#123;year&#125;/&#123;tag:type&#125;</code>. No manual sorting.
+              </p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Routing Rules</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Path Templates</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Priority-Based</span>
+                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-sm">Working</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 10: Multi-User Auth -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-8">
+          <div class="flex items-start gap-6">
+            <div class="w-14 h-14 bg-indigo-500/20 rounded-xl flex items-center justify-center shrink-0">
+              <svg class="w-7 h-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Multi-User Authentication</h3>
+              <p class="text-slate-400 mb-4">
+                Secure JWT-based authentication with bcrypt password hashing. Optional auth mode for single-user
+                setups. Document ownership tracking, user-aware AI tagging, and role-based admin access.
+                Works for families and small teams sharing a self-hosted instance.
+              </p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">JWT Auth</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">bcrypt</span>
+                <span class="px-3 py-1 bg-slate-800 rounded-full text-sm text-slate-300">Optional Auth Mode</span>
                 <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-sm">Working</span>
               </div>
             </div>
