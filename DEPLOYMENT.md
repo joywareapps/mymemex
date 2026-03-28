@@ -76,30 +76,84 @@ watch:
 
 ```bash
 # Run with Docker Compose
-docker-compose up -d
+docker compose up -d
 ```
 
-### Option 2: Production Server
+### Option 2: Private / Personal Instance
 
-#### On ThinkCentre M720q (Home Server)
+The recommended way to run a personal instance with a dedicated document library (inbox + archive) and full AI features.
+
+**Prerequisites:** A `.env` file in the repo root:
+
+```bash
+# Required
+LIBRARY_PATH=/path/to/your/library     # must contain inbox/ and archive/ subdirs
+PRIVATE_HTTP_PORT=8002                  # host port (default 8002)
+
+# Optional — LLM (Ollama)
+MYMEMEX_LLM__PROVIDER=ollama
+MYMEMEX_LLM__API_BASE=http://192.168.1.x:11434
+MYMEMEX_LLM__MODEL=gemma3:12b
+MYMEMEX_LLM__TIMEOUT=300
+MYMEMEX_AI__SEMANTIC_SEARCH_ENABLED=true
+MYMEMEX_AI__EMBEDDING_MODEL=nomic-embed-text
+MYMEMEX_AI__EMBEDDING_DIMENSION=768
+```
+
+**Deploy:**
+
+```bash
+# First deploy (builds image, ensures inbox/archive dirs exist)
+bash scripts/deploy-private.sh
+
+# Access
+open http://localhost:8002/ui/
+
+# MCP HTTP transport (for Claude Desktop / OpenClaw)
+# available on port 8003
+```
+
+What it creates:
+- Container `mymemex-private` on port 8002 (MCP on 8003)
+- `./data/` bind-mounted as the database directory
+- `LIBRARY_PATH` mounted as `/documents` (read/write)
+- `LIBRARY_PATH/inbox` also mounted as `/app/inbox` for the file watcher
+
+### Option 3: Public Demo Instance
+
+Runs a read-only demo with seeded dummy documents, completely isolated from any real data.
+
+```bash
+# Full deploy (builds image, seeds demo data, starts container)
+bash scripts/deploy-demo.sh
+
+# Fast re-deploy (skip seeding, keep existing demo data)
+bash scripts/deploy-demo-fast.sh
+
+# Access
+open http://localhost:8001/ui/
+```
+
+What it creates:
+- Container `mymemex-demo` on port 8001
+- Named Docker volume `mymemex-demo-data` (never touches `./data` or `.env`)
+- `DEMO_MODE=true` — write operations are blocked in the UI
+- LLM disabled (`MYMEMEX_LLM__PROVIDER=none`)
+- ~50 seeded demo documents (invoices, contracts, receipts)
+
+### Option 4: Production Server
 
 ```bash
 # SSH to server
-ssh user@thinkcentre
+ssh user@yourserver
+cd /path/to/mymemex
 
-# Clone repository
-git clone https://github.com/joywareapps/mymemex.git
-cd mymemex
-
-# Create config
-cp config/config.example.yaml config/config.yaml
-nano config/config.yaml
+# Create .env
+cp .env.example .env
+nano .env
 
 # Build and start
-docker-compose up -d
-
-# Enable auto-start on boot
-docker-compose enable
+docker compose up -d
 ```
 
 #### With Reverse Proxy (Nginx)
@@ -119,7 +173,7 @@ server {
 }
 ```
 
-### Option 3: With Ollama (M6+ - AI Features)
+### Option 5: With Ollama (AI Features)
 
 ```yaml
 # docker-compose.yml - add Ollama service
@@ -143,12 +197,11 @@ volumes:
   ollama-models:
 ```
 
-Then update config:
-```yaml
-llm:
-  provider: ollama
-  model: llama2
-  api_base: http://ollama:11434
+Then in `.env`:
+```bash
+MYMEMEX_LLM__PROVIDER=ollama
+MYMEMEX_LLM__MODEL=gemma3:12b
+MYMEMEX_LLM__API_BASE=http://ollama:11434
 ```
 
 ## Management
