@@ -18,11 +18,11 @@ git commit -m "Add Docker deployment configuration and production guide"
 git push origin main
 ```
 
-### 2. Deploy to ThinkCentre M720q
+### 2. Deploy to your home server
 
 **Option A: Manual deployment**
 ```bash
-# On ThinkCentre
+# On your-server
 git clone https://github.com/joywareapps/mymemex.git
 cd mymemex
 cp config/config.example.yaml config/config.yaml
@@ -37,7 +37,7 @@ docker-compose up -d
 **Option B: Automated deployment (later)**
 - Set up GitHub Actions to build Docker image
 - Push to GitHub Container Registry
-- Auto-deploy to ThinkCentre via SSH
+- Auto-deploy to your-server via SSH
 
 ### 3. Configure Document Watching
 
@@ -105,8 +105,8 @@ sudo systemctl enable certbot.timer
 
 ## 📊 Monitoring
 
-- Health endpoint: http://thinkcentre:8000/health
-- API docs: http://thinkcentre:8000/docs
+- Health endpoint: http://localhost:8000/health
+- API docs: http://localhost:8000/docs
 - Container stats: `docker stats mymemex`
 
 ## 🔄 Updates

@@ -8,10 +8,10 @@
 #   PRIVATE_HTTP_PORT — host port (default 8002)
 #
 # Example .env:
-#   LIBRARY_PATH=/media/seagate/mymemex
+#   LIBRARY_PATH=/path/to/your/library
 #   PRIVATE_HTTP_PORT=8002
 #   MYMEMEX_LLM__PROVIDER=ollama
-#   MYMEMEX_LLM__API_BASE=http://192.168.1.10:11434
+#   MYMEMEX_LLM__API_BASE=http://192.168.x.x:11434
 #   MYMEMEX_LLM__MODEL=gemma3:12b
 #   MYMEMEX_LLM__TIMEOUT=300
 

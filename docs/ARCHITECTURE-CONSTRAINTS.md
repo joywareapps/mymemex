@@ -65,7 +65,7 @@ Scenario C: Local Ollama on NAS (if powerful enough)
 ```yaml
 llm:
   provider: ollama  # or openai, anthropic, custom
-  base_url: http://192.168.1.100:11434  # Ollama on gaming PC
+  base_url: http://192.168.x.x:11434  # Ollama on gaming PC
   model: llama3.2:latest
   embedding_model: nomic-embed-text:latest
   
@@ -195,7 +195,7 @@ All AI-related endpoints must be configurable:
 # Primary LLM for generation
 llm:
   provider: ollama
-  base_url: http://192.168.1.100:11434
+  base_url: http://192.168.x.x:11434
   model: llama3.2:latest
   timeout: 120
   max_retries: 3
@@ -203,7 +203,7 @@ llm:
 # Embedding model (can be same or different endpoint)
 embedding:
   provider: ollama  # Can differ from LLM provider
-  base_url: http://192.168.1.100:11434
+  base_url: http://192.168.x.x:11434
   model: nomic-embed-text:latest
   batch_size: 32
 
