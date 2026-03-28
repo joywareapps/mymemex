@@ -13,7 +13,7 @@ services:
     volumes:
       - ./config:/app/config
       - ./data:/var/lib/mymemex
-      - ${LIBRARY_PATH:-~/Documents}:/documents
+      - ${LIBRARY_PATH:-/documents}:${LIBRARY_PATH:-/documents}
     env_file:
       - path: .env
         required: false

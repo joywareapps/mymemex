@@ -4,7 +4,7 @@
 #
 # Required .env variables:
 #   LIBRARY_PATH   — host path containing inbox/ and archive/ subdirs
-#                    (mounted as /documents inside the container)
+#                    (mounted at the same path inside the container)
 #   PRIVATE_HTTP_PORT — host port (default 8002)
 #
 # Example .env:
