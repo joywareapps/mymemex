@@ -42,9 +42,9 @@ class ServerConfig(BaseModel):
 
 
 class OCRConfig(BaseModel):
-    """OCR configuration (for M5, stub for now)."""
+    """OCR configuration (Tesseract)."""
 
-    enabled: bool = False
+    enabled: bool = True
     language: str = "eng"
     dpi: int = 300
     confidence_threshold: float = 0.7
