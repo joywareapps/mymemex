@@ -529,7 +529,16 @@ async def run_ingest_pipeline(
 
         except Exception as e:
             log.exception("Ingestion failed", doc_id=doc.id, error=str(e))
-            await repo.update_status(doc, "failed", error=str(e))
+            # The session may be in a rolled-back state (e.g. after a DB lock error
+            # during flush). Open a fresh session to update the document status.
+            try:
+                async with get_session() as fresh:
+                    fresh_repo = DocumentRepository(fresh)
+                    fresh_doc = await fresh_repo.get_by_id(doc.id)
+                    if fresh_doc:
+                        await fresh_repo.update_status(fresh_doc, "failed", error=str(e)[:500])
+            except Exception:
+                pass
 
             if events:
                 await events.broadcast(

@@ -101,7 +101,7 @@ class ExtractionConfig(BaseModel):
 class IngestionConfig(BaseModel):
     """Document ingestion configuration."""
 
-    max_concurrent: int = Field(default=2, ge=1, le=10)
+    max_concurrent: int = Field(default=1, ge=1, le=10)
 
 
 class MCPSecurityConfig(BaseModel):
