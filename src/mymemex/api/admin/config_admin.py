@@ -119,6 +119,19 @@ async def validate_config(data: dict):
         raise HTTPException(status_code=422, detail=str(e))
 
 
+@router.get("/config/ocr-languages")
+async def get_ocr_languages():
+    """Return Tesseract language codes installed in this environment."""
+    try:
+        import pytesseract
+        langs = pytesseract.get_languages(config=None)
+        # Exclude non-language entries (osd = orientation/script detection)
+        langs = sorted(l for l in langs if l not in ("osd", "equ"))
+        return {"languages": langs}
+    except Exception as e:
+        return {"languages": [], "error": str(e)}
+
+
 def _deep_merge(base: dict, updates: dict) -> None:
     """Recursively merge updates into base dict in-place."""
     for key, value in updates.items():

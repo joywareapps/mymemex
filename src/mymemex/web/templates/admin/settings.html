@@ -12,9 +12,50 @@
     restartStatus: '',
     llmTesting: false,
     llmTestResult: null,
+    ocrLangs: [],
+    ocrLangsLoaded: false,
     async load() {
         const r = await fetch('/api/v1/admin/config');
         this.config = await r.json();
+        this.loadOcrLangs();
+    },
+    async loadOcrLangs() {
+        if (this.ocrLangsLoaded) return;
+        try {
+            const r = await fetch('/api/v1/admin/config/ocr-languages');
+            if (r.ok) { const d = await r.json(); this.ocrLangs = d.languages || []; }
+        } catch {}
+        this.ocrLangsLoaded = true;
+    },
+    ocrLangName(code) {
+        const n = {
+            'afr':'Afrikaans','ara':'Arabic','bel':'Belarusian','ben':'Bengali',
+            'bos':'Bosnian','bul':'Bulgarian','cat':'Catalan','ces':'Czech',
+            'chi_sim':'Chinese (Simplified)','chi_tra':'Chinese (Traditional)',
+            'dan':'Danish','deu':'German','ell':'Greek','eng':'English',
+            'est':'Estonian','fas':'Persian','fin':'Finnish','fra':'French',
+            'gle':'Irish','glg':'Galician','guj':'Gujarati','heb':'Hebrew',
+            'hin':'Hindi','hrv':'Croatian','hun':'Hungarian','hye':'Armenian',
+            'ind':'Indonesian','isl':'Icelandic','ita':'Italian','jpn':'Japanese',
+            'kan':'Kannada','kat':'Georgian','kor':'Korean','lav':'Latvian',
+            'lit':'Lithuanian','mal':'Malayalam','mar':'Marathi','mkd':'Macedonian',
+            'mlt':'Maltese','nld':'Dutch','nor':'Norwegian','pol':'Polish',
+            'por':'Portuguese','ron':'Romanian','rus':'Russian','slk':'Slovak',
+            'slv':'Slovenian','spa':'Spanish','srp':'Serbian','swe':'Swedish',
+            'tam':'Tamil','tel':'Telugu','tgl':'Filipino','tha':'Thai',
+            'tur':'Turkish','ukr':'Ukrainian','urd':'Urdu','vie':'Vietnamese',
+        };
+        return n[code] || code;
+    },
+    ocrLangActive(code) {
+        return (this.config.ocr?.language || '').split('+').filter(Boolean).includes(code);
+    },
+    toggleOcrLang(code) {
+        const langs = (this.config.ocr?.language || '').split('+').filter(Boolean);
+        const idx = langs.indexOf(code);
+        if (idx >= 0) langs.splice(idx, 1); else langs.push(code);
+        if (!this.config.ocr) this.config.ocr = {};
+        this.config.ocr.language = langs.join('+');
     },
     async save() {
         this.saving = true;
@@ -188,12 +229,39 @@
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">OCR</h2>
             <div class="flex items-center gap-2">
                 <input x-model="config.ocr.enabled" type="checkbox" id="ocr_enabled" class="rounded">
-                <label for="ocr_enabled" class="text-sm text-gray-700 dark:text-gray-300">Enable OCR</label>
+                <label for="ocr_enabled" class="text-sm text-gray-700 dark:text-gray-300">Enable OCR (Tesseract) — required for scanned PDFs and image files</label>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Language</label>
                 <input x-model="config.ocr.language" type="text" placeholder="eng"
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-48 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Combine multiple languages with <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">+</code>,
+                    e.g. <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">eng+deu</code>
+                </p>
+            </div>
+            <!-- Installed language chips -->
+            <div x-show="ocrLangsLoaded">
+                <template x-if="ocrLangs.length > 0">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Installed languages — click to add/remove:</p>
+                        <div class="flex flex-wrap gap-2">
+                            <template x-for="code in ocrLangs" :key="code">
+                                <button type="button" @click="toggleOcrLang(code)"
+                                        :class="ocrLangActive(code)
+                                            ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900 dark:border-blue-400 dark:text-blue-200'
+                                            : 'bg-white border-gray-300 text-gray-600 hover:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300'"
+                                        class="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full border transition-colors cursor-pointer select-none">
+                                    <span x-text="ocrLangName(code)"></span>
+                                    <span class="opacity-50 font-mono" x-text="code"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+                <template x-if="ocrLangs.length === 0">
+                    <p class="text-xs text-amber-600 dark:text-amber-400">⚠ No Tesseract language packs detected. Install them in your environment (e.g. <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">tesseract-ocr-eng</code>).</p>
+                </template>
             </div>
         </div>
 
