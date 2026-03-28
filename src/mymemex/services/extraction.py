@@ -298,9 +298,22 @@ class ExtractionService:
                 min_confidence=min_confidence,
             )
 
+            # When no field_name filter is set, also return per-field totals so
+            # callers can see what is being summed and refine with field_name.
+            field_breakdown = None
+            if not field_name:
+                field_breakdown = await field_repo.get_field_breakdown(
+                    category=category,
+                    date_from=from_date,
+                    date_to=to_date,
+                    currency=currency,
+                    min_confidence=min_confidence,
+                )
+
             return {
                 "aggregation": agg_result,
                 "yearly_breakdown": breakdown,
+                "field_breakdown": field_breakdown,
             }
 
     async def get_document_fields(self, document_id: int) -> dict:

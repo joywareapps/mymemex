@@ -336,9 +336,16 @@ def register(mcp: FastMCP) -> None:
 
         Use for queries like "How much tax did I pay from 2015-2025?"
 
+        IMPORTANT: Always specify field_name for accurate results. Without it,
+        ALL currency fields from matching documents are summed together, which
+        includes income figures, prepayments, and other unrelated amounts.
+        Call without field_name first to see the breakdown, then re-call with
+        the appropriate field_name (e.g., 'tax_due', 'total_amount', 'premium').
+
         Args:
             category: Filter by document category (e.g., 'tax', 'invoice').
-            field_name: Field to aggregate (e.g., 'total_tax', 'premium').
+            field_name: Field to aggregate (e.g., 'tax_due', 'total_amount').
+                        Omit to see all available fields and their totals.
             date_from: ISO date, inclusive (e.g., '2015-01-01').
             date_to: ISO date, inclusive (e.g., '2025-12-31').
             currency: Filter by currency (e.g., 'EUR').
@@ -360,14 +367,40 @@ def register(mcp: FastMCP) -> None:
 
         lines = ["# Amount Aggregation\n"]
 
+        # Warning when no field_name filter — totals may include unrelated fields
+        field_breakdown = result.get("field_breakdown")
+        if field_breakdown is not None:
+            lines.append(
+                "> ⚠️ **No `field_name` specified** — this total sums ALL currency fields "
+                "from matching documents (income, tax, prepayments, etc.).\n"
+                "> For accurate results, rerun with `field_name=<name>` using one of the "
+                "field names shown in the breakdown below.\n"
+            )
+
         if result["aggregation"]["results"]:
             for agg in result["aggregation"]["results"]:
-                lines.append(f"**Total:** {agg['currency']} {agg['total']:,.2f}")
+                lines.append(f"**Total (all fields):** {agg['currency']} {agg['total']:,.2f}")
                 lines.append(f"**Documents:** {agg['count']}")
                 lines.append("")
+        else:
+            lines.append("*No amounts found matching the filters.*\n")
+
+        # Per-field breakdown when field_name was not specified
+        if field_breakdown:
+            lines.append("## Breakdown by Field Name\n")
+            lines.append("| Field | Currency | Total | Documents |")
+            lines.append("|-------|----------|-------|-----------|")
+            for row in field_breakdown:
+                lines.append(
+                    f"| `{row['field_name']}` | {row['currency']} | {row['total']:,.2f} | {row['count']} |"
+                )
+            lines.append("")
+            lines.append(
+                "*Rerun with e.g. `field_name=tax_due` to aggregate only that field.*"
+            )
 
         if result["yearly_breakdown"]:
-            lines.append("## Yearly Breakdown\n")
+            lines.append("\n## Yearly Breakdown\n")
             lines.append("| Year | Currency | Total | Documents |")
             lines.append("|------|----------|-------|-----------|")
             for row in result["yearly_breakdown"]:
@@ -375,7 +408,7 @@ def register(mcp: FastMCP) -> None:
                     f"| {row['year']} | {row['currency']} | {row['total']:,.2f} | {row['count']} |"
                 )
 
-        return "\n".join(lines) if len(lines) > 1 else "No amounts found matching the filters."
+        return "\n".join(lines)
 
     @mcp.tool()
     async def get_extracted_fields(document_id: int, ctx: Context = None) -> str:

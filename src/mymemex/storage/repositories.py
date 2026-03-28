@@ -528,6 +528,45 @@ class DocumentFieldRepository:
             ]
         }
 
+    async def get_field_breakdown(
+        self,
+        category: str | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
+        currency: str | None = None,
+        min_confidence: float = 0.5,
+    ) -> list[dict]:
+        """Return per-field-name totals so callers can see what is being summed."""
+        query = (
+            select(
+                DocumentField.field_name,
+                DocumentField.currency,
+                func.sum(DocumentField.value_number).label("total"),
+                func.count(DocumentField.id).label("count"),
+            )
+            .select_from(DocumentField)
+            .join(Document)
+            .where(DocumentField.field_type == "currency")
+            .where(DocumentField.confidence >= min_confidence)
+        )
+        if category:
+            query = query.where(Document.category == category)
+        if date_from:
+            query = query.where(Document.document_date >= date_from)
+        if date_to:
+            query = query.where(Document.document_date <= date_to)
+        if currency:
+            query = query.where(DocumentField.currency == currency)
+
+        query = query.group_by(DocumentField.field_name, DocumentField.currency).order_by(
+            func.sum(DocumentField.value_number).desc()
+        )
+        result = await self.session.execute(query)
+        return [
+            {"field_name": row.field_name, "currency": row.currency, "total": row.total, "count": row.count}
+            for row in result.all()
+        ]
+
     async def get_yearly_breakdown(
         self,
         field_name: str | None = None,
