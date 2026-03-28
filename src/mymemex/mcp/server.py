@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 from ..config import AppConfig, load_config
 from ..storage.database import init_database
@@ -43,6 +44,9 @@ def create_mcp_server(config: AppConfig | None = None) -> FastMCP[MyMemexContext
         ),
         lifespan=lifespan,
         streamable_http_path="/",  # mount at root so /mcp maps to /mcp not /mcp/mcp
+        transport_security=TransportSecuritySettings(
+            enable_dns_rebinding_protection=False,
+        ),
     )
 
     # Stash config so lifespan can access it
