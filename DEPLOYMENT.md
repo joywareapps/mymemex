@@ -121,6 +121,8 @@ What it creates:
 
 ### Option 3: Public Demo Instance
 
+> **Live demo:** https://mymemex.app/ui/ — read-only, no sign-up needed.
+
 Runs a read-only demo with seeded dummy documents, completely isolated from any real data.
 
 ```bash
