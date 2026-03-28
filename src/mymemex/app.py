@@ -202,11 +202,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     # MCP HTTP transport — mount at /mcp when configured
     import os
 
-    if (
-        config.mcp.enabled
-        and config.mcp.transport == "http"
-        and os.environ.get("DEMO_MODE") != "true"
-    ):
+    if config.mcp.enabled and os.environ.get("DEMO_MODE") != "true":
         try:
             from .mcp import create_mcp_server
             from .middleware.mcp_auth import MCPAuthMiddleware
