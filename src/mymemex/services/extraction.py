@@ -32,7 +32,17 @@ Extract:
 2. Document type (tax_return, invoice, receipt, contract, insurance_policy, bank_statement, utility_bill, medical_record, other)
 3. Document date (the date this document refers to, not when it was created or scanned)
 4. Category (tax, financial, medical, insurance, legal, personal, work, utility, other)
-5. Monetary amounts with labels (e.g., total_tax, premium, invoice_total)
+5. Monetary amounts with labels — use precise labels:
+   - For tax assessments (Steuerbescheid): use "einkommensteuer_festgesetzt" for the final assessed income tax,
+     "solidaritaetszuschlag_festgesetzt" for solidarity surcharge, "kirchensteuer_festgesetzt" for church tax,
+     "gesamtbetrag_der_einkuenfte" for total income (Gesamtbetrag der Einkünfte),
+     "zu_versteuerndes_einkommen" for taxable income, "nachzahlung" for remaining amount due (zu wenig entrichtet),
+     "erstattung" for refund (zu viel entrichtet), "bereits_getilgt" for prepaid amounts.
+   - IMPORTANT: Do NOT include Vorauszahlungen (prepayments) for future tax years — only extract values
+     for the assessment period itself.
+   - For invoices: use "invoice_total", "subtotal", "vat"
+   - For insurance: use "premium", "deductible"
+   - For bank statements: use "opening_balance", "closing_balance"
 6. Key entities (organizations, people, reference numbers)
 7. Document frequency: yearly, monthly, quarterly, or one-time
 8. Time period covered (e.g., "2024", "2024-03", "2024-Q1")
@@ -40,13 +50,16 @@ Extract:
 
 Return JSON only:
 {{
-  "title": "Tax Return 2023 - Finanzamt Fürth",
+  "title": "Einkommensteuerbescheid 2023 - Finanzamt Fürth",
   "document_type": "tax_return",
   "document_date": "2023-12-31",
   "category": "tax",
   "amounts": [
-    {{"label": "total_tax", "value": 15234.56, "currency": "EUR"}},
-    {{"label": "taxable_income", "value": 68000.00, "currency": "EUR"}}
+    {{"label": "einkommensteuer_festgesetzt", "value": 15234.56, "currency": "EUR"}},
+    {{"label": "solidaritaetszuschlag_festgesetzt", "value": 839.90, "currency": "EUR"}},
+    {{"label": "gesamtbetrag_der_einkuenfte", "value": 95000.00, "currency": "EUR"}},
+    {{"label": "zu_versteuerndes_einkommen", "value": 68000.00, "currency": "EUR"}},
+    {{"label": "nachzahlung", "value": 1200.00, "currency": "EUR"}}
   ],
   "entities": [
     {{"type": "organization", "name": "Finanzamt Fürth"}},
