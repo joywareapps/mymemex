@@ -210,11 +210,19 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
 
     if config.mcp.enabled and os.environ.get("DEMO_MODE") != "true":
         try:
+            from mcp.server.transport_security import TransportSecuritySettings
+
             from .mcp import create_mcp_server
             from .middleware.mcp_auth import MCPAuthMiddleware
 
             mcp_server = create_mcp_server(config)
-            mcp_http_app = mcp_server.streamable_http_app()
+            mcp_http_app = mcp_server.streamable_http_app(
+                # Mount at root so /mcp maps to /mcp, not /mcp/mcp
+                streamable_http_path="/",
+                transport_security=TransportSecuritySettings(
+                    enable_dns_rebinding_protection=False,
+                ),
+            )
             # Store session manager so lifespan can start it
             app.state.mcp_session_manager = mcp_server.session_manager
             if config.mcp.auth.mode != "none":

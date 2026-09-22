@@ -5,8 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
-from mcp.server.fastmcp import FastMCP
-from mcp.server.transport_security import TransportSecuritySettings
+from mcp.server.mcpserver import MCPServer
 
 from ..config import AppConfig, load_config
 from ..storage.database import init_database
@@ -20,14 +19,14 @@ class MyMemexContext:
 
 
 @asynccontextmanager
-async def lifespan(server: FastMCP[MyMemexContext]):
+async def lifespan(server: MCPServer[MyMemexContext]):
     """Initialize database and yield config for tool handlers."""
     config = server._mymemex_config  # type: ignore[attr-defined]
     await init_database(config.database.path)
     yield MyMemexContext(config=config)
 
 
-def create_mcp_server(config: AppConfig | None = None) -> FastMCP[MyMemexContext]:
+def create_mcp_server(config: AppConfig | None = None) -> MCPServer[MyMemexContext]:
     """Create and configure the MCP server."""
     import os
     if os.environ.get("DEMO_MODE") == "true":
@@ -36,17 +35,15 @@ def create_mcp_server(config: AppConfig | None = None) -> FastMCP[MyMemexContext
     if config is None:
         config = load_config()
 
-    mcp = FastMCP(
+    # NOTE: streamable_http_path and transport_security moved to
+    # streamable_http_app() in mcp 2.x — see app.py where the ASGI app is built.
+    mcp = MCPServer(
         "mymemex",
         instructions=(
             "MyMemex is a document intelligence platform. "
             "Use the available tools to search, browse, and manage documents."
         ),
         lifespan=lifespan,
-        streamable_http_path="/",  # mount at root so /mcp maps to /mcp not /mcp/mcp
-        transport_security=TransportSecuritySettings(
-            enable_dns_rebinding_protection=False,
-        ),
     )
 
     # Stash config so lifespan can access it

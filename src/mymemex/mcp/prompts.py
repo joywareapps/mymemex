@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.prompts.base import UserMessage
+from mcp.server.mcpserver import MCPServer, UserMessage
 
 
-def register(mcp: FastMCP) -> None:
+def register(mcp: MCPServer) -> None:
     """Register all MCP prompts."""
 
     @mcp.prompt()

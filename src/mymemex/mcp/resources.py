@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import json
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 from ..storage.database import get_session
 from .server import MyMemexContext
 
 
-def register(mcp: FastMCP) -> None:
+def register(mcp: MCPServer) -> None:
     """Register all MCP resources."""
 
     @mcp.resource("library://tags", name="All Tags", description="All tags with document counts")

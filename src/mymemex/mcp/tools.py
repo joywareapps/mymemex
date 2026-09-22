@@ -5,7 +5,7 @@ from __future__ import annotations
 import base64
 import json
 
-from mcp.server.fastmcp import Context, FastMCP
+from mcp.server.mcpserver import Context, MCPServer
 
 from ..services import (
     NotFoundError,
@@ -20,7 +20,7 @@ def _get_ctx(ctx: Context) -> MyMemexContext:
     return ctx.request_context.lifespan_context
 
 
-def register(mcp: FastMCP) -> None:
+def register(mcp: MCPServer) -> None:
     """Register all MCP tools."""
 
     @mcp.tool()

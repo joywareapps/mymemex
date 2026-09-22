@@ -395,9 +395,9 @@ async def test_stats_resource(seeded_db, mcp_config):
 async def test_search_and_summarize_prompt():
     """search_and_summarize prompt should return formatted message."""
     from mymemex.mcp.prompts import register
-    from mcp.server.fastmcp import FastMCP
+    from mcp.server.mcpserver import MCPServer
 
-    mcp = FastMCP("test")
+    mcp = MCPServer("test")
     register(mcp)
 
     # Verify the prompt is registered by getting it
@@ -410,9 +410,9 @@ async def test_search_and_summarize_prompt():
 async def test_compare_documents_prompt():
     """compare_documents prompt should include document IDs."""
     from mymemex.mcp.prompts import register
-    from mcp.server.fastmcp import FastMCP
+    from mcp.server.mcpserver import MCPServer
 
-    mcp = FastMCP("test")
+    mcp = MCPServer("test")
     register(mcp)
 
     prompt = await mcp.get_prompt("compare_documents", {"document_ids": "1, 2, 3"})

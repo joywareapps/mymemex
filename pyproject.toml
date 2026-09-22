@@ -71,7 +71,7 @@ ai = [
     "chromadb>=0.6",
 ]
 mcp = [
-    "mcp>=1.26",
+    "mcp>=2.2",
 ]
 demo = [
     "faker>=33.0",

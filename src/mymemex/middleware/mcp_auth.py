@@ -28,7 +28,7 @@ class MCPAuthMiddleware:
     """
     Wraps the MCP HTTP app with token / IP-whitelist authentication.
 
-    Mounted as an ASGI wrapper around the FastMCP streamable_http_app so it
+    Mounted as an ASGI wrapper around the MCPServer streamable_http_app so it
     only applies to /mcp requests, not the rest of the FastAPI app.
     """
 
