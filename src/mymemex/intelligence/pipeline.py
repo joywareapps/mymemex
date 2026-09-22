@@ -31,6 +31,7 @@ async def embed_pending_chunks(config: AppConfig) -> int:
         api_base=config.llm.api_base,
         embedding_model=config.ai.embedding_model,
         timeout=config.llm.timeout,
+        provider=config.llm.provider,
     )
 
     if not await embedder.is_available():

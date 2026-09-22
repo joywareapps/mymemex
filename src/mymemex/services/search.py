@@ -54,6 +54,7 @@ class SearchService:
         embedder = Embedder(
             api_base=self.config.llm.api_base,
             embedding_model=self.config.ai.embedding_model,
+            provider=self.config.llm.provider,
         )
         if not await embedder.is_available():
             raise ServiceUnavailableError(
@@ -98,6 +99,7 @@ class SearchService:
                     embedder = Embedder(
                         api_base=self.config.llm.api_base,
                         embedding_model=self.config.ai.embedding_model,
+                        provider=self.config.llm.provider,
                     )
                     if await embedder.is_available():
                         query_embedding = await embedder.embed(query)

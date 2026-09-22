@@ -58,8 +58,11 @@ class LLMConfig(BaseSettings):
         extra="ignore",
     )
 
-    provider: Literal["ollama", "openai", "anthropic", "none"] = "none"
+    provider: Literal["ollama", "lmstudio", "openai", "anthropic", "none"] = "none"
     model: str = ""
+    # Base URL for self-hosted providers. Ollama defaults to :11434; LM Studio
+    # serves an OpenAI-compatible API on :1234 (point api_base at its root or
+    # at /v1 — both are accepted).
     api_base: str = "http://localhost:11434"
     api_key: str | None = None  # For cloud providers (OpenAI, Anthropic)
     max_concurrent: int = 2

@@ -115,13 +115,42 @@ class OllamaClient(LLMClient):
             raise ValueError(f"Invalid JSON from LLM: {e}")
 
 
-class OpenAIClient(LLMClient):
-    """OpenAI-compatible LLM client."""
+def _normalise_openai_base(api_base: str, default: str) -> str:
+    """Return an OpenAI-compatible base URL ending in /v1.
 
-    def __init__(self, config: LLMConfig, api_key: str):
+    Accepts a bare host ("http://box:1234") or one that already includes the
+    version suffix ("http://box:1234/v1").
+    """
+    base = (api_base or "").strip().rstrip("/")
+    if not base:
+        return default
+    return base if base.endswith("/v1") else f"{base}/v1"
+
+
+class OpenAIClient(LLMClient):
+    """OpenAI-compatible LLM client.
+
+    Talks to any server implementing /v1/chat/completions, so it also backs
+    self-hosted gateways. `json_mode` uses response_format=json_object, which
+    OpenAI itself supports; servers that do not are handled by subclasses.
+    """
+
+    DEFAULT_BASE = "https://api.openai.com/v1"
+
+    def __init__(self, config: LLMConfig, api_key: str | None = None):
         self.config = config
         self.api_key = api_key
+        self.base_url = _normalise_openai_base(
+            config.api_base if config.provider != "openai" else "",
+            self.DEFAULT_BASE,
+        )
         self._client = httpx.AsyncClient(timeout=config.timeout)
+
+    def _headers(self) -> dict[str, str]:
+        return {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+
+    def _json_response_format(self) -> dict[str, Any]:
+        return {"type": "json_object"}
 
     async def generate(
         self,
@@ -140,12 +169,12 @@ class OpenAIClient(LLMClient):
             "messages": messages,
         }
         if json_mode:
-            payload["response_format"] = {"type": "json_object"}
+            payload["response_format"] = self._json_response_format()
 
         response = await self._client.post(
-            "https://api.openai.com/v1/chat/completions",
+            f"{self.base_url}/chat/completions",
             json=payload,
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers=self._headers(),
         )
         response.raise_for_status()
         return response.json()["choices"][0]["message"]["content"]
@@ -162,6 +191,46 @@ class OpenAIClient(LLMClient):
         except json.JSONDecodeError as e:
             log.error("Failed to parse OpenAI JSON", error=str(e))
             raise ValueError(f"Invalid JSON from OpenAI: {e}")
+
+
+class LMStudioClient(OpenAIClient):
+    """LM Studio client (OpenAI-compatible server, default port 1234).
+
+    Differs from OpenAI in two ways:
+    - No API key: LM Studio serves unauthenticated on the local network.
+    - JSON mode: it rejects response_format={"type": "json_object"} with
+      "'response_format.type' must be 'json_schema' or 'text'", so we ask for
+      a json_schema with a permissive object schema, which constrains decoding
+      to valid JSON without pinning the caller to a fixed set of fields.
+    """
+
+    DEFAULT_BASE = "http://localhost:1234/v1"
+
+    def __init__(self, config: LLMConfig):
+        super().__init__(config, api_key=config.api_key)
+
+    def _json_response_format(self) -> dict[str, Any]:
+        return {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "response",
+                "strict": False,
+                "schema": {"type": "object"},
+            },
+        }
+
+    async def generate_json(
+        self,
+        prompt: str,
+        system: str | None = None,
+    ) -> dict[str, Any]:
+        """Generate JSON via LM Studio."""
+        text = await self.generate(prompt, system=system, json_mode=True)
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as e:
+            log.error("Failed to parse LM Studio JSON", error=str(e), text=text[:200])
+            raise ValueError(f"Invalid JSON from LM Studio: {e}")
 
 
 class AnthropicClient(LLMClient):
@@ -235,6 +304,8 @@ def create_llm_client(config: LLMConfig) -> LLMClient:
     client: LLMClient
     if config.provider == "ollama":
         client = OllamaClient(config)
+    elif config.provider == "lmstudio":
+        client = LMStudioClient(config)
     elif config.provider == "openai":
         api_key = config.api_key or os.environ.get("OPENAI_API_KEY")
         if not api_key:
