@@ -14,7 +14,9 @@ echo "📥 Fetching latest code from demo-version branch..."
 git fetch origin
 git checkout demo-version
 git reset --hard origin/demo-version
-chmod +x scripts/deploy-demo.sh
+# Best-effort: scripts owned by another user cannot be chmod'ed by the
+# deploying user, and they are already executable anyway.
+chmod +x scripts/deploy-demo.sh || true
 
 echo "🛑 Stopping existing demo container..."
 docker stop mymemex-demo 2>/dev/null || true

@@ -25,7 +25,9 @@ git fetch origin
 git checkout main
 git reset --hard origin/main
 git pull origin main
-chmod +x scripts/*.sh
+# Best-effort: scripts owned by another user cannot be chmod'ed by the
+# deploying user, and they are already executable anyway.
+chmod +x scripts/*.sh || true
 
 # Ensure inbox/archive dirs exist under LIBRARY_PATH
 if [ -f ".env" ]; then
