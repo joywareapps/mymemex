@@ -277,13 +277,24 @@ class ChunkRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
+    # Effective document date: the document's own date when known, falling back
+    # to progressively weaker signals. Stored as ISO text in SQLite, so plain
+    # string comparison orders these chronologically.
+    _DOC_DATE_SQL = (
+        "COALESCE(d.document_date, d.created_date, d.file_modified_at, d.ingested_at)"
+    )
+
     async def fulltext_search(
         self,
         query: str,
         page: int = 1,
         per_page: int = 50,
+        sort: str = "date",
     ) -> tuple[list[dict], int]:
-        """Full-text search using FTS5."""
+        """Full-text search using FTS5.
+
+        sort: "date" (newest document first, default) or "relevance" (FTS5 rank).
+        """
         # Count total matches
         count_result = await self.session.execute(
             text("SELECT COUNT(*) FROM chunks_fts WHERE chunks_fts MATCH :q"),
@@ -293,9 +304,16 @@ class ChunkRepository:
 
         offset = (page - 1) * per_page
 
+        # Ordering is applied in SQL so that pagination windows over the whole
+        # result set, not just the current page.
+        if sort == "relevance":
+            order_by = "rank"
+        else:
+            order_by = f"{self._DOC_DATE_SQL} DESC, rank"
+
         # Search with ranking
         result = await self.session.execute(
-            text("""
+            text(f"""
                 SELECT
                     c.id,
                     c.document_id,
@@ -307,8 +325,9 @@ class ChunkRepository:
                     rank
                 FROM chunks_fts
                 JOIN chunks c ON c.id = chunks_fts.rowid
+                JOIN documents d ON d.id = c.document_id
                 WHERE chunks_fts MATCH :q
-                ORDER BY rank
+                ORDER BY {order_by}
                 LIMIT :limit OFFSET :offset
             """),
             {"q": query, "limit": per_page, "offset": offset},

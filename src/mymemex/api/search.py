@@ -27,6 +27,9 @@ class KeywordSearchResult(BaseModel):
     rank: float
     tags: list[str] = []
     category: str | None = None
+    document_date: str | None = None
+    effective_date: str | None = None
+    date_source: str | None = None
 
 
 class KeywordSearchResponse(BaseModel):
@@ -36,6 +39,7 @@ class KeywordSearchResponse(BaseModel):
     per_page: int
     query: str
     search_mode: str = "keyword"
+    sort: str = "date"
 
 
 class SemanticSearchResult(BaseModel):
@@ -46,6 +50,9 @@ class SemanticSearchResult(BaseModel):
     text: str
     distance: float
     tags: list[str] = []
+    document_date: str | None = None
+    effective_date: str | None = None
+    date_source: str | None = None
 
 
 class SemanticSearchResponse(BaseModel):
@@ -53,6 +60,7 @@ class SemanticSearchResponse(BaseModel):
     total: int
     query: str
     search_mode: str = "semantic"
+    sort: str = "date"
 
 
 class HybridSearchResult(BaseModel):
@@ -63,6 +71,9 @@ class HybridSearchResult(BaseModel):
     text: str | None = None
     score: float
     tags: list[str] = []
+    document_date: str | None = None
+    effective_date: str | None = None
+    date_source: str | None = None
 
 
 class HybridSearchResponse(BaseModel):
@@ -72,6 +83,7 @@ class HybridSearchResponse(BaseModel):
     keyword_count: int
     semantic_count: int
     search_mode: str = "hybrid"
+    sort: str = "date"
 
 
 # --- Endpoints ---
@@ -83,6 +95,11 @@ async def keyword_search(
     q: str = Query(..., min_length=1, description="Search query"),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
+    sort: str = Query(
+        "date",
+        pattern="^(date|relevance)$",
+        description="Result order (default: newest document first)",
+    ),
 ):
     """
     Full-text keyword search using SQLite FTS5.
@@ -96,7 +113,7 @@ async def keyword_search(
     """
     async with get_session() as session:
         service = SearchService(session, request.app.state.config)
-        results, total = await service.keyword_search(q, page, per_page)
+        results, total = await service.keyword_search(q, page, per_page, sort=sort)
 
         return KeywordSearchResponse(
             results=[KeywordSearchResult(**r) for r in results],
@@ -104,6 +121,7 @@ async def keyword_search(
             page=page,
             per_page=per_page,
             query=q,
+            sort=sort,
         )
 
 
@@ -112,6 +130,11 @@ async def semantic_search(
     request: Request,
     q: str = Query(..., min_length=1, description="Search query"),
     limit: int = Query(10, ge=1, le=100),
+    sort: str = Query(
+        "date",
+        pattern="^(date|relevance)$",
+        description="Result order (default: newest document first)",
+    ),
 ):
     """
     Semantic search using vector embeddings.
@@ -122,7 +145,7 @@ async def semantic_search(
     async with get_session() as session:
         service = SearchService(session, request.app.state.config)
         try:
-            results = await service.semantic_search(q, limit)
+            results = await service.semantic_search(q, limit, sort=sort)
         except ServiceUnavailableError as e:
             raise HTTPException(503, str(e))
         except ServiceError as e:
@@ -132,6 +155,7 @@ async def semantic_search(
             results=[SemanticSearchResult(**r) for r in results],
             total=len(results),
             query=q,
+            sort=sort,
         )
 
 
@@ -141,6 +165,11 @@ async def hybrid_search(
     q: str = Query(..., min_length=1, description="Search query"),
     limit: int = Query(10, ge=1, le=100),
     keyword_weight: float = Query(0.3, ge=0.0, le=1.0),
+    sort: str = Query(
+        "date",
+        pattern="^(date|relevance)$",
+        description="Result order (default: newest document first)",
+    ),
 ):
     """
     Hybrid search: combines FTS5 keyword + semantic vector search.
@@ -150,7 +179,7 @@ async def hybrid_search(
     """
     async with get_session() as session:
         service = SearchService(session, request.app.state.config)
-        data = await service.hybrid_search(q, limit, keyword_weight)
+        data = await service.hybrid_search(q, limit, keyword_weight, sort=sort)
 
         return HybridSearchResponse(
             results=[HybridSearchResult(**r) for r in data["results"]],
@@ -158,4 +187,5 @@ async def hybrid_search(
             query=q,
             keyword_count=data["keyword_count"],
             semantic_count=data["semantic_count"],
+            sort=sort,
         )

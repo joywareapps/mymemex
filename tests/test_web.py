@@ -177,6 +177,43 @@ def test_search_no_results(web_client):
     assert "No results found" in resp.text
 
 
+def test_search_offers_sort_control_defaulting_to_date(web_client):
+    """Search form exposes the sort order, with newest-first preselected."""
+    resp = web_client.get("/ui/search?q=insurance")
+    assert resp.status_code == 200
+    assert 'name="sort"' in resp.text
+    assert '<option value="date" selected>Newest first</option>' in resp.text
+
+
+def test_search_result_shows_document_date(web_client):
+    """Each result renders its date next to page and score."""
+    from datetime import datetime
+
+    resp = web_client.get("/ui/search?q=insurance")
+    assert resp.status_code == 200
+
+    # Seeded doc has no extracted date, so it falls back to file mtime
+    # and is marked with an asterisk.
+    expected = datetime.fromtimestamp(1700000000.0).strftime("%Y-%m-%d")
+    assert expected in resp.text
+    assert "No document date extracted" in resp.text
+    assert "Page 1" in resp.text
+
+
+def test_search_relevance_sort_selected_when_requested(web_client):
+    """sort=relevance is honoured and reflected in the form."""
+    resp = web_client.get("/ui/search?q=insurance&sort=relevance")
+    assert resp.status_code == 200
+    assert '<option value="relevance" selected>Relevance</option>' in resp.text
+
+
+def test_search_rejects_unknown_sort(web_client):
+    """An unknown sort value falls back to the default rather than erroring."""
+    resp = web_client.get("/ui/search?q=insurance&sort=bogus")
+    assert resp.status_code == 200
+    assert '<option value="date" selected>Newest first</option>' in resp.text
+
+
 # --- Tags ---
 
 

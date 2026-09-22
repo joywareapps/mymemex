@@ -29,6 +29,7 @@ def register(mcp: FastMCP) -> None:
         mode: str = "hybrid",
         limit: int = 10,
         user_filter: str | None = None,
+        sort: str = "date",
         ctx: Context = None,
     ) -> str:
         """Search the document library using keyword, semantic, or hybrid search.
@@ -38,6 +39,7 @@ def register(mcp: FastMCP) -> None:
             mode: Search mode — keyword, semantic, or hybrid (default: hybrid).
             limit: Maximum results to return (default: 10).
             user_filter: Filter results to documents tagged user:{user_filter} or uploaded by that user.
+            sort: Result order — date (newest document first, default) or relevance.
         """
         lctx = _get_ctx(ctx)
         try:
@@ -51,17 +53,25 @@ def register(mcp: FastMCP) -> None:
 
                 if mode == "keyword":
                     results, total = await service.keyword_search(
-                        query, page=1, per_page=limit, tag=tag_filter
+                        query, page=1, per_page=limit, sort=sort
                     )
+                    # Apply user filter post-hoc, as the other modes do
+                    if tag_filter:
+                        results = [r for r in results if tag_filter in r.get("tags", [])]
+                        total = len(results)
                     return _format_keyword_results(results, total, query, mode)
                 elif mode == "semantic":
-                    results = await service.semantic_search(query, limit=limit)
+                    results = await service.semantic_search(
+                        query, limit=limit, sort=sort
+                    )
                     # Apply user filter post-hoc for semantic results
                     if tag_filter:
                         results = [r for r in results if tag_filter in r.get("tags", [])]
                     return _format_semantic_results(results, query, mode)
                 else:
-                    data = await service.hybrid_search(query, limit=limit)
+                    data = await service.hybrid_search(
+                        query, limit=limit, sort=sort
+                    )
                     # Apply user filter post-hoc for hybrid results
                     if tag_filter:
                         data["results"] = [
@@ -510,10 +520,21 @@ def register(mcp: FastMCP) -> None:
 # --- Formatting helpers ---
 
 
+def _result_date(r: dict) -> str:
+    """Render a result's date, marking it when it is not the document's own."""
+    value = r.get("effective_date")
+    if not value:
+        return ""
+    suffix = "" if r.get("date_source") == "document" else f" ({r.get('date_source')})"
+    return f"{value[:10]}{suffix}"
+
+
 def _format_keyword_results(results: list[dict], total: int, query: str, mode: str) -> str:
     lines = [f"Found {total} results for '{query}' ({mode} search):\n"]
     for r in results:
         lines.append(f"- **{r.get('title') or r['original_filename']}** (ID: {r['document_id']})")
+        if _result_date(r):
+            lines.append(f"  Date: {_result_date(r)}")
         if r.get("page_number"):
             lines.append(f"  Page: {r['page_number']}")
         lines.append(f"  Snippet: {r['snippet'][:200]}")
@@ -528,6 +549,8 @@ def _format_semantic_results(results: list[dict], query: str, mode: str) -> str:
     for r in results:
         title = r.get("title") or r.get("original_filename") or f"Chunk {r['chunk_id']}"
         lines.append(f"- **{title}** (ID: {r['document_id']}, distance: {r['distance']:.3f})")
+        if _result_date(r):
+            lines.append(f"  Date: {_result_date(r)}")
         lines.append(f"  {r['text'][:200]}")
         if r.get("tags"):
             lines.append(f"  Tags: {', '.join(r['tags'])}")
@@ -544,6 +567,8 @@ def _format_hybrid_results(data: dict, query: str) -> str:
     for r in results:
         title = r.get("title") or r.get("original_filename") or f"Chunk {r['chunk_id']}"
         lines.append(f"- **{title}** (ID: {r['document_id']}, score: {r['score']:.4f})")
+        if _result_date(r):
+            lines.append(f"  Date: {_result_date(r)}")
         if r.get("text"):
             lines.append(f"  {r['text'][:200]}")
         if r.get("tags"):

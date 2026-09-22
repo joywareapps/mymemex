@@ -13,6 +13,10 @@
             <option value="keyword" {{ "selected" if mode == "keyword" else "" }}>Keyword</option>
             <option value="hybrid" {{ "selected" if mode == "hybrid" else "" }}>Hybrid</option>
         </select>
+        <select name="sort" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200">
+            <option value="date" {{ "selected" if sort == "date" else "" }}>Newest first</option>
+            <option value="relevance" {{ "selected" if sort == "relevance" else "" }}>Relevance</option>
+        </select>
         <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors duration-200">
             Search
         </button>
@@ -41,12 +45,17 @@
                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{{ r.text[:200] }}</p>
                     {% endif %}
                     <div class="mt-2 flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+                        {% if r.get("effective_date") %}
+                        <span {% if r.date_source != "document" %}title="No document date extracted — showing {{ r.date_source }} date"{% endif %}>
+                            {{ r.effective_date[:10] }}{% if r.date_source != "document" %}*{% endif %}
+                        </span>
+                        {% endif %}
                         {% if r.get("page_number") %}
                         <span>Page {{ r.page_number }}</span>
                         {% endif %}
-                        {% if r.get("rank") %}
+                        {% if r.get("rank") is not none %}
                         <span>Score: {{ "%.2f"|format(r.rank) }}</span>
-                        {% elif r.get("score") %}
+                        {% elif r.get("score") is not none %}
                         <span>Score: {{ "%.2f"|format(r.score) }}</span>
                         {% endif %}
                     </div>
@@ -67,12 +76,12 @@
     {% if mode == "keyword" and total_pages > 1 %}
     <div class="flex justify-center mt-6 space-x-2">
         {% if page > 1 %}
-        <a href="?q={{ query }}&mode={{ mode }}&page={{ page - 1 }}&per_page={{ per_page }}"
+        <a href="?q={{ query }}&mode={{ mode }}&sort={{ sort }}&page={{ page - 1 }}&per_page={{ per_page }}"
            class="px-3 py-1 text-sm border dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors duration-200">Previous</a>
         {% endif %}
         <span class="px-3 py-1 text-sm text-gray-600 dark:text-gray-400">Page {{ page }} of {{ total_pages }}</span>
         {% if page < total_pages %}
-        <a href="?q={{ query }}&mode={{ mode }}&page={{ page + 1 }}&per_page={{ per_page }}"
+        <a href="?q={{ query }}&mode={{ mode }}&sort={{ sort }}&page={{ page + 1 }}&per_page={{ per_page }}"
            class="px-3 py-1 text-sm border dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors duration-200">Next</a>
         {% endif %}
     </div>

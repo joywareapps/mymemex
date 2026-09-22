@@ -101,8 +101,12 @@ async def search_page(
     mode: str = "keyword",
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
+    sort: str = "date",
 ):
     """Search results page."""
+    if sort not in ("date", "relevance"):
+        sort = "date"
+
     results = []
     total = 0
     error = None
@@ -114,13 +118,15 @@ async def search_page(
 
             if mode == "hybrid":
                 try:
-                    data = await service.hybrid_search(q, limit=per_page)
+                    data = await service.hybrid_search(q, limit=per_page, sort=sort)
                     results = data["results"]
                     total = len(results)
                 except Exception as e:
                     error = str(e)
             else:
-                search_results, total = await service.keyword_search(q, page, per_page)
+                search_results, total = await service.keyword_search(
+                    q, page, per_page, sort=sort
+                )
                 results = search_results
 
     total_pages = max(1, (total + per_page - 1) // per_page) if total else 1
@@ -128,6 +134,7 @@ async def search_page(
     return templates.TemplateResponse(request, "search.html", {
         "query": q or "",
         "mode": mode,
+        "sort": sort,
         "results": results,
         "total": total,
         "page": page,

@@ -23,17 +23,25 @@ class SearchService:
         self.tag_repo = TagRepository(session)
 
     async def keyword_search(
-        self, query: str, page: int = 1, per_page: int = 20
+        self, query: str, page: int = 1, per_page: int = 20, sort: str = "date"
     ) -> tuple[list[dict], int]:
-        """Full-text keyword search using SQLite FTS5."""
+        """Full-text keyword search using SQLite FTS5.
+
+        sort: "date" (newest document first, default) or "relevance".
+        """
         rows, total = await self.chunk_repo.fulltext_search(
-            query, page=page, per_page=per_page
+            query, page=page, per_page=per_page, sort=sort
         )
         results = await self._enrich_keyword_results(rows)
         return results, total
 
-    async def semantic_search(self, query: str, limit: int = 10) -> list[dict]:
-        """Semantic search using vector embeddings."""
+    async def semantic_search(
+        self, query: str, limit: int = 10, sort: str = "date"
+    ) -> list[dict]:
+        """Semantic search using vector embeddings.
+
+        sort: "date" (newest document first, default) or "relevance".
+        """
         if not self.config.ai.semantic_search_enabled:
             raise ServiceUnavailableError("Semantic search disabled in configuration")
 
@@ -61,14 +69,22 @@ class SearchService:
             query_embedding=query_embedding, n_results=limit
         )
 
-        return await self._enrich_semantic_results(vector_results)
+        results = await self._enrich_semantic_results(vector_results)
+        return self._apply_sort(results, sort)
 
     async def hybrid_search(
-        self, query: str, limit: int = 10, keyword_weight: float = 0.3
+        self,
+        query: str,
+        limit: int = 10,
+        keyword_weight: float = 0.3,
+        sort: str = "date",
     ) -> dict:
         """Hybrid search combining keyword + semantic with RRF merge.
 
         Falls back to keyword-only when semantic search is unavailable.
+
+        sort: "date" (newest document first, default) or "relevance". Relevance
+        always decides *which* results make the cut; sort only orders them.
         """
         keyword_results = await self._keyword_search_raw(query, limit * 2)
 
@@ -100,7 +116,7 @@ class SearchService:
         enriched = await self._enrich_hybrid_results(merged[:limit])
 
         return {
-            "results": enriched,
+            "results": self._apply_sort(enriched, sort),
             "keyword_count": len(keyword_results),
             "semantic_count": len(semantic_results),
         }
@@ -108,9 +124,55 @@ class SearchService:
     # --- Private helpers ---
 
     async def _keyword_search_raw(self, query: str, limit: int) -> list[dict]:
-        """Run keyword search returning raw results for RRF merging."""
-        rows, _ = await self.chunk_repo.fulltext_search(query, page=1, per_page=limit)
+        """Run keyword search returning raw results for RRF merging.
+
+        Always relevance-ordered: RRF fuses by *rank*, so feeding it a
+        date-ordered list would corrupt the fused scores.
+        """
+        rows, _ = await self.chunk_repo.fulltext_search(
+            query, page=1, per_page=limit, sort="relevance"
+        )
         return rows
+
+    # Weakest-to-strongest fallbacks for "the date of this document".
+    _DATE_FIELDS = (
+        ("document_date", "document"),
+        ("created_date", "created"),
+        ("file_modified_at", "modified"),
+        ("ingested_at", "ingested"),
+    )
+
+    @classmethod
+    def _doc_dates(cls, doc) -> tuple[str | None, str | None, str | None]:
+        """Return (document_date, effective_date, date_source) as ISO strings."""
+        if doc is None:
+            return None, None, None
+
+        document_date = getattr(doc, "document_date", None)
+        for field, source in cls._DATE_FIELDS:
+            value = getattr(doc, field, None)
+            if value:
+                return (
+                    document_date.isoformat() if document_date else None,
+                    value.isoformat(),
+                    source,
+                )
+        return None, None, None
+
+    @staticmethod
+    def _apply_sort(results: list[dict], sort: str) -> list[dict]:
+        """Order already-scored results for display.
+
+        Relevance order is whatever the caller produced, so it is left alone.
+        Undated results sort last rather than jumping to the top.
+        """
+        if sort == "relevance":
+            return results
+        return sorted(
+            results,
+            key=lambda r: (r.get("effective_date") is not None, r.get("effective_date") or ""),
+            reverse=True,
+        )
 
     @staticmethod
     def _reciprocal_rank_fusion(
@@ -169,6 +231,7 @@ class SearchService:
                 continue
 
             tags = await self.tag_repo.get_document_tags(doc_id)
+            document_date, effective_date, date_source = self._doc_dates(doc)
             results.append({
                 "document_id": doc_id,
                 "title": doc.title,
@@ -181,6 +244,9 @@ class SearchService:
                 "rank": row["rank"],
                 "tags": tags,
                 "category": doc.category,
+                "document_date": document_date,
+                "effective_date": effective_date,
+                "date_source": date_source,
             })
 
         return results
@@ -197,6 +263,7 @@ class SearchService:
 
             doc = doc_cache.get(doc_id)
             tags = await self.tag_repo.get_document_tags(doc_id) if doc else []
+            document_date, effective_date, date_source = self._doc_dates(doc)
 
             results.append({
                 "document_id": doc_id,
@@ -206,6 +273,9 @@ class SearchService:
                 "text": vr["text"],
                 "distance": vr["distance"],
                 "tags": tags,
+                "document_date": document_date,
+                "effective_date": effective_date,
+                "date_source": date_source,
             })
 
         return results
@@ -222,6 +292,7 @@ class SearchService:
 
             doc = doc_cache.get(doc_id) if doc_id else None
             tags = await self.tag_repo.get_document_tags(doc_id) if doc_id else []
+            document_date, effective_date, date_source = self._doc_dates(doc)
 
             results.append({
                 "document_id": doc_id or 0,
@@ -231,6 +302,9 @@ class SearchService:
                 "text": item.get("text"),
                 "score": item["score"],
                 "tags": tags,
+                "document_date": document_date,
+                "effective_date": effective_date,
+                "date_source": date_source,
             })
 
         return results
